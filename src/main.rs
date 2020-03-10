@@ -162,7 +162,7 @@ fn export_keys(opts: ExportKeysOpts) {
         copy_json(opts.reference_pk, &opts.pk);
         println!("Created {} and {}.", opts.pk, opts.vk);
     } else {
-        println!("Created {}, proving key export skipped because reference key {} does not exist", opts.vk, opts.vk);
+        println!("Created {}, proving key export skipped because reference key {} does not exist", opts.vk, opts.reference_pk);
     }
 }
 

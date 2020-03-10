@@ -12,4 +12,4 @@ template Num2Bits(n) {
     lc1 === in;
 }
 
-component main = Num2Bits(253);
+component main = Num2Bits(8);

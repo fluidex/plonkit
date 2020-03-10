@@ -24,6 +24,7 @@ Or you can compile and run it instead:
 
 ```shell script
 git clone https://github.com/poma/zkutil
+cd zkutil
 cargo run --release -- prove --help
 ```
 
