@@ -1,0 +1,33 @@
+[package]
+name = "zkutil"
+version = "0.1.0"
+authors = ["Roman Semenov <semenov.roma@gmail.com>"]
+description = "Library for working with circom circuits"
+documentation = "https://docs.rs/zkutil"
+homepage = "https://github.com/poma/zkutil"
+license = "MIT"
+repository = "https://github.com/poma/zkutil"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+
+[[bin]]
+name = "zkutil"
+path = "src/main.rs"
+
+[dependencies]
+rand = "0.4"
+byteorder = "1"
+exitcode = "1.1.2"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+num-bigint = "0.2.3"
+num-traits = "0.2.8"
+itertools = "0.8.1"
+cfg-if = "0.1.10"
+clap = { git = "https://github.com/clap-rs/clap" } # todo: replace with v3.0.0 when it's released to crates.io
+# bellman_ce = { version = "0.3.1", default-features = false } # active features depend on build type
+bellman_ce = { git = "https://github.com/poma/bellman", branch = "expose-points", default-features = false } # todo: change to upstream
+
+[features]
+default = ["bellman_ce/multicore"]
