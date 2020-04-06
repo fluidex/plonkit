@@ -20,6 +20,7 @@ use bellman_ce::{
     groth16::{
         Parameters,
         Proof,
+        generate_random_parameters as generate_random_parameters2,
         prepare_verifying_key,
         create_random_proof,
         verify_proof,
@@ -185,6 +186,10 @@ pub fn prove<E: Engine, R: Rng>(circuit: CircomCircuit<E>, params: &Parameters<E
     let mut params2 = params.clone();
     filter_params(&mut params2);
     return create_random_proof(circuit, &params2, &mut rng);
+}
+
+pub fn generate_random_parameters<E: Engine, R: Rng>(circuit: CircomCircuit<E>, mut rng: R) -> Result<Parameters<E>, SynthesisError> {
+    return generate_random_parameters2(circuit, &mut rng);
 }
 
 pub fn verify_circuit<E: Engine>(circuit: &CircomCircuit<E>, params: &Parameters<E>, proof: &Proof<E>) -> Result<bool, SynthesisError> {
