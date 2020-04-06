@@ -4,7 +4,7 @@ extern crate bellman_ce;
 extern crate zkutil;
 
 use std::fs;
-use std::fs::OpenOptions;
+use std::fs::File;
 use clap::Clap;
 use serde_json::*;
 use bellman_ce::pairing::bn256::Bn256;
@@ -166,14 +166,15 @@ fn verify(opts: VerifyOpts) {
 }
 
 fn setup(opts: SetupOpts) {
+    println!("Loading circuit...");
     let rng = create_rng();
     let circuit = circuit_from_json_file::<Bn256>(&opts.circuit);
+    println!("Generating trusted setup parameters...");
     let params = generate_random_parameters(circuit, rng).unwrap();
-    let writer = OpenOptions::new()
-        .write(true)
-        .open(opts.params)
-        .expect("unable to open.");
+    println!("Writing to file...");
+    let writer = File::create(opts.params).unwrap();
     params.write(writer).unwrap();
+    println!("Done!");
 }
 
 fn generate_verifier(opts: GenerateVerifierOpts) {
