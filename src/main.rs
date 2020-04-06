@@ -142,7 +142,7 @@ fn main() {
 fn prove(opts: ProveOpts) {
     let rng = create_rng();
     let params = load_params_file(&opts.params);
-    println!("Loading circuit...");
+    println!("Loading circuit from {}...", opts.circuit);
     let mut circuit = circuit_from_json_file(&opts.circuit);
     circuit.witness =  Some(witness_from_json_file::<Bn256>(&opts.witness));
     println!("Proving...");
@@ -166,15 +166,15 @@ fn verify(opts: VerifyOpts) {
 }
 
 fn setup(opts: SetupOpts) {
-    println!("Loading circuit...");
+    println!("Loading circuit from {}...", opts.circuit);
     let rng = create_rng();
     let circuit = circuit_from_json_file::<Bn256>(&opts.circuit);
     println!("Generating trusted setup parameters...");
     let params = generate_random_parameters(circuit, rng).unwrap();
     println!("Writing to file...");
-    let writer = File::create(opts.params).unwrap();
+    let writer = File::create(&opts.params).unwrap();
     params.write(writer).unwrap();
-    println!("Done!");
+    println!("Saved parameters to {}", opts.params);
 }
 
 fn generate_verifier(opts: GenerateVerifierOpts) {
