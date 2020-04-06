@@ -1,6 +1,6 @@
 [package]
 name = "zkutil"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Roman Semenov <semenov.roma@gmail.com>"]
 description = "Library for working with circom circuits"
 documentation = "https://docs.rs/zkutil"
@@ -25,7 +25,7 @@ num-bigint = "0.2.3"
 num-traits = "0.2.8"
 itertools = "0.8.1"
 cfg-if = "0.1.10"
-clap = { package = "clap-v3" } # todo: replace with official v3 when it's released to crates.io
+clap = { package = "clap-v3", version = "3.0.0-beta.1" } # todo: replace with official v3 when it's released to crates.io
 bellman_ce = { version = "0.3.3", default-features = false } # active features depend on build type
 
 [features]
