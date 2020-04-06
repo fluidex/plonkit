@@ -25,9 +25,8 @@ num-bigint = "0.2.3"
 num-traits = "0.2.8"
 itertools = "0.8.1"
 cfg-if = "0.1.10"
-clap = { git = "https://github.com/clap-rs/clap" } # todo: replace with v3.0.0 when it's released to crates.io
-# bellman_ce = { version = "0.3.1", default-features = false } # active features depend on build type
-bellman_ce = { git = "https://github.com/poma/bellman", branch = "expose-points", default-features = false } # todo: change to upstream
+clap = { package = "clap-v3" } # todo: replace with official v3 when it's released to crates.io
+bellman_ce = { version = "0.3.3", default-features = false } # active features depend on build type
 
 [features]
 default = ["bellman_ce/multicore"]

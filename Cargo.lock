@@ -28,8 +28,9 @@ checksum = "f8aac770f1885fd7e387acedd76065302551364496e46b3dd00860b2f8359b9d"
 
 [[package]]
 name = "bellman_ce"
-version = "0.3.2"
-source = "git+https://github.com/poma/bellman?branch=expose-points#2f6a07bb3143b3ccadf8aae2da42d31f3e5a2427"
+version = "0.3.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0300152b8d0c0220c70a39d6da08adff84352f5dd28d91944bc60e9dc8cbebb9"
 dependencies = [
  "bit-vec",
  "byteorder",
@@ -66,14 +67,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4785bdd1c96b2a846b2bd7cc02e86b6b3dbf14e7e53446c4f54c92a361040822"
 
 [[package]]
-name = "clap"
+name = "clap-v3"
 version = "3.0.0-beta.1"
-source = "git+https://github.com/clap-rs/clap#bc738e12c223666ac84fe29c74c21b4e276c5e59"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bfac055d61c39ace5061621530f7f55651a261a4fba296ce1bad06d41a8de65e"
 dependencies = [
  "ansi_term",
  "atty",
  "bitflags",
- "clap_derive",
+ "clap_derive-v3",
  "indexmap",
  "lazy_static",
  "strsim",
@@ -83,9 +85,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "clap_derive"
+name = "clap_derive-v3"
 version = "3.0.0-beta.1"
-source = "git+https://github.com/clap-rs/clap#bc738e12c223666ac84fe29c74c21b4e276c5e59"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c6dd675567eb3e35787bd2583d129e85fabc7503b0a093d08c51198a307e2091"
 dependencies = [
  "heck",
  "proc-macro-error",
@@ -179,9 +182,9 @@ checksum = "de853764b47027c2e862a995c34978ffa63c1501f2e15f987ba11bd4f9bba193"
 
 [[package]]
 name = "ff_ce"
-version = "0.8.0"
+version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "30059aa72a7b432b5e6ff5deff872c1e0bc0125ae7e1f4a706bbc1a41bc97a14"
+checksum = "83c0a6a2c53b0bd6d8cae976816dc8a171e0554c03f304e3dac110473e0219fd"
 dependencies = [
  "byteorder",
  "ff_derive_ce",
@@ -191,9 +194,9 @@ dependencies = [
 
 [[package]]
 name = "ff_derive_ce"
-version = "0.6.0"
+version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "511d05176bed9bbe784eea75140796545dcf4931bf10bbc79bc62e2f0a00bdc0"
+checksum = "7543567f0c51910363eb5706ee2f5368a64e79a8ae607d0332aa60bae03a1bb1"
 dependencies = [
  "num-bigint",
  "num-integer",
@@ -409,8 +412,9 @@ dependencies = [
 
 [[package]]
 name = "pairing_ce"
-version = "0.19.0"
-source = "git+https://github.com/poma/pairing?branch=expose-points#378f7498ed38f4487453e072fd90f8c7aedd49af"
+version = "0.20.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6c7b23aa7f0489d9a5e8e15cc5b7cb4f3e9b9d64812b8875fb91d25b640b0939"
 dependencies = [
  "byteorder",
  "ff_ce",
@@ -673,7 +677,7 @@ dependencies = [
  "bellman_ce",
  "byteorder",
  "cfg-if",
- "clap",
+ "clap-v3",
  "exitcode",
  "itertools",
  "num-bigint",

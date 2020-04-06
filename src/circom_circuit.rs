@@ -218,13 +218,21 @@ pub fn create_verifier_sol(params: &Parameters<Bn256>) -> String {
     let template = String::from_utf8_lossy(bytes);
 
     let p1_to_str = |p: &<Bn256 as Engine>::G1Affine| {
-        let xy = p.into_xy().unwrap();
+        if p.is_zero() {
+            // todo: throw instead
+            return String::from("<POINT_AT_INFINITY>")
+        }
+        let xy = p.into_xy_unchecked();
         let x = repr_to_big(xy.0.into_repr());
         let y = repr_to_big(xy.1.into_repr());
         return format!("uint256({}), uint256({})", x, y)
     };
     let p2_to_str = |p: &<Bn256 as Engine>::G2Affine| {
-        let xy = p.into_xy().unwrap();
+        if p.is_zero() {
+            // todo: throw instead
+            return String::from("<POINT_AT_INFINITY>")
+        }
+        let xy = p.into_xy_unchecked();
         let x_c0 = repr_to_big(xy.0.c0.into_repr());
         let x_c1 = repr_to_big(xy.0.c1.into_repr());
         let y_c0 = repr_to_big(xy.1.c0.into_repr());
@@ -256,9 +264,9 @@ pub fn create_verifier_sol_file(params: &Parameters<Bn256>, filename: &str) -> s
 pub fn proof_to_json(proof: &Proof<Bn256>) -> Result<String, serde_json::error::Error> {
     return serde_json::to_string(&ProofJson {
         protocol: "groth".to_string(),
-        pi_a: p1_to_vec(&proof.a),
-        pi_b: p2_to_vec(&proof.b),
-        pi_c: p1_to_vec(&proof.c),
+        pi_a: p1_to_vec(&proof.a).unwrap(),
+        pi_b: p2_to_vec(&proof.b).unwrap(),
+        pi_c: p1_to_vec(&proof.c).unwrap(),
     });
 }
 
@@ -303,11 +311,11 @@ pub fn load_proof_json_file<E: Engine>(filename: &str) -> Proof<Bn256> {
 pub fn load_proof_json<R: Read>(reader: R) -> Proof<Bn256> {
     let proof: ProofJson = serde_json::from_reader(reader).unwrap();
     return Proof {
-        a: G1Affine::from_xy(
+        a: G1Affine::from_xy_checked(
             Fq::from_str(&proof.pi_a[0]).unwrap(),
             Fq::from_str(&proof.pi_a[1]).unwrap(),
         ).unwrap(),
-        b: G2Affine::from_xy(
+        b: G2Affine::from_xy_checked(
             Fq2 {
                 c0: Fq::from_str(&proof.pi_b[0][0]).unwrap(),
                 c1: Fq::from_str(&proof.pi_b[0][1]).unwrap(),
@@ -317,7 +325,7 @@ pub fn load_proof_json<R: Read>(reader: R) -> Proof<Bn256> {
                 c1: Fq::from_str(&proof.pi_b[1][1]).unwrap(),
             },
         ).unwrap(),
-        c: G1Affine::from_xy(
+        c: G1Affine::from_xy_checked(
             Fq::from_str(&proof.pi_c[0]).unwrap(),
             Fq::from_str(&proof.pi_c[1]).unwrap(),
         ).unwrap(),
@@ -334,16 +342,16 @@ pub fn filter_params<E: Engine>(params: &mut Parameters<E>) {
 
 pub fn proving_key_json(params: &Parameters<Bn256>) -> Result<String, serde_json::error::Error> {
     let proving_key = ProvingKeyJson {
-        a: params.a.iter().map(|e| p1_to_vec(e)).collect_vec(),
-        b1: params.b_g1.iter().map(|e| p1_to_vec(e)).collect_vec(),
-        b2: params.b_g2.iter().map(|e| p2_to_vec(e)).collect_vec(),
-        c: repeat(None).take(params.vk.ic.len()).chain(params.l.iter().map(|e| Some(p1_to_vec(e)))).collect_vec(),
-        vk_alfa_1: p1_to_vec(&params.vk.alpha_g1),
-        vk_beta_1: p1_to_vec(&params.vk.beta_g1),
-        vk_delta_1: p1_to_vec(&params.vk.delta_g1),
-        vk_beta_2: p2_to_vec(&params.vk.beta_g2),
-        vk_delta_2: p2_to_vec(&params.vk.delta_g2),
-        h: params.h.iter().map(|e| p1_to_vec(e)).collect_vec(),
+        a: params.a.iter().map(|e| p1_to_vec(e).unwrap()).collect_vec(),
+        b1: params.b_g1.iter().map(|e| p1_to_vec(e).unwrap()).collect_vec(),
+        b2: params.b_g2.iter().map(|e| p2_to_vec(e).unwrap()).collect_vec(),
+        c: repeat(None).take(params.vk.ic.len()).chain(params.l.iter().map(|e| Some(p1_to_vec(e).unwrap()))).collect_vec(),
+        vk_alfa_1: p1_to_vec(&params.vk.alpha_g1).unwrap(),
+        vk_beta_1: p1_to_vec(&params.vk.beta_g1).unwrap(),
+        vk_delta_1: p1_to_vec(&params.vk.delta_g1).unwrap(),
+        vk_beta_2: p2_to_vec(&params.vk.beta_g2).unwrap(),
+        vk_delta_2: p2_to_vec(&params.vk.delta_g2).unwrap(),
+        h: params.h.iter().map(|e| p1_to_vec(e).unwrap()).collect_vec(),
     };
     return serde_json::to_string(&proving_key);
 }
@@ -355,11 +363,11 @@ pub fn proving_key_json_file(params: &Parameters<Bn256>, filename: &str) -> std:
 
 pub fn verification_key_json(params: &Parameters<Bn256>) -> Result<String, serde_json::error::Error> {
     let verification_key = VerifyingKeyJson {
-        ic: params.vk.ic.iter().map(|e| p1_to_vec(e)).collect_vec(),
-        vk_alfa_1: p1_to_vec(&params.vk.alpha_g1),
-        vk_beta_2: p2_to_vec(&params.vk.beta_g2),
-        vk_gamma_2: p2_to_vec(&params.vk.gamma_g2),
-        vk_delta_2: p2_to_vec(&params.vk.delta_g2),
+        ic: params.vk.ic.iter().map(|e| p1_to_vec(e).unwrap()).collect_vec(),
+        vk_alfa_1: p1_to_vec(&params.vk.alpha_g1).unwrap(),
+        vk_beta_2: p2_to_vec(&params.vk.beta_g2).unwrap(),
+        vk_gamma_2: p2_to_vec(&params.vk.gamma_g2).unwrap(),
+        vk_delta_2: p2_to_vec(&params.vk.delta_g2).unwrap(),
         vk_alfabeta_12: pairing_to_vec(&Bn256::pairing(params.vk.alpha_g1, params.vk.beta_g2)),
         inputs_count: params.vk.ic.len() - 1,
         protocol: String::from("groth"),
