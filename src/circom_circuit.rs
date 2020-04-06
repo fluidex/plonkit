@@ -3,7 +3,7 @@ extern crate rand;
 
 use std::str;
 use std::fs::{self, OpenOptions, File};
-use std::io::Read;
+use std::io::{Read, BufReader};
 use std::collections::BTreeMap;
 use std::iter::repeat;
 use std::sync::Arc;
@@ -292,7 +292,7 @@ pub fn load_inputs_json_file<E: Engine>(filename: &str) -> Vec<E::Fr> {
         .read(true)
         .open(filename)
         .expect("unable to open.");
-    return load_inputs_json::<E, File>(reader);
+    return load_inputs_json::<E, BufReader<File>>(BufReader::new(reader));
 }
 
 pub fn load_inputs_json<E: Engine, R: Read>(reader: R) -> Vec<E::Fr> {
@@ -305,7 +305,7 @@ pub fn load_proof_json_file<E: Engine>(filename: &str) -> Proof<Bn256> {
         .read(true)
         .open(filename)
         .expect("unable to open.");
-    return load_proof_json(reader);
+    return load_proof_json(BufReader::new(reader));
 }
 
 pub fn load_proof_json<R: Read>(reader: R) -> Proof<Bn256> {
@@ -385,7 +385,7 @@ pub fn witness_from_json_file<E: Engine>(filename: &str) -> Vec<E::Fr> {
         .read(true)
         .open(filename)
         .expect("unable to open.");
-    return witness_from_json::<E, File>(reader);
+    return witness_from_json::<E, BufReader<File>>(BufReader::new(reader));
 }
 
 pub fn witness_from_json<E: Engine, R: Read>(reader: R) -> Vec<E::Fr>{
@@ -398,7 +398,7 @@ pub fn circuit_from_json_file<E: Engine>(filename: &str) -> CircomCircuit::<E> {
         .read(true)
         .open(filename)
         .expect("unable to open.");
-    return circuit_from_json(reader);
+    return circuit_from_json(BufReader::new(reader));
 }
 
 pub fn circuit_from_json<E: Engine, R: Read>(reader: R) -> CircomCircuit::<E> {

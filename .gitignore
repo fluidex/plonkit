@@ -1,3 +1,6 @@
 /target/
 /*.json
 /verifier.sol
+/circuit.json
+/witness.json
+/params.bin
