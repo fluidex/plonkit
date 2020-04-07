@@ -1,0 +1,13 @@
+language: rust
+rust: stable
+before_script:
+  - rustup component add clippy
+script:
+  - cargo clippy -- -D warnings
+  - cargo test
+deploy:
+  provider: cargo
+  on:
+    tags: true
+  token:
+    secure: ovJLpJmUlJxVTOvpZr7yH7FQ1OHrqxRQw3qu5mAjEUjtS9qA4uebvKjcY67sP9zQGW+AWEieoZg4YEupa3Y7M6ItGe2b096Nwa/jHHvwD1OKQWDtB+BfhOjaC5uEZFovwuFZ6UkAx2cJr3Q8gTXwOZFtm+HoGL5SWFVIB/DlnFHsrozUDfq0UvISwvKfio1+cQQ0H85F6/kW/FxGR6LeaPYi+sImGb1qSQFTndUIiQlNkxoK06h4Rep4k0J4f4SSJxTUCcFC3gpUw3B2WiiJk/OunlNLSzTOPT8jag2E36IiLlnohM4ttkfwf57Y+6QFjBFmF/k/61pGMt2E6K0NhamkiE6luMoV+555HtEIYfBewk5NpS/Mrx5vck5mx4Xt7OZovhKbb9yDv3MJMFcmEww/MqLJxOwSzkQm5ecF+MA3VpXLljwc23bER+/gqX5isbAUehIIiRkm1oQccaytYvRW9dcF2dQfKpa/A6AkzVvFMRXuiRtduP5pc7xxEy/QjlfvBusqMo0elQGb28KFG0JUhtUtN8iextB7OHIo/+21ONrGUsK1l0zUGz/DZozMedpaN9Rshq4GOOR2fdIIdo6YmSAyWDF+lEWrFqeCU9DUFfudDw/JvvcyGJk2QSxO5oCyHnfZLL0RX2vLcI7PxA5/5B53liU9gXDeJYHsqUM=
