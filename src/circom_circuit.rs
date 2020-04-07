@@ -125,7 +125,7 @@ impl<'a, E: Engine> CircomCircuit<E> {
         let inputs = self.get_public_inputs();
         let inputs = match inputs {
             None => return String::from("[]"),
-            Some(inp) => inp.iter().map(|x| repr_to_big(x.into_repr())).collect_vec()
+            Some(inp) => inp.iter().map(|x| repr_to_big(x.into_repr())).collect_vec(),
         };
         serde_json::to_string(&inputs).unwrap()
     }
@@ -142,23 +142,27 @@ impl<'a, E: Engine> Circuit<E> for CircomCircuit<E> {
     {
         let witness = &self.witness.clone();
         for i in 1..self.num_inputs {
-            cs.alloc_input(|| format!("variable {}", i),
-                           || {
-                Ok(match witness {
-                    None => E::Fr::from_str("1").unwrap(),
-                    Some(w) => w[i],
-                })
-            })?;
+            cs.alloc_input(
+                || format!("variable {}", i),
+                || {
+                    Ok(match witness {
+                        None => E::Fr::from_str("1").unwrap(),
+                        Some(w) => w[i],
+                    })
+                },
+            )?;
         }
 
         for i in 0..self.num_aux {
-            cs.alloc(|| format!("aux {}", i),
-                           || {
-                Ok(match witness {
-                    None => E::Fr::from_str("1").unwrap(),
-                    Some(w) => w[i + self.num_inputs],
-                })
-            })?;
+            cs.alloc(
+                || format!("aux {}", i),
+                || {
+                    Ok(match witness {
+                        None => E::Fr::from_str("1").unwrap(),
+                        Some(w) => w[i + self.num_inputs],
+                    })
+                },
+            )?;
         }
 
         let make_index = |index|
@@ -198,19 +202,11 @@ pub fn verify_circuit<E: Engine>(circuit: &CircomCircuit<E>, params: &Parameters
         None => return Err(SynthesisError::AssignmentMissing),
         Some(inp) => inp,
     };
-    verify_proof(
-        &prepare_verifying_key(&params.vk),
-        proof,
-        &inputs
-    )
+    verify_proof(&prepare_verifying_key(&params.vk), proof, &inputs)
 }
 
 pub fn verify<E: Engine>(params: &Parameters<E>, proof: &Proof<E>, inputs: &[E::Fr]) -> Result<bool, SynthesisError> {
-    verify_proof(
-        &prepare_verifying_key(&params.vk),
-        proof,
-        &inputs
-    )
+    verify_proof(&prepare_verifying_key(&params.vk), proof, &inputs)
 }
 
 pub fn create_verifier_sol(params: &Parameters<Bn256>) -> String {
@@ -221,17 +217,17 @@ pub fn create_verifier_sol(params: &Parameters<Bn256>) -> String {
     let p1_to_str = |p: &<Bn256 as Engine>::G1Affine| {
         if p.is_zero() {
             // todo: throw instead
-            return String::from("<POINT_AT_INFINITY>")
+            return String::from("<POINT_AT_INFINITY>");
         }
         let xy = p.into_xy_unchecked();
         let x = repr_to_big(xy.0.into_repr());
         let y = repr_to_big(xy.1.into_repr());
-        return format!("uint256({}), uint256({})", x, y)
+        format!("uint256({}), uint256({})", x, y)
     };
     let p2_to_str = |p: &<Bn256 as Engine>::G2Affine| {
         if p.is_zero() {
             // todo: throw instead
-            return String::from("<POINT_AT_INFINITY>")
+            return String::from("<POINT_AT_INFINITY>");
         }
         let xy = p.into_xy_unchecked();
         let x_c0 = repr_to_big(xy.0.c0.into_repr());
@@ -387,12 +383,12 @@ pub fn witness_from_json_file<E: Engine>(filename: &str) -> Vec<E::Fr> {
     witness_from_json::<E, BufReader<File>>(BufReader::new(reader))
 }
 
-pub fn witness_from_json<E: Engine, R: Read>(reader: R) -> Vec<E::Fr>{
+pub fn witness_from_json<E: Engine, R: Read>(reader: R) -> Vec<E::Fr> {
     let witness: Vec<String> = serde_json::from_reader(reader).unwrap();
     witness.into_iter().map(|x| E::Fr::from_str(&x).unwrap()).collect::<Vec<E::Fr>>()
 }
 
-pub fn circuit_from_json_file<E: Engine>(filename: &str) -> CircomCircuit::<E> {
+pub fn circuit_from_json_file<E: Engine>(filename: &str) -> CircomCircuit<E> {
     let reader = OpenOptions::new()
         .read(true)
         .open(filename)
@@ -400,7 +396,7 @@ pub fn circuit_from_json_file<E: Engine>(filename: &str) -> CircomCircuit::<E> {
     circuit_from_json(BufReader::new(reader))
 }
 
-pub fn circuit_from_json<E: Engine, R: Read>(reader: R) -> CircomCircuit::<E> {
+pub fn circuit_from_json<E: Engine, R: Read>(reader: R) -> CircomCircuit<E> {
     let circuit_json: CircuitJson = serde_json::from_reader(reader).unwrap();
 
     let num_inputs = circuit_json.num_inputs + circuit_json.num_outputs + 1;

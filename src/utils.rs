@@ -51,7 +51,7 @@ pub fn p2_to_vec(p: &G2Affine) -> Option<Vec<Vec<String>>> {
             vec!["0".to_string(), "0".to_string()]
         } else {
             vec!["1".to_string(), "0".to_string()]
-        }
+        },
     ])
 }
 
@@ -69,7 +69,7 @@ pub fn pairing_to_vec(p: &Fq12) -> Vec<Vec<Vec<String>>> {
             vec![
                 repr_to_big(p.c0.c2.c0.into_repr()),
                 repr_to_big(p.c0.c2.c1.into_repr()),
-            ]
+            ],
         ],
         vec![
             vec![
@@ -83,7 +83,7 @@ pub fn pairing_to_vec(p: &Fq12) -> Vec<Vec<Vec<String>>> {
             vec![
                 repr_to_big(p.c1.c2.c0.into_repr()),
                 repr_to_big(p.c1.c2.c1.into_repr()),
-            ]
+            ],
         ],
     ]
 }

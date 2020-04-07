@@ -144,7 +144,7 @@ fn prove(opts: ProveOpts) {
     let params = load_params_file(&opts.params);
     println!("Loading circuit from {}...", opts.circuit);
     let mut circuit = circuit_from_json_file(&opts.circuit);
-    circuit.witness =  Some(witness_from_json_file::<Bn256>(&opts.witness));
+    circuit.witness = Some(witness_from_json_file::<Bn256>(&opts.witness));
     println!("Proving...");
     let proof = prove2(circuit.clone(), &params, rng).unwrap();
     proof_to_json_file(&proof, &opts.proof).unwrap();
