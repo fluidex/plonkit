@@ -26,7 +26,7 @@ pub fn p1_to_vec(p: &G1Affine) -> Option<Vec<String>> {
         return None;
     }
     let xy = p.into_xy_unchecked();
-    return Some(vec![
+    Some(vec![
         repr_to_big(xy.0.into_repr()),
         repr_to_big(xy.1.into_repr()),
         if p.is_zero() { "0".to_string() } else { "1".to_string() }
@@ -38,7 +38,7 @@ pub fn p2_to_vec(p: &G2Affine) -> Option<Vec<Vec<String>>> {
         return None;
     }
     let xy = p.into_xy_unchecked();
-    return Some(vec![
+    Some(vec![
         vec![
             repr_to_big(xy.0.c0.into_repr()),
             repr_to_big(xy.0.c1.into_repr()),
@@ -56,7 +56,7 @@ pub fn p2_to_vec(p: &G2Affine) -> Option<Vec<Vec<String>>> {
 }
 
 pub fn pairing_to_vec(p: &Fq12) -> Vec<Vec<Vec<String>>> {
-    return vec![
+    vec![
         vec![
             vec![
                 repr_to_big(p.c0.c0.c0.into_repr()),

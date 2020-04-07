@@ -105,6 +105,7 @@ pub struct CircomCircuit<E: Engine> {
     pub num_aux: usize,
     pub num_constraints: usize,
     pub witness: Option<Vec<E::Fr>>,
+    #[allow(clippy::complexity)]
     pub constraints: Vec<(
         Vec<(usize, E::Fr)>,
         Vec<(usize, E::Fr)>,
@@ -114,7 +115,7 @@ pub struct CircomCircuit<E: Engine> {
 
 impl<'a, E: Engine> CircomCircuit<E> {
     pub fn get_public_inputs(&self) -> Option<Vec<E::Fr>> {
-        return match self.witness.clone() {
+        match self.witness.clone() {
             None => None,
             Some(w) => Some(w[1..self.num_inputs].to_vec()),
         }
@@ -126,7 +127,7 @@ impl<'a, E: Engine> CircomCircuit<E> {
             None => return String::from("[]"),
             Some(inp) => inp.iter().map(|x| repr_to_big(x.into_repr())).collect_vec()
         };
-        return serde_json::to_string(&inputs).unwrap();
+        serde_json::to_string(&inputs).unwrap()
     }
 }
 
@@ -185,11 +186,11 @@ impl<'a, E: Engine> Circuit<E> for CircomCircuit<E> {
 pub fn prove<E: Engine, R: Rng>(circuit: CircomCircuit<E>, params: &Parameters<E>, mut rng: R) -> Result<Proof<E>, SynthesisError> {
     let mut params2 = params.clone();
     filter_params(&mut params2);
-    return create_random_proof(circuit, &params2, &mut rng);
+    create_random_proof(circuit, &params2, &mut rng)
 }
 
 pub fn generate_random_parameters<E: Engine, R: Rng>(circuit: CircomCircuit<E>, mut rng: R) -> Result<Parameters<E>, SynthesisError> {
-    return generate_random_parameters2(circuit, &mut rng);
+    generate_random_parameters2(circuit, &mut rng)
 }
 
 pub fn verify_circuit<E: Engine>(circuit: &CircomCircuit<E>, params: &Parameters<E>, proof: &Proof<E>) -> Result<bool, SynthesisError> {
@@ -197,19 +198,19 @@ pub fn verify_circuit<E: Engine>(circuit: &CircomCircuit<E>, params: &Parameters
         None => return Err(SynthesisError::AssignmentMissing),
         Some(inp) => inp,
     };
-    return verify_proof(
+    verify_proof(
         &prepare_verifying_key(&params.vk),
         proof,
         &inputs
-    );
+    )
 }
 
-pub fn verify<E: Engine>(params: &Parameters<E>, proof: &Proof<E>, inputs: &Vec<E::Fr>) -> Result<bool, SynthesisError> {
-    return verify_proof(
+pub fn verify<E: Engine>(params: &Parameters<E>, proof: &Proof<E>, inputs: &[E::Fr]) -> Result<bool, SynthesisError> {
+    verify_proof(
         &prepare_verifying_key(&params.vk),
         proof,
         &inputs
-    );
+    )
 }
 
 pub fn create_verifier_sol(params: &Parameters<Bn256>) -> String {
@@ -250,29 +251,27 @@ pub fn create_verifier_sol(params: &Parameters<Bn256>) -> String {
 
     let mut vi = String::from("");
     for i in 0..params.vk.ic.len() {
-        vi = format!("{}{}vk.IC[{}] = Pairing.G1Point({});\n", vi, if vi.len() == 0 { "" } else { "        " }, i, &*p1_to_str(&params.vk.ic[i]));
+        vi = format!("{}{}vk.IC[{}] = Pairing.G1Point({});\n", vi, if vi.is_empty() { "" } else { "        " }, i, &*p1_to_str(&params.vk.ic[i]));
     }
-    let template = template.replace("<%vk_ic_pts%>", &*vi);
-
-    return template;
+    template.replace("<%vk_ic_pts%>", &*vi)
 }
 
 pub fn create_verifier_sol_file(params: &Parameters<Bn256>, filename: &str) -> std::io::Result<()> {
-    return fs::write(filename, create_verifier_sol(params).as_bytes());
+    fs::write(filename, create_verifier_sol(params).as_bytes())
 }
 
 pub fn proof_to_json(proof: &Proof<Bn256>) -> Result<String, serde_json::error::Error> {
-    return serde_json::to_string(&ProofJson {
+    serde_json::to_string(&ProofJson {
         protocol: "groth".to_string(),
         pi_a: p1_to_vec(&proof.a).unwrap(),
         pi_b: p2_to_vec(&proof.b).unwrap(),
         pi_c: p1_to_vec(&proof.c).unwrap(),
-    });
+    })
 }
 
 pub fn proof_to_json_file(proof: &Proof<Bn256>, filename: &str) -> std::io::Result<()> {
     let str = proof_to_json(proof).unwrap(); // TODO: proper error handling
-    return fs::write(filename, str.as_bytes());
+    fs::write(filename, str.as_bytes())
 }
 
 pub fn load_params_file(filename: &str) -> Parameters<Bn256> {
@@ -280,11 +279,11 @@ pub fn load_params_file(filename: &str) -> Parameters<Bn256> {
         .read(true)
         .open(filename)
         .expect("unable to open.");
-    return load_params(reader);
+    load_params(reader)
 }
 
 pub fn load_params<R: Read>(reader: R) -> Parameters<Bn256> {
-    return Parameters::read(reader, true).expect("unable to read params");
+    Parameters::read(reader, true).expect("unable to read params")
 }
 
 pub fn load_inputs_json_file<E: Engine>(filename: &str) -> Vec<E::Fr> {
@@ -292,12 +291,12 @@ pub fn load_inputs_json_file<E: Engine>(filename: &str) -> Vec<E::Fr> {
         .read(true)
         .open(filename)
         .expect("unable to open.");
-    return load_inputs_json::<E, BufReader<File>>(BufReader::new(reader));
+    load_inputs_json::<E, BufReader<File>>(BufReader::new(reader))
 }
 
 pub fn load_inputs_json<E: Engine, R: Read>(reader: R) -> Vec<E::Fr> {
     let inputs: Vec<String> = serde_json::from_reader(reader).unwrap();
-    return inputs.into_iter().map(|x| E::Fr::from_str(&x).unwrap()).collect::<Vec<E::Fr>>();
+    inputs.into_iter().map(|x| E::Fr::from_str(&x).unwrap()).collect::<Vec<E::Fr>>()
 }
 
 pub fn load_proof_json_file<E: Engine>(filename: &str) -> Proof<Bn256> {
@@ -305,12 +304,12 @@ pub fn load_proof_json_file<E: Engine>(filename: &str) -> Proof<Bn256> {
         .read(true)
         .open(filename)
         .expect("unable to open.");
-    return load_proof_json(BufReader::new(reader));
+    load_proof_json(BufReader::new(reader))
 }
 
 pub fn load_proof_json<R: Read>(reader: R) -> Proof<Bn256> {
     let proof: ProofJson = serde_json::from_reader(reader).unwrap();
-    return Proof {
+    Proof {
         a: G1Affine::from_xy_checked(
             Fq::from_str(&proof.pi_a[0]).unwrap(),
             Fq::from_str(&proof.pi_a[1]).unwrap(),
@@ -329,7 +328,7 @@ pub fn load_proof_json<R: Read>(reader: R) -> Proof<Bn256> {
             Fq::from_str(&proof.pi_c[0]).unwrap(),
             Fq::from_str(&proof.pi_c[1]).unwrap(),
         ).unwrap(),
-    };
+    }
 }
 
 pub fn filter_params<E: Engine>(params: &mut Parameters<E>) {
@@ -353,12 +352,12 @@ pub fn proving_key_json(params: &Parameters<Bn256>) -> Result<String, serde_json
         vk_delta_2: p2_to_vec(&params.vk.delta_g2).unwrap(),
         h: params.h.iter().map(|e| p1_to_vec(e).unwrap()).collect_vec(),
     };
-    return serde_json::to_string(&proving_key);
+    serde_json::to_string(&proving_key)
 }
 
 pub fn proving_key_json_file(params: &Parameters<Bn256>, filename: &str) -> std::io::Result<()> {
     let str = proving_key_json(params).unwrap(); // TODO: proper error handling
-    return fs::write(filename, str.as_bytes());
+    fs::write(filename, str.as_bytes())
 }
 
 pub fn verification_key_json(params: &Parameters<Bn256>) -> Result<String, serde_json::error::Error> {
@@ -372,12 +371,12 @@ pub fn verification_key_json(params: &Parameters<Bn256>) -> Result<String, serde
         inputs_count: params.vk.ic.len() - 1,
         protocol: String::from("groth"),
     };
-    return serde_json::to_string(&verification_key);
+    serde_json::to_string(&verification_key)
 }
 
 pub fn verification_key_json_file(params: &Parameters<Bn256>, filename: &str) -> std::io::Result<()> {
     let str = verification_key_json(params).unwrap(); // TODO: proper error handling
-    return fs::write(filename, str.as_bytes());
+    fs::write(filename, str.as_bytes())
 }
 
 pub fn witness_from_json_file<E: Engine>(filename: &str) -> Vec<E::Fr> {
@@ -385,12 +384,12 @@ pub fn witness_from_json_file<E: Engine>(filename: &str) -> Vec<E::Fr> {
         .read(true)
         .open(filename)
         .expect("unable to open.");
-    return witness_from_json::<E, BufReader<File>>(BufReader::new(reader));
+    witness_from_json::<E, BufReader<File>>(BufReader::new(reader))
 }
 
 pub fn witness_from_json<E: Engine, R: Read>(reader: R) -> Vec<E::Fr>{
     let witness: Vec<String> = serde_json::from_reader(reader).unwrap();
-    return witness.into_iter().map(|x| E::Fr::from_str(&x).unwrap()).collect::<Vec<E::Fr>>();
+    witness.into_iter().map(|x| E::Fr::from_str(&x).unwrap()).collect::<Vec<E::Fr>>()
 }
 
 pub fn circuit_from_json_file<E: Engine>(filename: &str) -> CircomCircuit::<E> {
@@ -398,7 +397,7 @@ pub fn circuit_from_json_file<E: Engine>(filename: &str) -> CircomCircuit::<E> {
         .read(true)
         .open(filename)
         .expect("unable to open.");
-    return circuit_from_json(BufReader::new(reader));
+    circuit_from_json(BufReader::new(reader))
 }
 
 pub fn circuit_from_json<E: Engine, R: Read>(reader: R) -> CircomCircuit::<E> {
@@ -415,15 +414,15 @@ pub fn circuit_from_json<E: Engine, R: Read>(reader: R) -> CircomCircuit::<E> {
         |c| (convert_constraint(&c[0]), convert_constraint(&c[1]), convert_constraint(&c[2]))
     ).collect_vec();
 
-    return CircomCircuit {
-        num_inputs: num_inputs,
-        num_aux: num_aux,
+    CircomCircuit {
+        num_inputs,
+        num_aux,
         num_constraints: circuit_json.num_variables,
         witness: None,
-        constraints: constraints,
-    };
+        constraints,
+    }
 }
 
 pub fn create_rng() -> Box<dyn Rng> {
-    return Box::new(OsRng::new().unwrap())
+    Box::new(OsRng::new().unwrap())
 }

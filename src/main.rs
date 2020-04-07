@@ -196,7 +196,7 @@ fn export_keys(opts: ExportKeysOpts) {
     }
 }
 
-fn copy_json(ref_file: String, file: &String) {
+fn copy_json(ref_file: String, file: &str) {
     let in_json: Map<String, Value> = serde_json::from_str(&fs::read_to_string(file).unwrap()).unwrap();
     let mut reference_json: Map<String, Value> = serde_json::from_str(&fs::read_to_string(ref_file).unwrap()).unwrap();
     for (key, value) in &in_json {
