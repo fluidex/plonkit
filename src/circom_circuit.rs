@@ -67,6 +67,12 @@ struct ProofJson {
 
 #[derive(Serialize, Deserialize)]
 struct ProvingKeyJson {
+    #[serde(rename = "polsA")]
+    pub pols_a: Vec<BTreeMap<String, String>>,
+    #[serde(rename = "polsB")]
+    pub pols_b: Vec<BTreeMap<String, String>>,
+    #[serde(rename = "polsC")]
+    pub pols_c: Vec<BTreeMap<String, String>>,
     #[serde(rename = "A")]
     pub a: Vec<Vec<String>>,
     #[serde(rename = "B1")]
@@ -82,7 +88,15 @@ struct ProvingKeyJson {
     pub vk_delta_2: Vec<Vec<String>>,
     #[serde(rename = "hExps")]
     pub h: Vec<Vec<String>>,
-    // Todo: add json fields: nPublic, nVars, polsA, polsB, polsC, protocol: groth
+    pub protocol: String,
+    #[serde(rename = "nPublic")]
+    pub n_public: usize,
+    #[serde(rename = "nVars")]
+    pub n_vars: usize,
+    #[serde(rename = "domainBits")]
+    pub domain_bits: usize,
+    #[serde(rename = "domainSize")]
+    pub domain_size: usize,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -103,7 +117,7 @@ struct VerifyingKeyJson {
 pub struct CircomCircuit<E: Engine> {
     pub num_inputs: usize,
     pub num_aux: usize,
-    pub num_constraints: usize,
+    pub num_variables: usize,
     pub witness: Option<Vec<E::Fr>>,
     #[allow(clippy::complexity)]
     pub constraints: Vec<(
@@ -335,8 +349,36 @@ pub fn filter_params<E: Engine>(params: &mut Parameters<E>) {
     params.b_g2 = Arc::new((*params.b_g2).clone().into_iter().filter(|x| !x.is_zero()).collect::<Vec<_>>());
 }
 
-pub fn proving_key_json(params: &Parameters<Bn256>) -> Result<String, serde_json::error::Error> {
+pub fn proving_key_json(params: &Parameters<Bn256>, circuit: CircomCircuit<Bn256>) -> Result<String, serde_json::error::Error> {
+    let mut pols_a: Vec<BTreeMap<String, String>> = vec![];
+    let mut pols_b: Vec<BTreeMap<String, String>> = vec![];
+    let mut pols_c: Vec<BTreeMap<String, String>> = vec![];
+    for _ in 0..circuit.num_aux + circuit.num_inputs {
+        pols_a.push(BTreeMap::new());
+        pols_b.push(BTreeMap::new());
+        pols_c.push(BTreeMap::new());
+    }
+    for c in 0..circuit.constraints.len() {
+        for item in circuit.constraints[c].0.iter() {
+            pols_a[item.0].insert(c.to_string(), repr_to_big(item.1.into_repr()));
+        }
+        for item in circuit.constraints[c].1.iter() {
+            pols_b[item.0].insert(c.to_string(), repr_to_big(item.1.into_repr()));
+        }
+        for item in circuit.constraints[c].2.iter() {
+            pols_c[item.0].insert(c.to_string(), repr_to_big(item.1.into_repr()));
+        }
+    }
+    for i in 0..circuit.num_inputs {
+        pols_a[i].insert((circuit.constraints.len() + i).to_string(), String::from("1"));
+    }
+
+    let domain_bits = log2_floor(circuit.constraints.len() + circuit.num_inputs) + 1;
+
     let proving_key = ProvingKeyJson {
+        pols_a,
+        pols_b,
+        pols_c,
         a: params.a.iter().map(|e| p1_to_vec(e).unwrap()).collect_vec(),
         b1: params.b_g1.iter().map(|e| p1_to_vec(e).unwrap()).collect_vec(),
         b2: params.b_g2.iter().map(|e| p2_to_vec(e).unwrap()).collect_vec(),
@@ -347,12 +389,27 @@ pub fn proving_key_json(params: &Parameters<Bn256>) -> Result<String, serde_json
         vk_beta_2: p2_to_vec(&params.vk.beta_g2).unwrap(),
         vk_delta_2: p2_to_vec(&params.vk.delta_g2).unwrap(),
         h: params.h.iter().map(|e| p1_to_vec(e).unwrap()).collect_vec(),
+        protocol: String::from("groth"),
+        n_public: circuit.num_inputs - 1,
+        n_vars: circuit.num_variables,
+        domain_bits,
+        domain_size: 1 << domain_bits,
     };
+
     serde_json::to_string(&proving_key)
 }
 
-pub fn proving_key_json_file(params: &Parameters<Bn256>, filename: &str) -> std::io::Result<()> {
-    let str = proving_key_json(params).unwrap(); // TODO: proper error handling
+fn log2_floor(num: usize) -> usize {
+    assert!(num > 0);
+    let mut pow = 0;
+    while (1 << (pow + 1)) <= num {
+        pow += 1;
+    }
+    pow
+}
+
+pub fn proving_key_json_file(params: &Parameters<Bn256>, circuit: CircomCircuit<Bn256>, filename: &str) -> std::io::Result<()> {
+    let str = proving_key_json(params, circuit).unwrap(); // TODO: proper error handling
     fs::write(filename, str.as_bytes())
 }
 
@@ -413,7 +470,7 @@ pub fn circuit_from_json<E: Engine, R: Read>(reader: R) -> CircomCircuit<E> {
     CircomCircuit {
         num_inputs,
         num_aux,
-        num_constraints: circuit_json.num_variables,
+        num_variables: circuit_json.num_variables,
         witness: None,
         constraints,
     }

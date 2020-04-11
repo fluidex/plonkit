@@ -86,7 +86,7 @@ Created verifier.sol
 # Export keys to snarkjs/websnark compatible format
 > zkutil export-keys
 Exporting params.bin...
-Created vk.json, proving key export skipped because reference key proving_key.json does not exist
+Created proving_key.json and verification_key.json
 
 # Verify the same proof with snarkjs
 > snarkjs verify --vk vk.json
