@@ -1,3 +1,4 @@
+#![allow(clippy::needless_range_loop)]
 extern crate bellman_ce;
 extern crate rand;
 
@@ -369,6 +370,7 @@ pub fn proving_key_json(params: &Parameters<Bn256>, circuit: CircomCircuit<Bn256
             pols_c[item.0].insert(c.to_string(), repr_to_big(item.1.into_repr()));
         }
     }
+
     for i in 0..circuit.num_inputs {
         pols_a[i].insert((circuit.constraints.len() + i).to_string(), String::from("1"));
     }
