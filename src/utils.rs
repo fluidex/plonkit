@@ -21,24 +21,18 @@ pub fn repr_to_big<T: Display>(r: T) -> String {
     BigUint::from_str_radix(&format!("{}", r)[2..], 16).unwrap().to_str_radix(10)
 }
 
-pub fn p1_to_vec(p: &G1Affine) -> Option<Vec<String>> {
-    if p.is_zero() {
-        return None;
-    }
+pub fn p1_to_vec(p: &G1Affine) -> Vec<String> {
     let xy = p.into_xy_unchecked();
-    Some(vec![
+    vec![
         repr_to_big(xy.0.into_repr()),
         repr_to_big(xy.1.into_repr()),
         if p.is_zero() { "0".to_string() } else { "1".to_string() }
-    ])
+    ]
 }
 
-pub fn p2_to_vec(p: &G2Affine) -> Option<Vec<Vec<String>>> {
-    if p.is_zero() {
-        return None;
-    }
+pub fn p2_to_vec(p: &G2Affine) -> Vec<Vec<String>> {
     let xy = p.into_xy_unchecked();
-    Some(vec![
+    vec![
         vec![
             repr_to_big(xy.0.c0.into_repr()),
             repr_to_big(xy.0.c1.into_repr()),
@@ -52,7 +46,7 @@ pub fn p2_to_vec(p: &G2Affine) -> Option<Vec<Vec<String>>> {
         } else {
             vec!["1".to_string(), "0".to_string()]
         },
-    ])
+    ]
 }
 
 pub fn pairing_to_vec(p: &Fq12) -> Vec<Vec<Vec<String>>> {
