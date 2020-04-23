@@ -90,7 +90,7 @@ Exporting params.bin...
 Created proving_key.json and verification_key.json
 
 # Verify the same proof with snarkjs
-> snarkjs verify --vk vk.json
+> snarkjs verify
 OK
 
 # Here's a list of files that we have after this
