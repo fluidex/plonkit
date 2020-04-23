@@ -117,11 +117,10 @@ struct VerifyingKeyJson {
 }
 
 #[derive(Clone)]
-pub struct CircomCircuit<E: Engine> {
+pub struct R1CS<E: Engine> {
     pub num_inputs: usize,
     pub num_aux: usize,
     pub num_variables: usize,
-    pub witness: Option<Vec<E::Fr>>,
     #[allow(clippy::complexity)]
     pub constraints: Vec<(
         Vec<(usize, E::Fr)>,
@@ -130,11 +129,18 @@ pub struct CircomCircuit<E: Engine> {
     )>,
 }
 
+#[derive(Clone)]
+pub struct CircomCircuit<E: Engine> {
+    pub r1cs: R1CS<E>,
+    pub witness: Option<Vec<E::Fr>>,
+    // debug symbols
+}
+
 impl<'a, E: Engine> CircomCircuit<E> {
     pub fn get_public_inputs(&self) -> Option<Vec<E::Fr>> {
         match self.witness.clone() {
             None => None,
-            Some(w) => Some(w[1..self.num_inputs].to_vec()),
+            Some(w) => Some(w[1..self.r1cs.num_inputs].to_vec()),
         }
     }
 
@@ -158,7 +164,7 @@ impl<'a, E: Engine> Circuit<E> for CircomCircuit<E> {
     ) -> Result<(), SynthesisError>
     {
         let witness = &self.witness.clone();
-        for i in 1..self.num_inputs {
+        for i in 1..self.r1cs.num_inputs {
             cs.alloc_input(
                 || format!("variable {}", i),
                 || {
@@ -170,30 +176,30 @@ impl<'a, E: Engine> Circuit<E> for CircomCircuit<E> {
             )?;
         }
 
-        for i in 0..self.num_aux {
+        for i in 0..self.r1cs.num_aux {
             cs.alloc(
                 || format!("aux {}", i),
                 || {
                     Ok(match witness {
                         None => E::Fr::from_str("1").unwrap(),
-                        Some(w) => w[i + self.num_inputs],
+                        Some(w) => w[i + self.r1cs.num_inputs],
                     })
                 },
             )?;
         }
 
         let make_index = |index|
-            if index < self.num_inputs {
+            if index < self.r1cs.num_inputs {
                 Index::Input(index)
             } else {
-                Index::Aux(index - self.num_inputs)
+                Index::Aux(index - self.r1cs.num_inputs)
             };
         let make_lc = |lc_data: Vec<(usize, E::Fr)>|
             lc_data.iter().fold(
                 LinearCombination::<E>::zero(),
                 |lc: LinearCombination<E>, (index, coeff)| lc + (*coeff, Variable::new_unchecked(make_index(*index)))
             );
-        for (i, constraint) in self.constraints.iter().enumerate() {
+        for (i, constraint) in self.r1cs.constraints.iter().enumerate() {
             cs.enforce(|| format!("constraint {}", i),
                        |_| make_lc(constraint.0.clone()),
                        |_| make_lc(constraint.1.clone()),
@@ -356,30 +362,30 @@ pub fn proving_key_json(params: &Parameters<Bn256>, circuit: CircomCircuit<Bn256
     let mut pols_a: Vec<BTreeMap<String, String>> = vec![];
     let mut pols_b: Vec<BTreeMap<String, String>> = vec![];
     let mut pols_c: Vec<BTreeMap<String, String>> = vec![];
-    for _ in 0..circuit.num_aux + circuit.num_inputs {
+    for _ in 0..circuit.r1cs.num_aux + circuit.r1cs.num_inputs {
         pols_a.push(BTreeMap::new());
         pols_b.push(BTreeMap::new());
         pols_c.push(BTreeMap::new());
     }
-    for c in 0..circuit.constraints.len() {
-        for item in circuit.constraints[c].0.iter() {
+    for c in 0..circuit.r1cs.constraints.len() {
+        for item in circuit.r1cs.constraints[c].0.iter() {
             pols_a[item.0].insert(c.to_string(), repr_to_big(item.1.into_repr()));
         }
-        for item in circuit.constraints[c].1.iter() {
+        for item in circuit.r1cs.constraints[c].1.iter() {
             pols_b[item.0].insert(c.to_string(), repr_to_big(item.1.into_repr()));
         }
-        for item in circuit.constraints[c].2.iter() {
+        for item in circuit.r1cs.constraints[c].2.iter() {
             pols_c[item.0].insert(c.to_string(), repr_to_big(item.1.into_repr()));
         }
     }
 
-    for i in 0..circuit.num_inputs {
-        pols_a[i].insert((circuit.constraints.len() + i).to_string(), String::from("1"));
+    for i in 0..circuit.r1cs.num_inputs {
+        pols_a[i].insert((circuit.r1cs.constraints.len() + i).to_string(), String::from("1"));
     }
 
-    let domain_bits = log2_floor(circuit.constraints.len() + circuit.num_inputs) + 1;
-    let n_public = circuit.num_inputs - 1;
-    let n_vars = circuit.num_variables;
+    let domain_bits = log2_floor(circuit.r1cs.constraints.len() + circuit.r1cs.num_inputs) + 1;
+    let n_public = circuit.r1cs.num_inputs - 1;
+    let n_vars = circuit.r1cs.num_variables;
 
     let p = prepare_prover(circuit).unwrap().assignment;
     let mut a_iter = params.a.iter();
@@ -476,15 +482,15 @@ pub fn witness_from_json<E: Engine, R: Read>(reader: R) -> Vec<E::Fr> {
     witness.into_iter().map(|x| E::Fr::from_str(&x).unwrap()).collect::<Vec<E::Fr>>()
 }
 
-pub fn circuit_from_json_file<E: Engine>(filename: &str) -> CircomCircuit<E> {
+pub fn r1cs_from_json_file<E: Engine>(filename: &str) -> R1CS<E> {
     let reader = OpenOptions::new()
         .read(true)
         .open(filename)
         .expect("unable to open.");
-    circuit_from_json(BufReader::new(reader))
+    r1cs_from_json(BufReader::new(reader))
 }
 
-pub fn circuit_from_json<E: Engine, R: Read>(reader: R) -> CircomCircuit<E> {
+pub fn r1cs_from_json<E: Engine, R: Read>(reader: R) -> R1CS<E> {
     let circuit_json: CircuitJson = serde_json::from_reader(reader).unwrap();
 
     let num_inputs = circuit_json.num_inputs + circuit_json.num_outputs + 1;
@@ -498,11 +504,10 @@ pub fn circuit_from_json<E: Engine, R: Read>(reader: R) -> CircomCircuit<E> {
         |c| (convert_constraint(&c[0]), convert_constraint(&c[1]), convert_constraint(&c[2]))
     ).collect_vec();
 
-    CircomCircuit {
+    R1CS {
         num_inputs,
         num_aux,
         num_variables: circuit_json.num_variables,
-        witness: None,
         constraints,
     }
 }
