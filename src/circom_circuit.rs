@@ -18,6 +18,7 @@ use bellman_ce::{
     Index,
     ConstraintSystem,
     LinearCombination,
+    source::QueryDensity,
     groth16::{
         Parameters,
         Proof,
@@ -25,6 +26,7 @@ use bellman_ce::{
         prepare_verifying_key,
         create_random_proof,
         verify_proof,
+        prepare_prover,
     },
     pairing::{
         Engine,
@@ -274,9 +276,9 @@ pub fn create_verifier_sol_file(params: &Parameters<Bn256>, filename: &str) -> s
 pub fn proof_to_json(proof: &Proof<Bn256>) -> Result<String, serde_json::error::Error> {
     serde_json::to_string(&ProofJson {
         protocol: "groth".to_string(),
-        pi_a: p1_to_vec(&proof.a).unwrap(),
-        pi_b: p2_to_vec(&proof.b).unwrap(),
-        pi_c: p1_to_vec(&proof.c).unwrap(),
+        pi_a: p1_to_vec(&proof.a),
+        pi_b: p2_to_vec(&proof.b),
+        pi_c: p1_to_vec(&proof.c),
     })
 }
 
@@ -376,24 +378,51 @@ pub fn proving_key_json(params: &Parameters<Bn256>, circuit: CircomCircuit<Bn256
     }
 
     let domain_bits = log2_floor(circuit.constraints.len() + circuit.num_inputs) + 1;
+    let n_public = circuit.num_inputs - 1;
+    let n_vars = circuit.num_variables;
+
+    let p = prepare_prover(circuit).unwrap().assignment;
+    let mut a_iter = params.a.iter();
+    let mut b1_iter = params.b_g1.iter();
+    let mut b2_iter = params.b_g2.iter();
+    let zero1 = G1Affine::zero();
+    let zero2 = G2Affine::zero();
+    let a = repeat(true).take(params.vk.ic.len())
+        .chain(p.a_aux_density.iter())
+        .map(|item| if item { a_iter.next().unwrap() } else { &zero1 })
+        .map(|e| p1_to_vec(e))
+        .collect_vec();
+    let b1 = p.b_input_density.iter()
+        .chain(p.b_aux_density.iter())
+        .map(|item| if item { b1_iter.next().unwrap() } else { &zero1 })
+        .map(|e| p1_to_vec(e))
+        .collect_vec();
+    let b2 = p.b_input_density.iter()
+        .chain(p.b_aux_density.iter())
+        .map(|item| if item { b2_iter.next().unwrap() } else { &zero2 })
+        .map(|e| p2_to_vec(e))
+        .collect_vec();
+    let c = repeat(None).take(params.vk.ic.len())
+        .chain(params.l.iter().map(|e| Some(p1_to_vec(e))))
+        .collect_vec();
 
     let proving_key = ProvingKeyJson {
         pols_a,
         pols_b,
         pols_c,
-        a: params.a.iter().map(|e| p1_to_vec(e).unwrap()).collect_vec(),
-        b1: params.b_g1.iter().map(|e| p1_to_vec(e).unwrap()).collect_vec(),
-        b2: params.b_g2.iter().map(|e| p2_to_vec(e).unwrap()).collect_vec(),
-        c: repeat(None).take(params.vk.ic.len()).chain(params.l.iter().map(|e| Some(p1_to_vec(e).unwrap()))).collect_vec(),
-        vk_alfa_1: p1_to_vec(&params.vk.alpha_g1).unwrap(),
-        vk_beta_1: p1_to_vec(&params.vk.beta_g1).unwrap(),
-        vk_delta_1: p1_to_vec(&params.vk.delta_g1).unwrap(),
-        vk_beta_2: p2_to_vec(&params.vk.beta_g2).unwrap(),
-        vk_delta_2: p2_to_vec(&params.vk.delta_g2).unwrap(),
-        h: params.h.iter().map(|e| p1_to_vec(e).unwrap()).collect_vec(),
+        a,
+        b1,
+        b2,
+        c,
+        vk_alfa_1: p1_to_vec(&params.vk.alpha_g1),
+        vk_beta_1: p1_to_vec(&params.vk.beta_g1),
+        vk_delta_1: p1_to_vec(&params.vk.delta_g1),
+        vk_beta_2: p2_to_vec(&params.vk.beta_g2),
+        vk_delta_2: p2_to_vec(&params.vk.delta_g2),
+        h: params.h.iter().map(|e| p1_to_vec(e)).collect_vec(),
         protocol: String::from("groth"),
-        n_public: circuit.num_inputs - 1,
-        n_vars: circuit.num_variables,
+        n_public,
+        n_vars,
         domain_bits,
         domain_size: 1 << domain_bits,
     };
@@ -417,11 +446,11 @@ pub fn proving_key_json_file(params: &Parameters<Bn256>, circuit: CircomCircuit<
 
 pub fn verification_key_json(params: &Parameters<Bn256>) -> Result<String, serde_json::error::Error> {
     let verification_key = VerifyingKeyJson {
-        ic: params.vk.ic.iter().map(|e| p1_to_vec(e).unwrap()).collect_vec(),
-        vk_alfa_1: p1_to_vec(&params.vk.alpha_g1).unwrap(),
-        vk_beta_2: p2_to_vec(&params.vk.beta_g2).unwrap(),
-        vk_gamma_2: p2_to_vec(&params.vk.gamma_g2).unwrap(),
-        vk_delta_2: p2_to_vec(&params.vk.delta_g2).unwrap(),
+        ic: params.vk.ic.iter().map(|e| p1_to_vec(e)).collect_vec(),
+        vk_alfa_1: p1_to_vec(&params.vk.alpha_g1),
+        vk_beta_2: p2_to_vec(&params.vk.beta_g2),
+        vk_gamma_2: p2_to_vec(&params.vk.gamma_g2),
+        vk_delta_2: p2_to_vec(&params.vk.delta_g2),
         vk_alfabeta_12: pairing_to_vec(&Bn256::pairing(params.vk.alpha_g1, params.vk.beta_g2)),
         inputs_count: params.vk.ic.len() - 1,
         protocol: String::from("groth"),

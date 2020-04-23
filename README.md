@@ -67,6 +67,7 @@ Writing to file...
 Done!
 
 # Calculate witness from the input.json
+# At the moment we still need to calculate witness using snarkjs
 > snarkjs calculatewitness
 
 # Generate a snark proof
