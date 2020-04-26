@@ -1,6 +1,6 @@
 [package]
 name = "zkutil"
-version = "0.2.0"
+version = "0.2.1"
 authors = ["Roman Semenov <semenov.roma@gmail.com>"]
 description = "Library for working with circom circuits"
 documentation = "https://docs.rs/zkutil"
