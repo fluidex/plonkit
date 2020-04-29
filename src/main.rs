@@ -1,3 +1,4 @@
+#![allow(unused_braces)]
 extern crate clap;
 extern crate bellman_ce;
 extern crate zkutil;
