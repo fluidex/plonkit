@@ -97,7 +97,7 @@ struct GenerateVerifierOpts {
     #[clap(short = "p", long = "params", default_value = "params.bin")]
     params: String,
     /// Output smart contract name
-    #[clap(short = "v", long = "verifier", default_value = "verifier.sol")]
+    #[clap(short = "v", long = "verifier", default_value = "Verifier.sol")]
     verifier: String,
 }
 
