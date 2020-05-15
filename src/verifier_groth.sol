@@ -166,8 +166,7 @@ contract Verifier {
         VerifyingKey memory vk = verifyingKey();
 
         // Compute the linear combination vk_x
-        Pairing.G1Point memory vk_x = Pairing.G1Point(0, 0);
-        vk_x = Pairing.plus(vk_x, vk.IC[0]);
+        Pairing.G1Point memory vk_x = vk.IC[0];
 
         // Make sure that every input is less than the snark scalar field
         for (uint256 i = 0; i < input.length; i++) {
