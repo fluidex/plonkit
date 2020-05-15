@@ -150,7 +150,7 @@ impl<'a, E: Engine> CircomCircuit<E> {
             None => return String::from("[]"),
             Some(inp) => inp.iter().map(|x| repr_to_big(x.into_repr())).collect_vec(),
         };
-        serde_json::to_string(&inputs).unwrap()
+        serde_json::to_string_pretty(&inputs).unwrap()
     }
 }
 
@@ -281,7 +281,7 @@ pub fn create_verifier_sol_file(params: &Parameters<Bn256>, filename: &str) -> s
 }
 
 pub fn proof_to_json(proof: &Proof<Bn256>) -> Result<String, serde_json::error::Error> {
-    serde_json::to_string(&ProofJson {
+    serde_json::to_string_pretty(&ProofJson {
         protocol: "groth".to_string(),
         pi_a: p1_to_vec(&proof.a),
         pi_b: p2_to_vec(&proof.b),
@@ -462,7 +462,7 @@ pub fn verification_key_json(params: &Parameters<Bn256>) -> Result<String, serde
         inputs_count: params.vk.ic.len() - 1,
         protocol: String::from("groth"),
     };
-    serde_json::to_string(&verification_key)
+    serde_json::to_string_pretty(&verification_key)
 }
 
 pub fn verification_key_json_file(params: &Parameters<Bn256>, filename: &str) -> std::io::Result<()> {
