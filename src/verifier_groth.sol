@@ -52,11 +52,10 @@ library Pairing {
         G1Point memory p1,
         G1Point memory p2
     ) internal view returns (G1Point memory r) {
-        uint256[4] memory input;
-        input[0] = p1.X;
-        input[1] = p1.Y;
-        input[2] = p2.X;
-        input[3] = p2.Y;
+        uint256[4] memory input = [
+            p1.X, p1.Y,
+            p2.X, p2.Y
+        ];
         bool success;
 
         // solium-disable-next-line security/no-inline-assembly
@@ -75,10 +74,7 @@ library Pairing {
      *         points p.
      */
     function scalar_mul(G1Point memory p, uint256 s) internal view returns (G1Point memory r) {
-        uint256[3] memory input;
-        input[0] = p.X;
-        input[1] = p.Y;
-        input[2] = s;
+        uint256[3] memory input = [p.X, p.Y, s];
         bool success;
         // solium-disable-next-line security/no-inline-assembly
         assembly {
@@ -104,28 +100,19 @@ library Pairing {
         G1Point memory d1,
         G2Point memory d2
     ) internal view returns (bool) {
-        G1Point[4] memory p1 = [a1, b1, c1, d1];
-        G2Point[4] memory p2 = [a2, b2, c2, d2];
-
+        uint256[24] memory input = [
+            a1.X, a1.Y, a2.X[0], a2.X[1], a2.Y[0], a2.Y[1],
+            b1.X, b1.Y, b2.X[0], b2.X[1], b2.Y[0], b2.Y[1],
+            c1.X, c1.Y, c2.X[0], c2.X[1], c2.Y[0], c2.Y[1],
+            d1.X, d1.Y, d2.X[0], d2.X[1], d2.Y[0], d2.Y[1]
+        ];
         uint256 inputSize = 24;
-        uint256[] memory input = new uint256[](inputSize);
-
-        for (uint256 i = 0; i < 4; i++) {
-            uint256 j = i * 6;
-            input[j + 0] = p1[i].X;
-            input[j + 1] = p1[i].Y;
-            input[j + 2] = p2[i].X[0];
-            input[j + 3] = p2[i].X[1];
-            input[j + 4] = p2[i].Y[0];
-            input[j + 5] = p2[i].Y[1];
-        }
-
         uint256[1] memory out;
         bool success;
 
         // solium-disable-next-line security/no-inline-assembly
         assembly {
-            success := staticcall(sub(gas(), 2000), 8, add(input, 0x20), mul(inputSize, 0x20), out, 0x20)
+            success := staticcall(sub(gas(), 2000), 8, input, mul(inputSize, 0x20), out, 0x20)
             // Use "invalid" to make gas estimation work
             switch success case 0 { invalid() }
         }
