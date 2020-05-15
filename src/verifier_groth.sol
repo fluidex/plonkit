@@ -108,13 +108,12 @@ library Pairing {
             c1.X, c1.Y, c2.X[0], c2.X[1], c2.Y[0], c2.Y[1],
             d1.X, d1.Y, d2.X[0], d2.X[1], d2.Y[0], d2.Y[1]
         ];
-        uint256 inputSize = 24;
         uint256[1] memory out;
         bool success;
 
         // solium-disable-next-line security/no-inline-assembly
         assembly {
-            success := staticcall(sub(gas(), 2000), 8, input, mul(inputSize, 0x20), out, 0x20)
+            success := staticcall(sub(gas(), 2000), 8, input, mul(24, 0x20), out, 0x20)
             // Use "invalid" to make gas estimation work
             switch success case 0 { invalid() }
         }
