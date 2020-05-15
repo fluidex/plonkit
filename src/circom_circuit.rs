@@ -158,12 +158,13 @@ impl<'a, E: Engine> CircomCircuit<E> {
 /// is used during paramgen and proving in order to
 /// synthesize the constraint system.
 impl<'a, E: Engine> Circuit<E> for CircomCircuit<E> {
+    //noinspection RsBorrowChecker
     fn synthesize<CS: ConstraintSystem<E>>(
         self,
         cs: &mut CS
     ) -> Result<(), SynthesisError>
     {
-        let witness = &self.witness.clone();
+        let witness = &self.witness;
         for i in 1..self.r1cs.num_inputs {
             cs.alloc_input(
                 || format!("variable {}", i),
