@@ -5,20 +5,39 @@ extern crate num_bigint;
 extern crate num_traits;
 
 use std::fmt::Display;
+use itertools::Itertools;
 use num_bigint::BigUint;
 use num_traits::Num;
-use bellman_ce::pairing::{
-    ff::PrimeField,
-    CurveAffine,
-    bn256::{
-        G1Affine,
-        G2Affine,
-        Fq12,
-    }
+use bellman_ce::{
+    groth16::Proof,
+    pairing::{
+        ff::PrimeField,
+        CurveAffine,
+        bn256::{
+            G1Affine,
+            G2Affine,
+            Fq12,
+            Bn256,
+        },
+    },
 };
 
 pub fn repr_to_big<T: Display>(r: T) -> String {
     BigUint::from_str_radix(&format!("{}", r)[2..], 16).unwrap().to_str_radix(10)
+}
+
+pub fn repr_to_hex<T: Display>(r: T) -> String {
+    format!("{}", r)[2..].to_string()
+}
+
+pub fn proof_to_hex(proof: &Proof<Bn256>) -> String {
+    let a = proof.a.into_xy_unchecked();
+    let b = proof.b.into_xy_unchecked();
+    let c = proof.c.into_xy_unchecked();
+    [a.0, a.1, b.0.c1, b.0.c0, b.1.c1, b.1.c0, c.0, c.1]
+        .iter()
+        .map(|e| repr_to_hex(e.into_repr()))
+        .join("")
 }
 
 pub fn p1_to_vec(p: &G1Affine) -> Vec<String> {

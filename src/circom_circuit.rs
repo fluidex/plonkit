@@ -44,6 +44,7 @@ use bellman_ce::{
 
 use crate::utils::{
     repr_to_big,
+    proof_to_hex,
     p1_to_vec,
     p2_to_vec,
     pairing_to_vec,
@@ -63,6 +64,7 @@ struct CircuitJson {
 #[derive(Serialize, Deserialize)]
 struct ProofJson {
     pub protocol: String,
+    pub proof: String,
     pub pi_a: Vec<String>,
     pub pi_b: Vec<Vec<String>>,
     pub pi_c: Vec<String>,
@@ -283,6 +285,7 @@ pub fn create_verifier_sol_file(params: &Parameters<Bn256>, filename: &str) -> s
 pub fn proof_to_json(proof: &Proof<Bn256>) -> Result<String, serde_json::error::Error> {
     serde_json::to_string_pretty(&ProofJson {
         protocol: "groth".to_string(),
+        proof: proof_to_hex(&proof),
         pi_a: p1_to_vec(&proof.a),
         pi_b: p2_to_vec(&proof.b),
         pi_c: p1_to_vec(&proof.c),
