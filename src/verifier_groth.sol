@@ -136,12 +136,6 @@ contract Verifier {
         Pairing.G1Point[<%vk_ic_length%>] IC;
     }
 
-    struct Proof {
-        Pairing.G1Point A;
-        Pairing.G2Point B;
-        Pairing.G1Point C;
-    }
-
     function verifyingKey() internal pure returns (VerifyingKey memory vk) {
         vk.alfa1 = Pairing.G1Point(<%vk_alfa1%>);
         vk.beta2 = Pairing.G2Point(<%vk_beta2%>);
@@ -165,10 +159,9 @@ contract Verifier {
             require(p[i] < PRIME_Q, "verifier-proof-element-gte-prime-q");
         }
 
-        Proof memory _proof;
-        _proof.A = Pairing.G1Point(p[0], p[1]);
-        _proof.B = Pairing.G2Point([p[2], p[3]], [p[4], p[5]]);
-        _proof.C = Pairing.G1Point(p[6], p[7]);
+        Pairing.G1Point memory proofA = Pairing.G1Point(p[0], p[1]);
+        Pairing.G2Point memory proofB = Pairing.G2Point([p[2], p[3]], [p[4], p[5]]);
+        Pairing.G1Point memory proofC = Pairing.G1Point(p[6], p[7]);
 
         VerifyingKey memory vk = verifyingKey();
 
@@ -183,13 +176,13 @@ contract Verifier {
         }
 
         return Pairing.pairing(
-            Pairing.negate(_proof.A),
-            _proof.B,
+            Pairing.negate(proofA),
+            proofB,
             vk.alfa1,
             vk.beta2,
             vk_x,
             vk.gamma2,
-            _proof.C,
+            proofC,
             vk.delta2
         );
     }
