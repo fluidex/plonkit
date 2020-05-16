@@ -94,7 +94,7 @@ jobs:
           npm init -y
           npm install circom snarkjs
           chmod +x ./zkutil/zkutil
-          npx -rw circom
+          npx circom -rw
           ./zkutil/zkutil setup
           ./zkutil/zkutil export-keys
           ./zkutil/zkutil generate-verifier
