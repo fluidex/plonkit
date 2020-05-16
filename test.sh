@@ -20,4 +20,4 @@ cargo run --release prove
 cargo run --release verify
 
 # Double check by verifying the same proof with snarkjs
-npx snarkjs verify --vk vk.json
+npx snarkjs verify
