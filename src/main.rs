@@ -52,7 +52,7 @@ struct ProveOpts {
     /// Snark trusted setup parameters file
     #[clap(short = "p", long = "params", default_value = "params.bin")]
     params: String,
-    /// Circuit JSON file
+    /// Circuit R1CS or JSON file
     #[clap(short = "c", long = "circuit", default_value = "circuit.r1cs")]
     circuit: String,
     /// Witness JSON file
@@ -86,7 +86,7 @@ struct SetupOpts {
     /// Snark trusted setup parameters file
     #[clap(short = "p", long = "params", default_value = "params.bin")]
     params: String,
-    /// Circuit JSON file
+    /// Circuit R1CS or JSON file
     #[clap(short = "c", long = "circuit", default_value = "circuit.r1cs")]
     circuit: String,
 }
@@ -108,7 +108,7 @@ struct ExportKeysOpts {
     /// Snark trusted setup parameters file
     #[clap(short = "p", long = "params", default_value = "params.bin")]
     params: String,
-    /// Circuit JSON file
+    /// Circuit R1CS or JSON file
     #[clap(short = "c", long = "circuit", default_value = "circuit.r1cs")]
     circuit: String,
     /// Output proving key file

@@ -28,7 +28,7 @@ SUBCOMMANDS:
     verify               Verify a SNARK proof
 
 # Getting help for a subcommand
->  zkutil prove --help
+> zkutil prove --help
 zkutil-prove
 Generate a SNARK proof
 
@@ -40,7 +40,7 @@ FLAGS:
     -V, --version    Prints version information
 
 OPTIONS:
-    -c, --circuit <circuit>    Circuit JSON file [default: circuit.json]
+    -c, --circuit <circuit>    Circuit R1CS or JSON file [default: circuit.r1cs]
     -p, --params <params>      Snark trusted setup parameters file [default: params.bin]
     -r, --proof <proof>        Output file for proof JSON [default: proof.json]
     -i, --public <public>      Output file for public inputs JSON [default: public.json]
@@ -51,7 +51,7 @@ OPTIONS:
 circuit.circom  input.json
 
 # Compile the circuit
-> circom circuit.circom
+> circom -rw circuit.circom
 Constraints: 10000
 Constraints: 20000
 Constraints: 30000
@@ -95,7 +95,7 @@ OK
 
 # Here's a list of files that we have after this
 > ls
-circuit.circom  circuit.json  input.json  params.bin  proof.json  public.json  verifier.sol  vk.json  witness.json
+circuit.circom  circuit.r1cs  circuit.wasm  input.json  params.bin  proof.json  public.json  Verifier.sol  proving_key.json  verifying_key.json  witness.json
 ```
 
 Also see `test.sh` for example
