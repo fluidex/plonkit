@@ -32,6 +32,7 @@ use bellman_ce::{
         Engine,
         CurveAffine,
         ff::PrimeField,
+        ff::ScalarEngine,
         bn256::{
             Bn256,
             Fq,
@@ -118,31 +119,36 @@ struct VerifyingKeyJson {
     pub inputs_count: usize,
 }
 
+pub type Constraint<E> = (
+    Vec<(usize, <E as ScalarEngine>::Fr)>,
+    Vec<(usize, <E as ScalarEngine>::Fr)>,
+    Vec<(usize, <E as ScalarEngine>::Fr)>,
+);
+
 #[derive(Clone)]
 pub struct R1CS<E: Engine> {
     pub num_inputs: usize,
     pub num_aux: usize,
     pub num_variables: usize,
-    #[allow(clippy::complexity)]
-    pub constraints: Vec<(
-        Vec<(usize, E::Fr)>,
-        Vec<(usize, E::Fr)>,
-        Vec<(usize, E::Fr)>,
-    )>,
+    pub constraints: Vec<Constraint<E>>,
 }
 
 #[derive(Clone)]
 pub struct CircomCircuit<E: Engine> {
     pub r1cs: R1CS<E>,
     pub witness: Option<Vec<E::Fr>>,
+    pub wire_mapping: Option<Vec<usize>>,
     // debug symbols
 }
 
 impl<'a, E: Engine> CircomCircuit<E> {
     pub fn get_public_inputs(&self) -> Option<Vec<E::Fr>> {
-        match self.witness.clone() {
+        match &self.witness {
             None => None,
-            Some(w) => Some(w[1..self.r1cs.num_inputs].to_vec()),
+            Some(w) => match &self.wire_mapping {
+                None => Some(w[1..self.r1cs.num_inputs].to_vec()),
+                Some(m) => Some(m[1..self.r1cs.num_inputs].iter().map(|i| w[*i]).collect_vec()),
+            }
         }
     }
 
@@ -167,13 +173,17 @@ impl<'a, E: Engine> Circuit<E> for CircomCircuit<E> {
     ) -> Result<(), SynthesisError>
     {
         let witness = &self.witness;
+        let wire_mapping = &self.wire_mapping;
         for i in 1..self.r1cs.num_inputs {
             cs.alloc_input(
                 || format!("variable {}", i),
                 || {
                     Ok(match witness {
                         None => E::Fr::from_str("1").unwrap(),
-                        Some(w) => w[i],
+                        Some(w) => match wire_mapping {
+                            None => w[i],
+                            Some(m) => w[m[i]],
+                        }
                     })
                 },
             )?;
@@ -185,7 +195,10 @@ impl<'a, E: Engine> Circuit<E> for CircomCircuit<E> {
                 || {
                     Ok(match witness {
                         None => E::Fr::from_str("1").unwrap(),
-                        Some(w) => w[i + self.r1cs.num_inputs],
+                        Some(w) => match wire_mapping {
+                            None => w[i + self.r1cs.num_inputs],
+                            Some(m) => w[m[i + self.r1cs.num_inputs]],
+                        },
                     })
                 },
             )?;
@@ -514,6 +527,25 @@ pub fn r1cs_from_json<E: Engine, R: Read>(reader: R) -> R1CS<E> {
         num_variables: circuit_json.num_variables,
         constraints,
     }
+}
+
+pub fn r1cs_from_bin<R: Read>(reader: R) -> Result<(R1CS<Bn256>, Vec<usize>), std::io::Error> {
+    let file = crate::r1cs_reader::read(reader)?;
+    let num_inputs = (1 + file.header.n_pub_in + file.header.n_pub_out) as usize;
+    let num_variables = file.header.n_wires as usize;
+    let num_aux = num_variables - num_inputs;
+    Ok((
+        R1CS { num_aux, num_inputs, num_variables, constraints: file.constraints, },
+        file.wire_mapping.iter().map(|e| *e as usize).collect_vec()
+    ))
+}
+
+pub fn r1cs_from_bin_file(filename: &str) -> Result<(R1CS<Bn256>, Vec<usize>), std::io::Error> {
+    let reader = OpenOptions::new()
+        .read(true)
+        .open(filename)
+        .expect("unable to open.");
+    r1cs_from_bin(BufReader::new(reader))
 }
 
 pub fn create_rng() -> Box<dyn Rng> {

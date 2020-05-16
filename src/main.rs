@@ -145,6 +145,7 @@ fn prove(opts: ProveOpts) {
     let circuit = CircomCircuit{
         r1cs: r1cs_from_json_file(&opts.circuit),
         witness: Some(witness_from_json_file::<Bn256>(&opts.witness)),
+        wire_mapping: None,
     };
     println!("Proving...");
     let proof = prove2(circuit.clone(), &params, rng).unwrap();
@@ -172,6 +173,7 @@ fn setup(opts: SetupOpts) {
     let circuit = CircomCircuit {
         r1cs: r1cs_from_json_file::<Bn256>(&opts.circuit),
         witness: None,
+        wire_mapping: None,
     };
     println!("Generating trusted setup parameters...");
     let params = generate_random_parameters(circuit, rng).unwrap();
@@ -193,6 +195,7 @@ fn export_keys(opts: ExportKeysOpts) {
     let circuit = CircomCircuit {
         r1cs: r1cs_from_json_file::<Bn256>(&opts.circuit),
         witness: None,
+        wire_mapping: None,
     };
     proving_key_json_file(&params, circuit, &opts.pk).unwrap();
     verification_key_json_file(&params, &opts.vk).unwrap();

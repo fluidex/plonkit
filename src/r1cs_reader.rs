@@ -5,33 +5,27 @@ use bellman_ce::pairing::{
     Engine,
     bn256::Bn256,
     ff::{
-        Field, PrimeField, PrimeFieldRepr, ScalarEngine,
+        Field, PrimeField, PrimeFieldRepr,
     }
 };
+use crate::circom_circuit::Constraint;
 
 pub struct Header {
-    field_size: u32,
-    prime_size: Vec<u8>,
-    n_wires: u32,
-    n_pub_out: u32,
-    n_pub_in: u32,
-    n_prv_in: u32,
-    n_labels: u64,
-    n_constraints: u32,
+    pub field_size: u32,
+    pub prime_size: Vec<u8>,
+    pub n_wires: u32,
+    pub n_pub_out: u32,
+    pub n_pub_in: u32,
+    pub n_prv_in: u32,
+    pub n_labels: u64,
+    pub n_constraints: u32,
 }
 
-type Constraints<E> = Vec<(
-    Vec<(usize, <E as ScalarEngine>::Fr)>,
-    Vec<(usize, <E as ScalarEngine>::Fr)>,
-    Vec<(usize, <E as ScalarEngine>::Fr)>,
-)>;
-
-type WireMapping = Vec<u64>;
-
 pub struct R1CSFile<E: Engine> {
-    header: Header,
-    constraints: Constraints<E>,
-    wire_mapping: WireMapping,
+    pub version: u32,
+    pub header: Header,
+    pub constraints: Vec<Constraint<E>>,
+    pub wire_mapping: Vec<u64>,
 }
 
 fn read_field<R: Read, E: Engine>(mut reader: R) -> Result<E::Fr> {
@@ -74,7 +68,7 @@ fn read_constraint_vec<R: Read, E:Engine>(mut reader: R, header: &Header) -> Res
     Ok(vec)
 }
 
-fn read_constraints<R: Read, E: Engine>(mut reader: R, size: u64, header: &Header) -> Result<Constraints<E>> {
+fn read_constraints<R: Read, E: Engine>(mut reader: R, size: u64, header: &Header) -> Result<Vec<Constraint<E>>> {
     // todo check section size
     let mut vec = Vec::with_capacity(header.n_constraints as usize);
     for _ in 0..header.n_constraints {
@@ -131,7 +125,7 @@ pub fn read<R: Read>(mut reader: R) -> Result<R1CSFile<Bn256>> {
     let sec_size = reader.read_u64::<LittleEndian>()?;
     let wire_mapping = read_map(&mut reader, sec_size, &header)?;
 
-    Ok(R1CSFile { header, constraints, wire_mapping })
+    Ok(R1CSFile { version, header, constraints, wire_mapping })
 }
 
 #[test]
@@ -186,7 +180,10 @@ fn sample() {
         44010000 00000000
     ");
 
+    use bellman_ce::pairing::ff;
     let file = read(&data[..]).unwrap();
+    assert_eq!(file.version, 1);
+
     assert_eq!(file.header.field_size, 32);
     assert_eq!(file.header.prime_size, &hex!("010000f093f5e1439170b97948e833285d588181b64550b829a031e1724e6430"));
     assert_eq!(file.header.n_wires, 7);
@@ -199,13 +196,11 @@ fn sample() {
     assert_eq!(file.constraints.len(), 3);
     assert_eq!(file.constraints[0].0.len(), 2);
     assert_eq!(file.constraints[0].0[0].0, 5);
-    assert_eq!(file.constraints[0].0[0].1, bellman_ce::pairing::ff::from_hex("0x03").unwrap());
+    assert_eq!(file.constraints[0].0[0].1, ff::from_hex("0x03").unwrap());
     assert_eq!(file.constraints[2].1[0].0, 0);
-    assert_eq!(file.constraints[2].1[0].1, bellman_ce::pairing::ff::from_hex("0x06").unwrap());
+    assert_eq!(file.constraints[2].1[0].1, ff::from_hex("0x06").unwrap());
     assert_eq!(file.constraints[1].2.len(), 0);
 
     assert_eq!(file.wire_mapping.len(), 7);
     assert_eq!(file.wire_mapping[1], 3);
-
-    // todo: check constraint and mapping values
 }

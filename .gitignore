@@ -3,4 +3,12 @@
 /verifier.sol
 /circuit.json
 /witness.json
+/circuit.cpp
+/circuit.r1cs
+/circuit.sym
+/circuit.wasm
+/circuit.wat
 /params.bin
+/node_modules
+/package.json
+/package-lock.json
