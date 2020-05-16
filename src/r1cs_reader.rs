@@ -89,6 +89,9 @@ fn read_map<R: Read>(mut reader: R, size: u64, header: &Header) -> Result<Vec<u6
     for _ in 0..header.n_wires {
         vec.push(reader.read_u64::<LittleEndian>()?);
     }
+    if vec[0] != 0 {
+        return Err(Error::new(ErrorKind::InvalidData, "Wire 0 should always be mapped to 0"))
+    }
     Ok(vec)
 }
 
