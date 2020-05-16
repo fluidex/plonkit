@@ -2,7 +2,7 @@
 set -e
 
 # Compile the circuit
-npx circom
+npx circom -rw
 
 # Do a local trusted setup, generate params.bin
 cargo run --release setup
