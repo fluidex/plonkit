@@ -66,11 +66,11 @@ jobs:
           npm install circom@0.0.35 snarkjs@0.1.20
           chmod +x ./zkutil/zkutil
           npx circom
-          ./zkutil/zkutil setup -c circuit.json
-          ./zkutil/zkutil export-keys -c circuit.json
+          ./zkutil/zkutil setup
+          ./zkutil/zkutil export-keys
           ./zkutil/zkutil generate-verifier
           npx snarkjs calculatewitness
-          ./zkutil/zkutil prove -c circuit.json
+          ./zkutil/zkutil prove
           ./zkutil/zkutil verify
           npx snarkjs verify
 
