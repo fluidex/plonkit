@@ -117,6 +117,4 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: publish
-          args: --no-verify --token $CRATES_IO_TOKEN
-        env:
-          CRATES_IO_TOKEN: ${{ secrets.CRATES_IO_TOKEN }}
+          args: --no-verify --token ${{ secrets.CRATES_IO_TOKEN }}
