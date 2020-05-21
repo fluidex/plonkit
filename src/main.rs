@@ -4,6 +4,7 @@ extern crate zkutil;
 
 use std::fs;
 use std::fs::File;
+use std::path::Path;
 use clap::Clap;
 use bellman_ce::pairing::bn256::Bn256;
 use zkutil::circom_circuit::{
@@ -52,9 +53,9 @@ struct ProveOpts {
     /// Snark trusted setup parameters file
     #[clap(short = "p", long = "params", default_value = "params.bin")]
     params: String,
-    /// Circuit R1CS or JSON file
-    #[clap(short = "c", long = "circuit", default_value = "circuit.r1cs")]
-    circuit: String,
+    /// Circuit R1CS or JSON file [default: circuit.r1cs|circuit.json]
+    #[clap(short = "c", long = "circuit")]
+    circuit: Option<String>,
     /// Witness JSON file
     #[clap(short = "w", long = "witness", default_value = "witness.json")]
     witness: String,
@@ -86,9 +87,9 @@ struct SetupOpts {
     /// Snark trusted setup parameters file
     #[clap(short = "p", long = "params", default_value = "params.bin")]
     params: String,
-    /// Circuit R1CS or JSON file
-    #[clap(short = "c", long = "circuit", default_value = "circuit.r1cs")]
-    circuit: String,
+    /// Circuit R1CS or JSON file [default: circuit.r1cs|circuit.json]
+    #[clap(short = "c", long = "circuit")]
+    circuit: Option<String>,
 }
 
 /// A subcommand for generating a Solidity verifier smart contract
@@ -108,9 +109,9 @@ struct ExportKeysOpts {
     /// Snark trusted setup parameters file
     #[clap(short = "p", long = "params", default_value = "params.bin")]
     params: String,
-    /// Circuit R1CS or JSON file
-    #[clap(short = "c", long = "circuit", default_value = "circuit.r1cs")]
-    circuit: String,
+    /// Circuit R1CS or JSON file [default: circuit.r1cs|circuit.json]
+    #[clap(short = "c", long = "circuit")]
+    circuit: Option<String>,
     /// Output proving key file
     #[clap(short = "r", long = "pk", default_value = "proving_key.json")]
     pk: String,
@@ -149,12 +150,24 @@ fn load_r1cs(filename: &str) -> R1CS<Bn256> {
     }
 }
 
+fn resolve_circuit_file(filename: Option<String>) -> String {
+    match filename {
+        Some(s) => s,
+        None => if Path::new("circuit.r1cs").exists() || !Path::new("circuit.json").exists() {
+            "circuit.r1cs".to_string()
+        } else {
+            "circuit.json".to_string()
+        }
+    }
+}
+
 fn prove(opts: ProveOpts) {
     let rng = create_rng();
     let params = load_params_file(&opts.params);
-    println!("Loading circuit from {}...", opts.circuit);
+    let circuit_file = resolve_circuit_file(opts.circuit);
+    println!("Loading circuit from {}...", circuit_file);
     let circuit = CircomCircuit {
-        r1cs: load_r1cs(&opts.circuit),
+        r1cs: load_r1cs(&circuit_file),
         witness: Some(witness_from_json_file::<Bn256>(&opts.witness)),
         wire_mapping: None,
     };
@@ -179,10 +192,11 @@ fn verify(opts: VerifyOpts) {
 }
 
 fn setup(opts: SetupOpts) {
-    println!("Loading circuit from {}...", opts.circuit);
+    let circuit_file = resolve_circuit_file(opts.circuit);
+    println!("Loading circuit from {}...", circuit_file);
     let rng = create_rng();
     let circuit = CircomCircuit {
-        r1cs: load_r1cs(&opts.circuit),
+        r1cs: load_r1cs(&circuit_file),
         witness: None,
         wire_mapping: None,
     };
@@ -203,8 +217,9 @@ fn generate_verifier(opts: GenerateVerifierOpts) {
 fn export_keys(opts: ExportKeysOpts) {
     println!("Exporting {}...", opts.params);
     let params = load_params_file(&opts.params);
+    let circuit_file = resolve_circuit_file(opts.circuit);
     let circuit = CircomCircuit {
-        r1cs: load_r1cs(&opts.circuit),
+        r1cs: load_r1cs(&circuit_file),
         witness: None,
         wire_mapping: None,
     };
