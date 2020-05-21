@@ -63,7 +63,7 @@ struct ProveOpts {
     #[clap(short = "r", long = "proof", default_value = "proof.json")]
     proof: String,
     /// Output file for public inputs JSON
-    #[clap(short = "i", long = "public", default_value = "public.json")]
+    #[clap(short = "o", long = "public", default_value = "public.json")]
     public: String,
 }
 
