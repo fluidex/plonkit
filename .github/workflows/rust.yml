@@ -92,7 +92,7 @@ jobs:
       - name: Test
         run: |
           npm init -y
-p          npm install circom snarkjs@0.1.31
+          npm install circom snarkjs@0.1.31
           chmod +x ./zkutil/zkutil
           npx circom -rw
           ./zkutil/zkutil setup
