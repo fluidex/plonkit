@@ -12,3 +12,4 @@ extern crate num_traits;
 pub mod utils;
 pub mod circom_circuit;
 pub mod r1cs_reader;
+pub mod plonk_util;

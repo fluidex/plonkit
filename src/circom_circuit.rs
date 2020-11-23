@@ -138,6 +138,7 @@ pub struct CircomCircuit<E: Engine> {
     pub r1cs: R1CS<E>,
     pub witness: Option<Vec<E::Fr>>,
     pub wire_mapping: Option<Vec<usize>>,
+    pub is_plonk: bool, 
     // debug symbols
 }
 
@@ -188,17 +189,19 @@ impl<'a, E: Engine> Circuit<E> for CircomCircuit<E> {
                 },
             )?;
         }
-
-        for i in 0..self.r1cs.num_aux {
+        let aux_offset = if self.is_plonk { 1 } else { 0 };
+        for i in aux_offset..(self.r1cs.num_aux + aux_offset) {
             cs.alloc(
                 || format!("aux {}", i),
                 || {
                     Ok(match witness {
                         None => E::Fr::from_str("1").unwrap(),
-                        Some(w) => match wire_mapping {
-                            None => w[i + self.r1cs.num_inputs],
-                            Some(m) => w[m[i + self.r1cs.num_inputs]],
-                        },
+                        Some(w) => {
+                            match wire_mapping {
+                                None => w[i + self.r1cs.num_inputs - aux_offset],
+                                Some(m) => w[m[i + self.r1cs.num_inputs - aux_offset]],
+                            }
+                        }
                     })
                 },
             )?;
@@ -208,7 +211,7 @@ impl<'a, E: Engine> Circuit<E> for CircomCircuit<E> {
             if index < self.r1cs.num_inputs {
                 Index::Input(index)
             } else {
-                Index::Aux(index - self.r1cs.num_inputs)
+                Index::Aux(index - self.r1cs.num_inputs + aux_offset) // plonk uses 1st var internally
             };
         let make_lc = |lc_data: Vec<(usize, E::Fr)>|
             lc_data.iter().fold(
@@ -376,6 +379,7 @@ pub fn filter_params<E: Engine>(params: &mut Parameters<E>) {
 }
 
 pub fn proving_key_json(params: &Parameters<Bn256>, circuit: CircomCircuit<Bn256>) -> Result<String, serde_json::error::Error> {
+    
     let mut pols_a: Vec<BTreeMap<String, String>> = vec![];
     let mut pols_b: Vec<BTreeMap<String, String>> = vec![];
     let mut pols_c: Vec<BTreeMap<String, String>> = vec![];

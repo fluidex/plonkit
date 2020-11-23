@@ -170,6 +170,7 @@ fn prove(opts: ProveOpts) {
         r1cs: load_r1cs(&circuit_file),
         witness: Some(witness_from_json_file::<Bn256>(&opts.witness)),
         wire_mapping: None,
+        is_plonk: false,
     };
     println!("Proving...");
     let proof = prove2(circuit.clone(), &params, rng).unwrap();
@@ -199,6 +200,7 @@ fn setup(opts: SetupOpts) {
         r1cs: load_r1cs(&circuit_file),
         witness: None,
         wire_mapping: None,
+        is_plonk: false,
     };
     println!("Generating trusted setup parameters...");
     let params = generate_random_parameters(circuit, rng).unwrap();
@@ -222,6 +224,7 @@ fn export_keys(opts: ExportKeysOpts) {
         r1cs: load_r1cs(&circuit_file),
         witness: None,
         wire_mapping: None,
+        is_plonk: false,
     };
     proving_key_json_file(&params, circuit, &opts.pk).unwrap();
     verification_key_json_file(&params, &opts.vk).unwrap();
