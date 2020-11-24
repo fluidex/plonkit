@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 set -ex
 
 . ./process_circom_circuit.sh

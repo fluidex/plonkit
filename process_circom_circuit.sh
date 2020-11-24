@@ -1,3 +1,4 @@
+#!/bin/bash
 set -ex
 
 CIRCUIT_DIR=testdata/poseidon
