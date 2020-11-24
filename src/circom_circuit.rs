@@ -2,54 +2,31 @@
 extern crate bellman_ce;
 extern crate rand;
 
-use std::str;
-use std::fs::{self, OpenOptions, File};
-use std::io::{Read, BufReader};
-use std::collections::BTreeMap;
-use std::iter::repeat;
-use std::sync::Arc;
 use itertools::Itertools;
-use rand::{Rng, OsRng};
+use rand::{OsRng, Rng};
+use std::collections::BTreeMap;
+use std::fs::{self, File, OpenOptions};
+use std::io::{BufReader, Read};
+use std::iter::repeat;
+use std::str;
+use std::sync::Arc;
 
 use bellman_ce::{
-    Circuit,
-    SynthesisError,
-    Variable,
-    Index,
-    ConstraintSystem,
-    LinearCombination,
-    source::QueryDensity,
     groth16::{
-        Parameters,
-        Proof,
-        generate_random_parameters as generate_random_parameters2,
-        prepare_verifying_key,
-        create_random_proof,
-        verify_proof,
-        prepare_prover,
+        create_random_proof, generate_random_parameters as generate_random_parameters2, prepare_prover, prepare_verifying_key,
+        verify_proof, Parameters, Proof,
     },
     pairing::{
-        Engine,
-        CurveAffine,
+        bn256::{Bn256, Fq, Fq2, G1Affine, G2Affine},
         ff::PrimeField,
         ff::ScalarEngine,
-        bn256::{
-            Bn256,
-            Fq,
-            Fq2,
-            G1Affine,
-            G2Affine,
-        }
-    }
+        CurveAffine, Engine,
+    },
+    source::QueryDensity,
+    Circuit, ConstraintSystem, Index, LinearCombination, SynthesisError, Variable,
 };
 
-use crate::utils::{
-    repr_to_big,
-    proof_to_hex,
-    p1_to_vec,
-    p2_to_vec,
-    pairing_to_vec,
-};
+use crate::utils::{p1_to_vec, p2_to_vec, pairing_to_vec, proof_to_hex, repr_to_big};
 
 #[derive(Serialize, Deserialize)]
 struct CircuitJson {
@@ -138,7 +115,7 @@ pub struct CircomCircuit<E: Engine> {
     pub r1cs: R1CS<E>,
     pub witness: Option<Vec<E::Fr>>,
     pub wire_mapping: Option<Vec<usize>>,
-    pub is_plonk: bool, 
+    pub is_plonk: bool,
     // debug symbols
 }
 
@@ -149,7 +126,7 @@ impl<'a, E: Engine> CircomCircuit<E> {
             Some(w) => match &self.wire_mapping {
                 None => Some(w[1..self.r1cs.num_inputs].to_vec()),
                 Some(m) => Some(m[1..self.r1cs.num_inputs].iter().map(|i| w[*i]).collect_vec()),
-            }
+            },
         }
     }
 
@@ -168,11 +145,7 @@ impl<'a, E: Engine> CircomCircuit<E> {
 /// synthesize the constraint system.
 impl<'a, E: Engine> Circuit<E> for CircomCircuit<E> {
     //noinspection RsBorrowChecker
-    fn synthesize<CS: ConstraintSystem<E>>(
-        self,
-        cs: &mut CS
-    ) -> Result<(), SynthesisError>
-    {
+    fn synthesize<CS: ConstraintSystem<E>>(self, cs: &mut CS) -> Result<(), SynthesisError> {
         let witness = &self.witness;
         let wire_mapping = &self.wire_mapping;
         for i in 1..self.r1cs.num_inputs {
@@ -184,7 +157,7 @@ impl<'a, E: Engine> Circuit<E> for CircomCircuit<E> {
                         Some(w) => match wire_mapping {
                             None => w[i],
                             Some(m) => w[m[i]],
-                        }
+                        },
                     })
                 },
             )?;
@@ -196,33 +169,35 @@ impl<'a, E: Engine> Circuit<E> for CircomCircuit<E> {
                 || {
                     Ok(match witness {
                         None => E::Fr::from_str("1").unwrap(),
-                        Some(w) => {
-                            match wire_mapping {
-                                None => w[i + self.r1cs.num_inputs - aux_offset],
-                                Some(m) => w[m[i + self.r1cs.num_inputs - aux_offset]],
-                            }
-                        }
+                        Some(w) => match wire_mapping {
+                            None => w[i + self.r1cs.num_inputs - aux_offset],
+                            Some(m) => w[m[i + self.r1cs.num_inputs - aux_offset]],
+                        },
                     })
                 },
             )?;
         }
 
-        let make_index = |index|
+        let make_index = |index| {
             if index < self.r1cs.num_inputs {
                 Index::Input(index)
             } else {
                 Index::Aux(index - self.r1cs.num_inputs + aux_offset) // plonk uses 1st var internally
-            };
-        let make_lc = |lc_data: Vec<(usize, E::Fr)>|
-            lc_data.iter().fold(
-                LinearCombination::<E>::zero(),
-                |lc: LinearCombination<E>, (index, coeff)| lc + (*coeff, Variable::new_unchecked(make_index(*index)))
-            );
+            }
+        };
+        let make_lc = |lc_data: Vec<(usize, E::Fr)>| {
+            lc_data
+                .iter()
+                .fold(LinearCombination::<E>::zero(), |lc: LinearCombination<E>, (index, coeff)| {
+                    lc + (*coeff, Variable::new_unchecked(make_index(*index)))
+                })
+        };
         for (i, constraint) in self.r1cs.constraints.iter().enumerate() {
-            cs.enforce(|| format!("constraint {}", i),
-                       |_| make_lc(constraint.0.clone()),
-                       |_| make_lc(constraint.1.clone()),
-                       |_| make_lc(constraint.2.clone()),
+            cs.enforce(
+                || format!("constraint {}", i),
+                |_| make_lc(constraint.0.clone()),
+                |_| make_lc(constraint.1.clone()),
+                |_| make_lc(constraint.2.clone()),
             );
         }
         Ok(())
@@ -289,7 +264,13 @@ pub fn create_verifier_sol(params: &Parameters<Bn256>) -> String {
 
     let mut vi = String::from("");
     for i in 0..params.vk.ic.len() {
-        vi = format!("{}{}vk.IC[{}] = Pairing.G1Point({});\n", vi, if vi.is_empty() { "" } else { "        " }, i, &*p1_to_str(&params.vk.ic[i]));
+        vi = format!(
+            "{}{}vk.IC[{}] = Pairing.G1Point({});\n",
+            vi,
+            if vi.is_empty() { "" } else { "        " },
+            i,
+            &*p1_to_str(&params.vk.ic[i])
+        );
     }
     template.replace("<%vk_ic_pts%>", &*vi)
 }
@@ -314,10 +295,7 @@ pub fn proof_to_json_file(proof: &Proof<Bn256>, filename: &str) -> std::io::Resu
 }
 
 pub fn load_params_file(filename: &str) -> Parameters<Bn256> {
-    let reader = OpenOptions::new()
-        .read(true)
-        .open(filename)
-        .expect("unable to open.");
+    let reader = OpenOptions::new().read(true).open(filename).expect("unable to open.");
     load_params(reader)
 }
 
@@ -326,10 +304,7 @@ pub fn load_params<R: Read>(reader: R) -> Parameters<Bn256> {
 }
 
 pub fn load_inputs_json_file<E: Engine>(filename: &str) -> Vec<E::Fr> {
-    let reader = OpenOptions::new()
-        .read(true)
-        .open(filename)
-        .expect("unable to open.");
+    let reader = OpenOptions::new().read(true).open(filename).expect("unable to open.");
     load_inputs_json::<E, BufReader<File>>(BufReader::new(reader))
 }
 
@@ -339,20 +314,14 @@ pub fn load_inputs_json<E: Engine, R: Read>(reader: R) -> Vec<E::Fr> {
 }
 
 pub fn load_proof_json_file<E: Engine>(filename: &str) -> Proof<Bn256> {
-    let reader = OpenOptions::new()
-        .read(true)
-        .open(filename)
-        .expect("unable to open.");
+    let reader = OpenOptions::new().read(true).open(filename).expect("unable to open.");
     load_proof_json(BufReader::new(reader))
 }
 
 pub fn load_proof_json<R: Read>(reader: R) -> Proof<Bn256> {
     let proof: ProofJson = serde_json::from_reader(reader).unwrap();
     Proof {
-        a: G1Affine::from_xy_checked(
-            Fq::from_str(&proof.pi_a[0]).unwrap(),
-            Fq::from_str(&proof.pi_a[1]).unwrap(),
-        ).unwrap(),
+        a: G1Affine::from_xy_checked(Fq::from_str(&proof.pi_a[0]).unwrap(), Fq::from_str(&proof.pi_a[1]).unwrap()).unwrap(),
         b: G2Affine::from_xy_checked(
             Fq2 {
                 c0: Fq::from_str(&proof.pi_b[0][0]).unwrap(),
@@ -362,11 +331,9 @@ pub fn load_proof_json<R: Read>(reader: R) -> Proof<Bn256> {
                 c0: Fq::from_str(&proof.pi_b[1][0]).unwrap(),
                 c1: Fq::from_str(&proof.pi_b[1][1]).unwrap(),
             },
-        ).unwrap(),
-        c: G1Affine::from_xy_checked(
-            Fq::from_str(&proof.pi_c[0]).unwrap(),
-            Fq::from_str(&proof.pi_c[1]).unwrap(),
-        ).unwrap(),
+        )
+        .unwrap(),
+        c: G1Affine::from_xy_checked(Fq::from_str(&proof.pi_c[0]).unwrap(), Fq::from_str(&proof.pi_c[1]).unwrap()).unwrap(),
     }
 }
 
@@ -379,7 +346,6 @@ pub fn filter_params<E: Engine>(params: &mut Parameters<E>) {
 }
 
 pub fn proving_key_json(params: &Parameters<Bn256>, circuit: CircomCircuit<Bn256>) -> Result<String, serde_json::error::Error> {
-    
     let mut pols_a: Vec<BTreeMap<String, String>> = vec![];
     let mut pols_b: Vec<BTreeMap<String, String>> = vec![];
     let mut pols_c: Vec<BTreeMap<String, String>> = vec![];
@@ -414,22 +380,28 @@ pub fn proving_key_json(params: &Parameters<Bn256>, circuit: CircomCircuit<Bn256
     let mut b2_iter = params.b_g2.iter();
     let zero1 = G1Affine::zero();
     let zero2 = G2Affine::zero();
-    let a = repeat(true).take(params.vk.ic.len())
+    let a = repeat(true)
+        .take(params.vk.ic.len())
         .chain(p.a_aux_density.iter())
         .map(|item| if item { a_iter.next().unwrap() } else { &zero1 })
         .map(|e| p1_to_vec(e))
         .collect_vec();
-    let b1 = p.b_input_density.iter()
+    let b1 = p
+        .b_input_density
+        .iter()
         .chain(p.b_aux_density.iter())
         .map(|item| if item { b1_iter.next().unwrap() } else { &zero1 })
         .map(|e| p1_to_vec(e))
         .collect_vec();
-    let b2 = p.b_input_density.iter()
+    let b2 = p
+        .b_input_density
+        .iter()
         .chain(p.b_aux_density.iter())
         .map(|item| if item { b2_iter.next().unwrap() } else { &zero2 })
         .map(|e| p2_to_vec(e))
         .collect_vec();
-    let c = repeat(None).take(params.vk.ic.len())
+    let c = repeat(None)
+        .take(params.vk.ic.len())
         .chain(params.l.iter().map(|e| Some(p1_to_vec(e))))
         .collect_vec();
 
@@ -491,10 +463,7 @@ pub fn verification_key_json_file(params: &Parameters<Bn256>, filename: &str) ->
 }
 
 pub fn witness_from_json_file<E: Engine>(filename: &str) -> Vec<E::Fr> {
-    let reader = OpenOptions::new()
-        .read(true)
-        .open(filename)
-        .expect("unable to open.");
+    let reader = OpenOptions::new().read(true).open(filename).expect("unable to open.");
     witness_from_json::<E, BufReader<File>>(BufReader::new(reader))
 }
 
@@ -504,10 +473,7 @@ pub fn witness_from_json<E: Engine, R: Read>(reader: R) -> Vec<E::Fr> {
 }
 
 pub fn r1cs_from_json_file<E: Engine>(filename: &str) -> R1CS<E> {
-    let reader = OpenOptions::new()
-        .read(true)
-        .open(filename)
-        .expect("unable to open.");
+    let reader = OpenOptions::new().read(true).open(filename).expect("unable to open.");
     r1cs_from_json(BufReader::new(reader))
 }
 
@@ -518,12 +484,16 @@ pub fn r1cs_from_json<E: Engine, R: Read>(reader: R) -> R1CS<E> {
     let num_aux = circuit_json.num_variables - num_inputs;
 
     let convert_constraint = |lc: &BTreeMap<String, String>| {
-        lc.iter().map(|(index, coeff)| (index.parse().unwrap(), E::Fr::from_str(coeff).unwrap())).collect_vec()
+        lc.iter()
+            .map(|(index, coeff)| (index.parse().unwrap(), E::Fr::from_str(coeff).unwrap()))
+            .collect_vec()
     };
 
-    let constraints = circuit_json.constraints.iter().map(
-        |c| (convert_constraint(&c[0]), convert_constraint(&c[1]), convert_constraint(&c[2]))
-    ).collect_vec();
+    let constraints = circuit_json
+        .constraints
+        .iter()
+        .map(|c| (convert_constraint(&c[0]), convert_constraint(&c[1]), convert_constraint(&c[2])))
+        .collect_vec();
 
     R1CS {
         num_inputs,
@@ -539,16 +509,18 @@ pub fn r1cs_from_bin<R: Read>(reader: R) -> Result<(R1CS<Bn256>, Vec<usize>), st
     let num_variables = file.header.n_wires as usize;
     let num_aux = num_variables - num_inputs;
     Ok((
-        R1CS { num_aux, num_inputs, num_variables, constraints: file.constraints, },
-        file.wire_mapping.iter().map(|e| *e as usize).collect_vec()
+        R1CS {
+            num_aux,
+            num_inputs,
+            num_variables,
+            constraints: file.constraints,
+        },
+        file.wire_mapping.iter().map(|e| *e as usize).collect_vec(),
     ))
 }
 
 pub fn r1cs_from_bin_file(filename: &str) -> Result<(R1CS<Bn256>, Vec<usize>), std::io::Error> {
-    let reader = OpenOptions::new()
-        .read(true)
-        .open(filename)
-        .expect("unable to open.");
+    let reader = OpenOptions::new().read(true).open(filename).expect("unable to open.");
     r1cs_from_bin(BufReader::new(reader))
 }
 
