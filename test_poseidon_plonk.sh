@@ -3,7 +3,6 @@ set -ex
 # from zksync/infrastructure/zk/src/run/run.ts
 
 echo "Step1: download universal setup file"
-
 pushd keys/setup
 axel -c https://universal-setup.ams3.digitaloceanspaces.com/setup_2^20.key || true
 popd
