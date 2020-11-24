@@ -12,7 +12,7 @@ cargo run --release setup -c $CIRCUIT_DIR/circuit.r1cs.json
 # Export proving and verifying keys compatible with snarkjs and websnark
 cargo run --release export-keys -c $CIRCUIT_DIR/circuit.r1cs.json
 
-# generate solidity verifier
+# Generate solidity verifier
 cargo run --release generate-verifier
 
 cargo run --release prove -c $CIRCUIT_DIR/circuit.r1cs.json -w $CIRCUIT_DIR/witness.json
