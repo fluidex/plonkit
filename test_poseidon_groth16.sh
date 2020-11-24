@@ -8,7 +8,7 @@ CIRCUIT_DIR="testdata/poseidon"
 cargo run --release setup -c $CIRCUIT_DIR/circuit.r1cs.json
 
 # Export proving and verifying keys compatible with snarkjs and websnark
-cargo run --release export-keys
+cargo run --release export-keys -c $CIRCUIT_DIR/circuit.r1cs
 
 # generate solidity verifier
 cargo run --release generate-verifier
