@@ -1,7 +1,6 @@
 /target/
 /*.json
-/verifier.sol
-/Verifier.sol
+/[Vv]erifier.sol
 /circuit.json
 /witness.json
 /circuit.cpp
