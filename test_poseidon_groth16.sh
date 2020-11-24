@@ -1,7 +1,7 @@
 #!/bin/sh
 set -ex
 
-. process_circom_circuit.sh
+. ./process_circom_circuit.sh
 CIRCUIT_DIR="testdata/poseidon"
 
 # Do a local trusted setup, generate params.bin

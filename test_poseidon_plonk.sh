@@ -8,7 +8,7 @@ axel -c https://universal-setup.ams3.digitaloceanspaces.com/setup_2^20.key || tr
 popd
 
 echo "Step2: compile circuit and calculate witness using snarkjs"
-. process_circom_circuit.sh
+. ./process_circom_circuit.sh
 
 echo "Step3: prove and verify" 
 RUST_LOG=info cargo test --release simple_plonk_test
