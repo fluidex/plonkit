@@ -1,14 +1,12 @@
 #![allow(unused_variables, dead_code)]
-use byteorder::{ReadBytesExt, LittleEndian};
-use std::io::{Read, Result, ErrorKind, Error};
-use bellman_ce::pairing::{
-    Engine,
-    bn256::Bn256,
-    ff::{
-        Field, PrimeField, PrimeFieldRepr,
-    }
-};
 use crate::circom_circuit::Constraint;
+use bellman_ce::pairing::{
+    bn256::Bn256,
+    ff::{Field, PrimeField, PrimeFieldRepr},
+    Engine,
+};
+use byteorder::{LittleEndian, ReadBytesExt};
+use std::io::{Error, ErrorKind, Read, Result};
 
 pub struct Header {
     pub field_size: u32,
@@ -31,8 +29,7 @@ pub struct R1CSFile<E: Engine> {
 fn read_field<R: Read, E: Engine>(mut reader: R) -> Result<E::Fr> {
     let mut repr = E::Fr::zero().into_repr();
     repr.read_le(&mut reader)?;
-    let fr = E::Fr::from_repr(repr)
-        .map_err(|e| Error::new(ErrorKind::InvalidData, e))?;
+    let fr = E::Fr::from_repr(repr).map_err(|e| Error::new(ErrorKind::InvalidData, e))?;
     Ok(fr)
 }
 
@@ -41,7 +38,7 @@ fn read_header<R: Read>(mut reader: R, size: u64) -> Result<Header> {
     let mut prime_size = vec![0u8; field_size as usize];
     reader.read_exact(&mut prime_size)?;
     if size != 32 + field_size as u64 {
-        return Err(Error::new(ErrorKind::InvalidData, "Invalid header section size"))
+        return Err(Error::new(ErrorKind::InvalidData, "Invalid header section size"));
     }
 
     Ok(Header {
@@ -56,14 +53,11 @@ fn read_header<R: Read>(mut reader: R, size: u64) -> Result<Header> {
     })
 }
 
-fn read_constraint_vec<R: Read, E:Engine>(mut reader: R, header: &Header) -> Result<Vec<(usize, E::Fr)>> {
+fn read_constraint_vec<R: Read, E: Engine>(mut reader: R, header: &Header) -> Result<Vec<(usize, E::Fr)>> {
     let n_vec = reader.read_u32::<LittleEndian>()? as usize;
     let mut vec = Vec::with_capacity(n_vec);
     for _ in 0..n_vec {
-        vec.push((
-            reader.read_u32::<LittleEndian>()? as usize,
-            read_field::<&mut R, E>(&mut reader)?,
-        ));
+        vec.push((reader.read_u32::<LittleEndian>()? as usize, read_field::<&mut R, E>(&mut reader)?));
     }
     Ok(vec)
 }
@@ -73,9 +67,9 @@ fn read_constraints<R: Read, E: Engine>(mut reader: R, size: u64, header: &Heade
     let mut vec = Vec::with_capacity(header.n_constraints as usize);
     for _ in 0..header.n_constraints {
         vec.push((
-             read_constraint_vec::<&mut R, E>(&mut reader, &header)?,
-             read_constraint_vec::<&mut R, E>(&mut reader, &header)?,
-             read_constraint_vec::<&mut R, E>(&mut reader, &header)?,
+            read_constraint_vec::<&mut R, E>(&mut reader, &header)?,
+            read_constraint_vec::<&mut R, E>(&mut reader, &header)?,
+            read_constraint_vec::<&mut R, E>(&mut reader, &header)?,
         ));
     }
     Ok(vec)
@@ -83,14 +77,14 @@ fn read_constraints<R: Read, E: Engine>(mut reader: R, size: u64, header: &Heade
 
 fn read_map<R: Read>(mut reader: R, size: u64, header: &Header) -> Result<Vec<u64>> {
     if size != header.n_wires as u64 * 8 {
-        return Err(Error::new(ErrorKind::InvalidData, "Invalid map section size"))
+        return Err(Error::new(ErrorKind::InvalidData, "Invalid map section size"));
     }
     let mut vec = Vec::with_capacity(header.n_wires as usize);
     for _ in 0..header.n_wires {
         vec.push(reader.read_u64::<LittleEndian>()?);
     }
     if vec[0] != 0 {
-        return Err(Error::new(ErrorKind::InvalidData, "Wire 0 should always be mapped to 0"))
+        return Err(Error::new(ErrorKind::InvalidData, "Wire 0 should always be mapped to 0"));
     }
     Ok(vec)
 }
@@ -98,13 +92,14 @@ fn read_map<R: Read>(mut reader: R, size: u64, header: &Header) -> Result<Vec<u6
 pub fn read<R: Read>(mut reader: R) -> Result<R1CSFile<Bn256>> {
     let mut magic = [0u8; 4];
     reader.read_exact(&mut magic)?;
-    if magic != [0x72, 0x31, 0x63, 0x73] { // magic = "r1cs"
-        return Err(Error::new(ErrorKind::InvalidData, "Invalid magic number"))
+    if magic != [0x72, 0x31, 0x63, 0x73] {
+        // magic = "r1cs"
+        return Err(Error::new(ErrorKind::InvalidData, "Invalid magic number"));
     }
 
     let version = reader.read_u32::<LittleEndian>()?;
     if version != 1 {
-        return Err(Error::new(ErrorKind::InvalidData, "Unsupported version"))
+        return Err(Error::new(ErrorKind::InvalidData, "Unsupported version"));
     }
 
     let num_sections = reader.read_u32::<LittleEndian>()?;
@@ -115,10 +110,10 @@ pub fn read<R: Read>(mut reader: R) -> Result<R1CSFile<Bn256>> {
     let sec_size = reader.read_u64::<LittleEndian>()?;
     let header = read_header(&mut reader, sec_size)?;
     if header.field_size != 32 {
-        return Err(Error::new(ErrorKind::InvalidData, "This parser only supports 32-byte fields"))
+        return Err(Error::new(ErrorKind::InvalidData, "This parser only supports 32-byte fields"));
     }
     if header.prime_size != hex!("010000f093f5e1439170b97948e833285d588181b64550b829a031e1724e6430") {
-        return Err(Error::new(ErrorKind::InvalidData, "This parser only supports bn256"))
+        return Err(Error::new(ErrorKind::InvalidData, "This parser only supports bn256"));
     }
     let sec_type = reader.read_u32::<LittleEndian>()?;
     let sec_size = reader.read_u64::<LittleEndian>()?;
@@ -128,12 +123,18 @@ pub fn read<R: Read>(mut reader: R) -> Result<R1CSFile<Bn256>> {
     let sec_size = reader.read_u64::<LittleEndian>()?;
     let wire_mapping = read_map(&mut reader, sec_size, &header)?;
 
-    Ok(R1CSFile { version, header, constraints, wire_mapping })
+    Ok(R1CSFile {
+        version,
+        header,
+        constraints,
+        wire_mapping,
+    })
 }
 
 #[test]
 fn sample() {
-    let data = hex!("
+    let data = hex!(
+        "
         72316373
         01000000
         03000000
@@ -181,14 +182,18 @@ fn sample() {
         0c000000 00000000
         0f000000 00000000
         44010000 00000000
-    ");
+    "
+    );
 
     use bellman_ce::pairing::ff;
     let file = read(&data[..]).unwrap();
     assert_eq!(file.version, 1);
 
     assert_eq!(file.header.field_size, 32);
-    assert_eq!(file.header.prime_size, &hex!("010000f093f5e1439170b97948e833285d588181b64550b829a031e1724e6430"));
+    assert_eq!(
+        file.header.prime_size,
+        &hex!("010000f093f5e1439170b97948e833285d588181b64550b829a031e1724e6430")
+    );
     assert_eq!(file.header.n_wires, 7);
     assert_eq!(file.header.n_pub_out, 1);
     assert_eq!(file.header.n_pub_in, 2);
