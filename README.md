@@ -103,7 +103,7 @@ OK
 circuit.circom  circuit.r1cs  circuit.wasm  input.json  params.bin  proof.json  public.json  Verifier.sol  proving_key.json  verifying_key.json  witness.json
 ```
 
-Also see `test.sh` for example
+Also see `test_poseidon_groth16.sh` and `test_poseidon_plonk.sh` for example
 
 # Installation
 
