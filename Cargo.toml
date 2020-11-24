@@ -28,7 +28,7 @@ itertools = "0.8.1"
 cfg-if = "0.1.10"
 hex-literal = "0.2.1"
 clap = { package = "clap-v3", version = "3.0.0-beta.1" } # todo: replace with official v3 when it's released to crates.io
-bellman_ce = { git="https://github.com/Fluidex/bellman", branch = "plonk_release", default-features = false, features=["plonk"] } # active features depend on build type
+bellman_ce = { git = "https://github.com/Fluidex/bellman", branch = "plonk_release", default-features = false, features = ["plonk"] } # active features depend on build type
 anyhow = "1.0.34"
 log = "0.4.11"
 env_logger = "0.8.2"
