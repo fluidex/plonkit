@@ -1,4 +1,4 @@
-import * as w from "./node_modules/snarkjs/src/wtns_utils.js";
+import * as w from "../node_modules/snarkjs/src/wtns_utils.js";
 import fs from "fs";
 import process from "process";
 
