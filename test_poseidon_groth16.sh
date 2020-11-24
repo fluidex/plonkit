@@ -15,7 +15,7 @@ cargo run --release export-keys -c $CIRCUIT_DIR/circuit.r1cs.json
 # generate solidity verifier
 cargo run --release generate-verifier
 
-cargo run --release prove -c $CIRCUIT_DIR/circuit.r1cs.json
+cargo run --release prove -c $CIRCUIT_DIR/circuit.r1cs.json -w $CIRCUIT_DIR/witness.json
 cargo run --release verify
 
 # Double check by verifying the same proof with snarkjs
