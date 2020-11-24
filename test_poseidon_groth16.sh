@@ -1,8 +1,8 @@
 #!/bin/bash
 set -ex
+CIRCUIT_DIR="testdata/poseidon"
 
 . ./process_circom_circuit.sh
-CIRCUIT_DIR="testdata/poseidon"
 
 # Do a local trusted setup, generate params.bin
 cargo run --release setup -c $CIRCUIT_DIR/circuit.r1cs.json
