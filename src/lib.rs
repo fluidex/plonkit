@@ -10,6 +10,8 @@ extern crate num_traits;
 extern crate rand;
 
 pub mod circom_circuit;
+pub mod io;
 pub mod plonk_util;
+pub mod proofsys_type;
 pub mod r1cs_reader;
 pub mod utils;

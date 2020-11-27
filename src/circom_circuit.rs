@@ -11,11 +11,14 @@ use std::iter::repeat;
 use std::str;
 use std::sync::Arc;
 
+use bellman_ce::groth16;
+use bellman_ce::plonk;
+use bellman_ce::plonk::{
+    better_cs::cs::PlonkCsWidth4WithNextStepParams, better_cs::keys::Proof as PlonkProof,
+    commitments::transcript::keccak_transcript::RollingKeccakTranscript, VerificationKey as PlonkVerificationKey,
+};
 use bellman_ce::{
-    groth16::{
-        create_random_proof, generate_random_parameters as generate_random_parameters2, prepare_prover, prepare_verifying_key,
-        verify_proof, Parameters, Proof,
-    },
+    groth16::{create_random_proof, generate_random_parameters as generate_random_parameters2, prepare_prover, Parameters, Proof},
     pairing::{
         bn256::{Bn256, Fq, Fq2, G1Affine, G2Affine},
         ff::PrimeField,
@@ -115,7 +118,7 @@ pub struct CircomCircuit<E: Engine> {
     pub r1cs: R1CS<E>,
     pub witness: Option<Vec<E::Fr>>,
     pub wire_mapping: Option<Vec<usize>>,
-    pub is_plonk: bool,
+    pub aux_offset: usize,
     // debug symbols
 }
 
@@ -162,16 +165,15 @@ impl<'a, E: Engine> Circuit<E> for CircomCircuit<E> {
                 },
             )?;
         }
-        let aux_offset = if self.is_plonk { 1 } else { 0 };
-        for i in aux_offset..(self.r1cs.num_aux + aux_offset) {
+        for i in 0..self.r1cs.num_aux {
             cs.alloc(
-                || format!("aux {}", i),
+                || format!("aux {}", i + self.aux_offset),
                 || {
                     Ok(match witness {
                         None => E::Fr::from_str("1").unwrap(),
                         Some(w) => match wire_mapping {
-                            None => w[i + self.r1cs.num_inputs - aux_offset],
-                            Some(m) => w[m[i + self.r1cs.num_inputs - aux_offset]],
+                            None => w[i + self.r1cs.num_inputs],
+                            Some(m) => w[m[i + self.r1cs.num_inputs]],
                         },
                     })
                 },
@@ -182,7 +184,7 @@ impl<'a, E: Engine> Circuit<E> for CircomCircuit<E> {
             if index < self.r1cs.num_inputs {
                 Index::Input(index)
             } else {
-                Index::Aux(index - self.r1cs.num_inputs + aux_offset) // plonk uses 1st var internally
+                Index::Aux(index - self.r1cs.num_inputs + self.aux_offset)
             }
         };
         let make_lc = |lc_data: Vec<(usize, E::Fr)>| {
@@ -214,16 +216,27 @@ pub fn generate_random_parameters<E: Engine, R: Rng>(circuit: CircomCircuit<E>, 
     generate_random_parameters2(circuit, &mut rng)
 }
 
-pub fn verify_circuit<E: Engine>(circuit: &CircomCircuit<E>, params: &Parameters<E>, proof: &Proof<E>) -> Result<bool, SynthesisError> {
+pub fn groth16_verify_circuit<E: Engine>(
+    circuit: &CircomCircuit<E>,
+    params: &Parameters<E>,
+    proof: &Proof<E>,
+) -> Result<bool, SynthesisError> {
     let inputs = match circuit.get_public_inputs() {
         None => return Err(SynthesisError::AssignmentMissing),
         Some(inp) => inp,
     };
-    verify_proof(&prepare_verifying_key(&params.vk), proof, &inputs)
+    groth16::verify_proof(&groth16::prepare_verifying_key(&params.vk), proof, &inputs)
 }
 
-pub fn verify<E: Engine>(params: &Parameters<E>, proof: &Proof<E>, inputs: &[E::Fr]) -> Result<bool, SynthesisError> {
-    verify_proof(&prepare_verifying_key(&params.vk), proof, &inputs)
+pub fn groth16_verify<E: Engine>(params: &Parameters<E>, proof: &Proof<E>, inputs: &[E::Fr]) -> Result<bool, SynthesisError> {
+    groth16::verify_proof(&groth16::prepare_verifying_key(&params.vk), proof, &inputs)
+}
+
+pub fn plonk_verify<E: Engine>(
+    vk: &PlonkVerificationKey<E, PlonkCsWidth4WithNextStepParams>,
+    proof: &PlonkProof<E, PlonkCsWidth4WithNextStepParams>,
+) -> Result<bool, SynthesisError> {
+    plonk::verify::<_, RollingKeccakTranscript<<E as ScalarEngine>::Fr>>(&proof, &vk)
 }
 
 pub fn create_verifier_sol(params: &Parameters<Bn256>) -> String {

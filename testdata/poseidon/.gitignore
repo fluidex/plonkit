@@ -3,5 +3,6 @@ circuit.r1cs.json
 circuit.sym
 circuit.wasm
 vk.bin
+proof.bin
 witness.json
 witness.wtns

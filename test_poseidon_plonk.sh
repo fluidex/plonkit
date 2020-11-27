@@ -13,5 +13,8 @@ popd
 echo "Step2: compile circuit and calculate witness using snarkjs"
 . $TOOL_DIR/process_circom_circuit.sh
 
-echo "Step3: prove and verify" 
+echo "Step3: test prove and verify" 
 RUST_LOG=info cargo test --release simple_plonk_test
+
+echo "Step4: verify" 
+cargo run --release verify -s plonk -p $CIRCUIT_DIR/proof.bin -v $CIRCUIT_DIR/vk.bin

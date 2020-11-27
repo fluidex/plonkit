@@ -18,6 +18,7 @@ use std::path::PathBuf;
 use std::{fs::remove_file, fs::File, path::Path, thread};
 
 use crate::circom_circuit::{r1cs_from_json_file, witness_from_json_file, CircomCircuit};
+use crate::proofsys_type::ProofSystem;
 
 pub const SETUP_MIN_POW2: u32 = 20;
 pub const SETUP_MAX_POW2: u32 = 26;
@@ -87,7 +88,13 @@ impl<E: Engine> SetupForStepByStepProver<E> {
             None,
             self.key_monomial_form.as_ref().expect("Setup should have universal setup struct"),
         )?;
-        log::info!("proof generated");
+        log::info!("Proof generated");
+
+        let proof_path = "testdata/poseidon/proof.bin";
+        let writer = File::create(proof_path).unwrap();
+        proof.write(writer).unwrap();
+        log::info!("Proof saved to {}", proof_path);
+
         let valid = verify::<_, RollingKeccakTranscript<<E as ScalarEngine>::Fr>>(&proof, &vk.0)?;
         anyhow::ensure!(valid, "proof for block is invalid");
         Ok(())
@@ -140,7 +147,7 @@ pub fn simple_plonk_test() {
         r1cs: r1cs_from_json_file::<Bn256>(&circuit_file),
         witness: None,
         wire_mapping: None,
-        is_plonk: true,
+        aux_offset: ProofSystem::Plonk.aux_offset(),
     };
     generate_verification_key(circuit.clone(), vk_path, true);
 
@@ -151,7 +158,7 @@ pub fn simple_plonk_test() {
         r1cs: r1cs_from_json_file::<Bn256>(&circuit_file),
         witness: Some(witness_from_json_file::<Bn256>(witness_file)),
         wire_mapping: None,
-        is_plonk: true,
+        aux_offset: ProofSystem::Plonk.aux_offset(),
     };
     let result = is_satisfied(circuit_with_witness.clone(), &setup.hints);
     println!("result {:?}", result);
