@@ -15,6 +15,7 @@ use bellman_ce::{
 };
 use std::io::BufReader;
 use std::path::PathBuf;
+use std::time::Instant;
 use std::{fs::remove_file, fs::File, path::Path, thread};
 
 use crate::circom_circuit::{r1cs_from_json_file, witness_from_json_file, CircomCircuit};
@@ -81,6 +82,7 @@ impl<E: Engine> SetupForStepByStepProver<E> {
         circuit: C,
         vk: &PlonkVerificationKey<E>,
     ) -> Result<(), anyhow::Error> {
+        let timer = Instant::now();
         let proof = prove_by_steps::<_, _, RollingKeccakTranscript<<E as ScalarEngine>::Fr>>(
             circuit,
             &self.hints,
@@ -88,6 +90,7 @@ impl<E: Engine> SetupForStepByStepProver<E> {
             None,
             self.key_monomial_form.as_ref().expect("Setup should have universal setup struct"),
         )?;
+        log::info!("Proving takes {:?}", timer.elapsed());
         log::info!("Proof generated");
 
         let proof_path = "testdata/poseidon/proof.bin";
