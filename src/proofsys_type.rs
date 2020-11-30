@@ -14,7 +14,7 @@ impl str::FromStr for ProofSystem {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "groth16" | "Groth16" => Ok(Self::Groth16),
+            "groth16" | "Groth16" | "gro16" | "Gro16" => Ok(Self::Groth16),
             "plonk" | "Plonk" | "PLONK" | "PlonK" => Ok(Self::Plonk),
             _ => Err("Invalid proof system"),
         }
