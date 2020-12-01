@@ -1,5 +1,7 @@
 /target/
 /*.json
+!/package.json
+!/package-lock.json
 /[Vv]erifier.sol
 /circuit.json
 /witness.json
@@ -10,7 +12,5 @@
 /circuit.wat
 /params.bin
 /node_modules
-/package.json
-/package-lock.json
 /trash
 keys/setup/*key

@@ -8,7 +8,7 @@ SETUP_DIR=$DIR"/keys/setup"
 # from zksync/infrastructure/zk/src/run/run.ts
 echo "Step1: download universal setup file"
 pushd keys/setup
-axel -c https://universal-setup.ams3.digitaloceanspaces.com/setup_2^20.key || true
+axel -ac https://universal-setup.ams3.digitaloceanspaces.com/setup_2^20.key || true
 popd
 
 echo "Step2: compile circuit and calculate witness using snarkjs"
