@@ -241,7 +241,6 @@ fn prove(opts: ProveOpts) {
     println!("Proving...");
     let timer = Instant::now();
     let proof = setup.prove(circuit).unwrap();
-    log::info!("Proving takes {:?}", timer.elapsed());
     let writer = File::create(&opts.proof).unwrap();
     proof.write(writer).unwrap();
     println!("Proof saved to {}", opts.proof);
