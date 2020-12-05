@@ -1,19 +1,18 @@
 [package]
-name = "zkutil"
-version = "0.3.3"
-authors = ["Roman Semenov <semenov.roma@gmail.com>"]
-description = "Library for working with circom circuits"
-documentation = "https://docs.rs/zkutil"
-homepage = "https://github.com/poma/zkutil"
+name = "plonkit"
+version = "0.0.1"
+authors = ["Roman Semenov <semenov.roma@gmail.com>", "Zhuo Zhang <mycinbrin@gmail.com>", "Haoyu LIN <chris.haoyul@gmail.com>"]
+description = "Library for working with circom circuits in plonk proof system"
+homepage = "https://github.com/Fluidex/plonkit"
 license = "MIT"
-repository = "https://github.com/poma/zkutil"
+repository = "https://github.com/Fluidex/plonkit"
 edition = "2018"
 
 [lib]
 crate-type = ["cdylib", "lib"]
 
 [[bin]]
-name = "zkutil"
+name = "plonkit"
 path = "src/main.rs"
 
 [dependencies]
