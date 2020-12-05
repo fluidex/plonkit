@@ -3,8 +3,8 @@ use bellman_ce::{
     kate_commitment::{Crs, CrsForLagrangeForm, CrsForMonomialForm},
     pairing::Engine,
     plonk::{
-        better_cs::cs::PlonkCsWidth4WithNextStepParams, commitments::transcript::keccak_transcript::RollingKeccakTranscript, prove,
-        prove_by_steps, setup, transpile, Proof, SetupPolynomials, TranspilationVariant,
+        better_cs::cs::PlonkCsWidth4WithNextStepParams, commitments::transcript::keccak_transcript::RollingKeccakTranscript,
+        make_verification_key, prove, prove_by_steps, setup, transpile, Proof, SetupPolynomials, TranspilationVariant, VerificationKey,
     },
     worker::Worker,
     Circuit, ScalarEngine, SynthesisError,
@@ -41,6 +41,10 @@ impl<E: Engine> SetupForProver<E> {
             key_monomial_form,
             key_lagrange_form,
         })
+    }
+
+    pub fn make_verification_key(&self) -> Result<VerificationKey<E, PlonkCsWidth4WithNextStepParams>, SynthesisError> {
+        make_verification_key(&self.setup_polynomials, &self.key_monomial_form)
     }
 
     pub fn prove<C: Circuit<E> + Clone>(&self, circuit: C) -> Result<Proof<E, PlonkCsWidth4WithNextStepParams>, SynthesisError> {
