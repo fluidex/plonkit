@@ -10,6 +10,8 @@ use bellman_ce::{
     Circuit, ScalarEngine, SynthesisError,
 };
 
+pub const AUX_OFFSET: usize = 1;
+
 const SETUP_MIN_POW2: u32 = 20;
 const SETUP_MAX_POW2: u32 = 26;
 
@@ -73,4 +75,11 @@ impl<E: Engine> SetupForProver<E> {
             &Worker::new(),
         )
     }
+}
+
+pub fn verify<E: Engine>(
+    vk: &VerificationKey<E, PlonkCsWidth4WithNextStepParams>,
+    proof: &Proof<E, PlonkCsWidth4WithNextStepParams>,
+) -> Result<bool, SynthesisError> {
+    bellman_ce::plonk::verify::<_, RollingKeccakTranscript<<E as ScalarEngine>::Fr>>(&proof, &vk)
 }

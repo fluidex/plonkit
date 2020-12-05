@@ -89,7 +89,7 @@ fn read_map<R: Read>(mut reader: R, size: u64, header: &Header) -> Result<Vec<u6
     Ok(vec)
 }
 
-pub fn read<R: Read>(mut reader: R) -> Result<R1CSFile<Bn256>> {
+pub fn from_reader<R: Read>(mut reader: R) -> Result<R1CSFile<Bn256>> {
     let mut magic = [0u8; 4];
     reader.read_exact(&mut magic)?;
     if magic != [0x72, 0x31, 0x63, 0x73] {
@@ -186,7 +186,7 @@ fn sample() {
     );
 
     use bellman_ce::pairing::ff;
-    let file = read(&data[..]).unwrap();
+    let file = from_reader(&data[..]).unwrap();
     assert_eq!(file.version, 1);
 
     assert_eq!(file.header.field_size, 32);

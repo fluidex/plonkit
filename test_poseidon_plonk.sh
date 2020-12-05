@@ -15,16 +15,16 @@ echo "Step2: compile circuit and calculate witness using snarkjs"
 . $TOOL_DIR/process_circom_circuit.sh
 
 echo "Step3: export verification key"
-cargo run --release export-verification-key -m $SETUP_DIR/setup_2^20.key -s plonk -c $CIRCUIT_DIR/circuit.r1cs.json -v $CIRCUIT_DIR/vk.bin
+cargo run --release export-verification-key -m $SETUP_DIR/setup_2^20.key -c $CIRCUIT_DIR/circuit.r1cs.json -v $CIRCUIT_DIR/vk.bin
 
 echo "Step4: prove with key_monomial_form"
-cargo run --release prove -m $SETUP_DIR/setup_2^20.key -s plonk -c $CIRCUIT_DIR/circuit.r1cs.json -w $CIRCUIT_DIR/witness.json -p $CIRCUIT_DIR/proof.bin
+cargo run --release prove -m $SETUP_DIR/setup_2^20.key -c $CIRCUIT_DIR/circuit.r1cs.json -w $CIRCUIT_DIR/witness.json -p $CIRCUIT_DIR/proof.bin
 
 echo "Step5: dump key_lagrange_form from key_monomial_form"
-cargo run --release dump-lagrange -m $SETUP_DIR/setup_2^20.key -l $SETUP_DIR/setup_2^20_lagrange.key -s plonk -c $CIRCUIT_DIR/circuit.r1cs.json -w $CIRCUIT_DIR/witness.json
+cargo run --release dump-lagrange -m $SETUP_DIR/setup_2^20.key -l $SETUP_DIR/setup_2^20_lagrange.key -c $CIRCUIT_DIR/circuit.r1cs.json -w $CIRCUIT_DIR/witness.json
 
 echo "Step6: prove with key_monomial_form & key_lagrange_form"
-cargo run --release prove -m $SETUP_DIR/setup_2^20.key -l $SETUP_DIR/setup_2^20_lagrange.key -s plonk -c $CIRCUIT_DIR/circuit.r1cs.json -w $CIRCUIT_DIR/witness.json -p $CIRCUIT_DIR/proof.bin
+cargo run --release prove -m $SETUP_DIR/setup_2^20.key -l $SETUP_DIR/setup_2^20_lagrange.key -c $CIRCUIT_DIR/circuit.r1cs.json -w $CIRCUIT_DIR/witness.json -p $CIRCUIT_DIR/proof.bin
 
 echo "Step7: verify"
-cargo run --release verify -s plonk -p $CIRCUIT_DIR/proof.bin -v $CIRCUIT_DIR/vk.bin
+cargo run --release verify -p $CIRCUIT_DIR/proof.bin -v $CIRCUIT_DIR/vk.bin
