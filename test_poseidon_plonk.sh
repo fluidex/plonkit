@@ -21,7 +21,7 @@ echo "Step4: prove with key_monomial_form"
 cargo run --release prove -m $SETUP_DIR/setup_2^20.key -c $CIRCUIT_DIR/circuit.r1cs.json -w $CIRCUIT_DIR/witness.json -p $CIRCUIT_DIR/proof.bin
 
 echo "Step5: dump key_lagrange_form from key_monomial_form"
-cargo run --release dump-lagrange -m $SETUP_DIR/setup_2^20.key -l $SETUP_DIR/setup_2^20_lagrange.key -c $CIRCUIT_DIR/circuit.r1cs.json -w $CIRCUIT_DIR/witness.json
+cargo run --release dump-lagrange -m $SETUP_DIR/setup_2^20.key -l $SETUP_DIR/setup_2^20_lagrange.key -c $CIRCUIT_DIR/circuit.r1cs.json
 
 echo "Step6: prove with key_monomial_form & key_lagrange_form"
 cargo run --release prove -m $SETUP_DIR/setup_2^20.key -l $SETUP_DIR/setup_2^20_lagrange.key -c $CIRCUIT_DIR/circuit.r1cs.json -w $CIRCUIT_DIR/witness.json -p $CIRCUIT_DIR/proof.bin

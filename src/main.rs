@@ -46,9 +46,6 @@ struct DumpLagrangeOpts {
     /// Circuit R1CS or JSON file [default: circuit.r1cs|circuit.json]
     #[clap(short = "c", long = "circuit")]
     circuit: Option<String>,
-    /// Witness JSON file
-    #[clap(short = "w", long = "witness", default_value = "witness.json")]
-    witness: String,
 }
 
 /// A subcommand for generating a SNARK proof
@@ -139,7 +136,7 @@ fn dump_lagrange(opts: DumpLagrangeOpts) {
     println!("Loading circuit from {}...", circuit_file);
     let circuit = CircomCircuit {
         r1cs: reader::load_r1cs(&circuit_file),
-        witness: Some(reader::load_witness_from_json_file::<Bn256>(&opts.witness)),
+        witness: None,
         wire_mapping: None,
         aux_offset: plonk::AUX_OFFSET,
     };
