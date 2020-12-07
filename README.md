@@ -1,10 +1,19 @@
 # plonkit!
 
-A zkSNARK toolkit to work with [circom](https://github.com/iden3/circom) zkSNARKs DSL in [plonk](https://eprint.iacr.org/2019/953) proof system. Based on [zkutil](https://github.com/poma/zkutil) and [zkSync](https://github.com/matter-labs/zksync).
+A zkSNARK toolkit to work with [circom](https://github.com/iden3/circom) zkSNARKs DSL in [plonk](https://eprint.iacr.org/2019/953) proof system. Based on [zkutil](https://github.com/poma/zkutil) and [bellman_ce](https://github.com/matter-labs/bellman).
 
 ## Prerequisites
 + `npm i`
 + axel
+
+## Features & Todos
+
+ + [x] Proof Generation
+ + [x] Verification key generation
+ + [x] Proof verification
+ + [ ] Solidity verifier generation
+ + [ ] Witness calculation without circom
+ + [ ] Local key setup for developement
 
 ## Usage examples:
 
