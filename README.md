@@ -13,7 +13,7 @@ A zkSNARK toolkit to work with [circom](https://github.com/iden3/circom) zkSNARK
  + [x] Proof verification
  + [ ] Solidity verifier generation
  + [ ] Witness calculation without circom
- + [ ] Local key setup for developement
+ + [x] Local key setup for developement
 
 ## Usage examples:
 
@@ -36,6 +36,7 @@ SUBCOMMANDS:
     generate-verifier          Generate verifier smart contract
     help                       Prints this message or the help of the given subcommand(s)
     prove                      Generate a SNARK proof
+    setup                      Trusted locally set up Plonk universal srs in monomial form
     verify                     Verify a SNARK proof
 
 # Getting help for a subcommand
@@ -91,6 +92,26 @@ circuit.circom  circuit.r1cs  circuit.r1cs.json  circuit.sym  circuit.wasm  inpu
 ```
 
 Also see `test_poseidon_plonk.sh` for example.
+
+Moreover, if you want to set up a SRS locally for testing, you can make use of `setup` subcommand:
+
+```
+plonkit-setup 
+Trusted locally set up Plonk universal srs in monomial form
+
+USAGE:
+    plonkit setup --power <power> --srs_monomial_form <srs-monomial-form>
+
+FLAGS:
+    -h, --help       Prints help information
+    -V, --version    Prints version information
+
+OPTIONS:
+    -p, --power <power>                            Power_of_two exponent
+    -m, --srs_monomial_form <srs-monomial-form>    Output file for Plonk universal setup srs in monomial form
+```
+
+You may also want to manually edit and lower down `plonk::SETUP_MIN_POW2` in the codes to fast generate a relatively small-size SRS.
 
 ## Installation
 

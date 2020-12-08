@@ -22,6 +22,8 @@ struct Opts {
 
 #[derive(Clap)]
 enum SubCommand {
+    /// Trusted locally set up Plonk universal srs in monomial form
+    Setup(SetupOpts),
     /// Dump "SRS in lagrange form" from a "SRS in monomial form"
     DumpLagrange(DumpLagrangeOpts),
     /// Generate a SNARK proof
@@ -32,6 +34,17 @@ enum SubCommand {
     GenerateVerifier(GenerateVerifierOpts),
     /// Export verifying key
     ExportVerificationKey(ExportVerificationKeyOpts),
+}
+
+/// A subcommand for locally trusted setting up Plonk universal srs in monomial form
+#[derive(Clap)]
+struct SetupOpts {
+    /// Power_of_two exponent
+    #[clap(short = "p", long = "power")]
+    power: u32,
+    /// Output file for Plonk universal setup srs in monomial form
+    #[clap(short = "m", long = "srs_monomial_form")]
+    srs_monomial_form: String,
 }
 
 /// A subcommand for dumping SRS in lagrange form
@@ -100,6 +113,9 @@ struct ExportVerificationKeyOpts {
 fn main() {
     let opts: Opts = Opts::parse();
     match opts.command {
+        SubCommand::Setup(o) => {
+            setup(o);
+        }
         SubCommand::DumpLagrange(o) => {
             dump_lagrange(o);
         }
@@ -116,6 +132,13 @@ fn main() {
             export_vk(o);
         }
     }
+}
+
+fn setup(opts: SetupOpts) {
+    let srs = plonk::gen_key_monomial_form::<Bn256>(opts.power).unwrap();
+    let writer = File::create(&opts.srs_monomial_form).unwrap();
+    srs.write(writer).unwrap();
+    println!("srs_monomial_form saved to {}", opts.srs_monomial_form);
 }
 
 fn resolve_circuit_file(filename: Option<String>) -> String {
