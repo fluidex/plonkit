@@ -36,7 +36,7 @@ SUBCOMMANDS:
     generate-verifier          Generate verifier smart contract
     help                       Prints this message or the help of the given subcommand(s)
     prove                      Generate a SNARK proof
-    setup                      Trusted local set up Plonk universal srs in monomial form
+    setup                      Trusted locally set up Plonk universal srs in monomial form
     verify                     Verify a SNARK proof
 
 # Getting help for a subcommand
