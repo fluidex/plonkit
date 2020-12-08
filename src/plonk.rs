@@ -15,8 +15,13 @@ pub const AUX_OFFSET: usize = 1;
 const SETUP_MIN_POW2: u32 = 20;
 const SETUP_MAX_POW2: u32 = 26;
 
-pub fn gen_key_monomial_form<E: Engine>(power_of_two: usize) -> Crs<E, CrsForMonomialForm> {
-    Crs::<E, CrsForMonomialForm>::crs_42(power_of_two, &Worker::new())
+pub fn gen_key_monomial_form<E: Engine>(power: u32) -> Result<Crs<E, CrsForMonomialForm>, anyhow::Error> {
+    anyhow::ensure!(
+        (SETUP_MIN_POW2..=SETUP_MAX_POW2).contains(&power),
+        "setup power of two is not in the correct range"
+    );
+
+    Ok(Crs::<E, CrsForMonomialForm>::crs_42(1 << power, &Worker::new()))
 }
 
 pub struct SetupForProver<E: Engine> {
