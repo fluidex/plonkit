@@ -16,7 +16,7 @@ const SETUP_MIN_POW2: u32 = 20;
 const SETUP_MAX_POW2: u32 = 26;
 
 pub fn gen_key_monomial_form<E: Engine>(power_of_two: usize) -> Crs<E, CrsForMonomialForm> {
-    Crs::<E, CrsForMonomialForm>::dummy_crs(power_of_two)
+    Crs::<E, CrsForMonomialForm>::crs_42(power_of_two, &Worker::new())
 }
 
 pub struct SetupForProver<E: Engine> {
