@@ -22,7 +22,7 @@ struct Opts {
 
 #[derive(Clap)]
 enum SubCommand {
-    /// Trusted local set up Plonk universal srs in monomial form
+    /// Trusted locally set up Plonk universal srs in monomial form
     Setup(SetupOpts),
     /// Dump "SRS in lagrange form" from a "SRS in monomial form"
     DumpLagrange(DumpLagrangeOpts),
