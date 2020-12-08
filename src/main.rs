@@ -41,7 +41,7 @@ enum SubCommand {
 struct SetupOpts {
     /// Power of two
     #[clap(short = "t", long = "power_of_two")]
-    power_of_two: String,
+    power_of_two: usize,
     /// Output file for Plonk universal setup srs in monomial form
     #[clap(short = "m", long = "srs_monomial_form")]
     srs_monomial_form: String,
@@ -135,7 +135,10 @@ fn main() {
 }
 
 fn setup(opts: SetupOpts) {
-    unimplemented!();
+    let srs = plonk::gen_key_monomial_form::<Bn256>(opts.power_of_two);
+    let writer = File::create(&opts.srs_monomial_form).unwrap();
+    srs.write(writer).unwrap();
+    println!("srs_monomial_form saved to {}", opts.srs_monomial_form);
 }
 
 fn resolve_circuit_file(filename: Option<String>) -> String {

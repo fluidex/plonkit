@@ -15,6 +15,10 @@ pub const AUX_OFFSET: usize = 1;
 const SETUP_MIN_POW2: u32 = 20;
 const SETUP_MAX_POW2: u32 = 26;
 
+pub fn gen_key_monomial_form<E: Engine>(power_of_two: usize) -> Crs<E, CrsForMonomialForm> {
+    Crs::<E, CrsForMonomialForm>::dummy_crs(power_of_two)
+}
+
 pub struct SetupForProver<E: Engine> {
     setup_polynomials: SetupPolynomials<E, PlonkCsWidth4WithNextStepParams>,
     hints: Vec<(usize, TranspilationVariant)>,
