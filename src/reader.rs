@@ -8,7 +8,10 @@ use std::str;
 use bellman_ce::{
     kate_commitment::{Crs, CrsForLagrangeForm, CrsForMonomialForm},
     pairing::{bn256::Bn256, ff::PrimeField, Engine},
-    plonk::{better_cs::cs::PlonkCsWidth4WithNextStepParams, better_cs::keys::Proof, VerificationKey},
+    plonk::{
+        better_cs::cs::PlonkCsWidth4WithNextStepParams,
+        better_cs::keys::{Proof, VerificationKey},
+    },
 };
 
 use crate::circom_circuit::{CircuitJson, R1CS};

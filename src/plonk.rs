@@ -3,8 +3,11 @@ use bellman_ce::{
     kate_commitment::{Crs, CrsForLagrangeForm, CrsForMonomialForm},
     pairing::Engine,
     plonk::{
-        better_cs::cs::PlonkCsWidth4WithNextStepParams, commitments::transcript::keccak_transcript::RollingKeccakTranscript,
-        make_verification_key, prove, prove_by_steps, setup, transpile, Proof, SetupPolynomials, TranspilationVariant, VerificationKey,
+        better_cs::adaptor::TranspilationVariant,
+        better_cs::cs::PlonkCsWidth4WithNextStepParams,
+        better_cs::keys::{Proof, SetupPolynomials, VerificationKey},
+        commitments::transcript::keccak_transcript::RollingKeccakTranscript,
+        make_verification_key, prove, prove_by_steps, setup, transpile,
     },
     worker::Worker,
     Circuit, ScalarEngine, SynthesisError,
