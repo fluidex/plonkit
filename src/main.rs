@@ -94,7 +94,11 @@ struct VerifyOpts {
 
 /// A subcommand for generating a Solidity verifier smart contract
 #[derive(Clap)]
-struct GenerateVerifierOpts {}
+struct GenerateVerifierOpts {
+    /// Output solidity file
+    #[clap(short = "s", long = "sol", default_value = "verifier_plonk.sol")]
+    sol: String,
+}
 
 /// A subcommand for exporting verifying keys
 #[derive(Clap)]
@@ -210,8 +214,9 @@ fn verify(opts: VerifyOpts) {
     }
 }
 
-fn generate_verifier(_opts: GenerateVerifierOpts) {
-    unimplemented!();
+fn generate_verifier(opts: GenerateVerifierOpts) {
+    let sol = plonk::create_verifier_sol();
+    std::fs::write(opts.sol, sol.as_bytes()).unwrap();
 }
 
 fn export_vk(opts: ExportVerificationKeyOpts) {
