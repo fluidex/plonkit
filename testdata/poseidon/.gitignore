@@ -4,5 +4,7 @@ circuit.sym
 circuit.wasm
 vk.bin
 proof.bin
+proof.json
+public.json
 witness.json
 witness.wtns

@@ -8,7 +8,10 @@ use std::str;
 use bellman_ce::{
     kate_commitment::{Crs, CrsForLagrangeForm, CrsForMonomialForm},
     pairing::{bn256::Bn256, ff::PrimeField, Engine},
-    plonk::{better_cs::cs::PlonkCsWidth4WithNextStepParams, better_cs::keys::Proof, VerificationKey},
+    plonk::{
+        better_cs::cs::PlonkCsWidth4WithNextStepParams,
+        better_cs::keys::{Proof, VerificationKey},
+    },
 };
 
 use crate::circom_circuit::{CircuitJson, R1CS};
@@ -26,7 +29,8 @@ pub fn load_proof<E: Engine>(filename: &str) -> Proof<E, PlonkCsWidth4WithNextSt
 ///
 
 pub fn load_verification_key<E: Engine>(filename: &str) -> VerificationKey<E, PlonkCsWidth4WithNextStepParams> {
-    VerificationKey::<E, PlonkCsWidth4WithNextStepParams>::read(File::open(filename).expect("read vk file err")).expect("read vk err")
+    let mut reader = std::io::BufReader::with_capacity(1 << 24, File::open(filename).expect("read vk file err"));
+    VerificationKey::<E, PlonkCsWidth4WithNextStepParams>::read(&mut reader).expect("read vk err")
 }
 
 ///

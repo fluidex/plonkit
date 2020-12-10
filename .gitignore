@@ -2,7 +2,7 @@
 /*.json
 !/package.json
 !/package-lock.json
-/[Vv]erifier.sol
+[Vv]erifier.sol
 /circuit.json
 /witness.json
 /circuit.cpp
