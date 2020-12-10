@@ -82,6 +82,12 @@ struct ProveOpts {
     /// Output file for proof BIN
     #[clap(short = "p", long = "proof", default_value = "proof.bin")]
     proof: String,
+    /// Output file for proof json
+    #[clap(short = "j", long = "proofjson", default_value = "proof.json")]
+    proofjson: String,
+    /// Output file for public input json
+    #[clap(short = "i", long = "publicjson", default_value = "public.json")]
+    publicjson: String,
 }
 
 /// A subcommand for verifying a SNARK proof
@@ -206,6 +212,14 @@ fn prove(opts: ProveOpts) {
     let writer = File::create(&opts.proof).unwrap();
     proof.write(writer).unwrap();
     println!("Proof saved to {}", opts.proof);
+
+    let (inputs, serialized_proof) = bellman_vk_codegen::serialize_proof(&proof);
+    let ser_proof_str = serde_json::to_string_pretty(&serialized_proof).unwrap();
+    let ser_inputs_str = serde_json::to_string_pretty(&inputs).unwrap();
+    std::fs::write(&opts.proofjson, ser_proof_str.as_bytes()).expect("save proofjson err");
+    println!("Proof json saved to {}", opts.proofjson);
+    std::fs::write(&opts.publicjson, ser_inputs_str.as_bytes()).expect("save publicjson err");
+    println!("Public input json saved to {}", opts.publicjson);
 }
 
 fn verify(opts: VerifyOpts) {
