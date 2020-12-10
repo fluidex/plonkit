@@ -11,9 +11,9 @@ A zkSNARK toolkit to work with [circom](https://github.com/iden3/circom) zkSNARK
  + [x] Proof Generation
  + [x] Verification key generation
  + [x] Proof verification
- + [ ] Solidity verifier generation
- + [ ] Witness calculation without circom
+ + [x] Solidity verifier generation
  + [x] Local key setup for developement
+ + [ ] Witness calculation without circom
 
 ## Usage examples:
 
