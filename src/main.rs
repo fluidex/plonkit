@@ -96,7 +96,7 @@ struct VerifyOpts {
 #[derive(Clap)]
 struct GenerateVerifierOpts {
     /// Output solidity file
-    #[clap(short = "s", long = "sol", default_value = "verifier_plonk.sol")]
+    #[clap(short = "s", long = "sol", default_value = "verifier.sol")]
     sol: String,
 }
 
