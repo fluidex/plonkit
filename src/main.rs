@@ -1,6 +1,7 @@
 extern crate bellman_ce;
 extern crate clap;
 extern crate plonkit;
+extern crate bellman_vk_codegen;
 
 use clap::Clap;
 use std::fs::File;
@@ -95,6 +96,9 @@ struct VerifyOpts {
 /// A subcommand for generating a Solidity verifier smart contract
 #[derive(Clap)]
 struct GenerateVerifierOpts {
+    /// Verification key file
+    #[clap(short = "v", long = "verification_key", default_value = "vk.bin")]
+    vk: String,
     /// Output solidity file
     #[clap(short = "s", long = "sol", default_value = "verifier.sol")]
     sol: String,
@@ -215,8 +219,8 @@ fn verify(opts: VerifyOpts) {
 }
 
 fn generate_verifier(opts: GenerateVerifierOpts) {
-    let sol = plonk::create_verifier_sol();
-    std::fs::write(opts.sol, sol.as_bytes()).unwrap();
+    let vk = reader::load_verification_key::<Bn256>(&opts.vk);
+    bellman_vk_codegen::render_verification_key(&vk, opts.sol);
 }
 
 fn export_vk(opts: ExportVerificationKeyOpts) {

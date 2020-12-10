@@ -3,6 +3,7 @@ extern crate serde;
 #[macro_use]
 extern crate hex_literal;
 extern crate bellman_ce;
+extern crate bellman_vk_codegen;
 extern crate byteorder;
 extern crate itertools;
 extern crate num_bigint;
