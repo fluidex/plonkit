@@ -23,15 +23,18 @@ echo "Step2: compile circuit and calculate witness using snarkjs"
 echo "Step3: export verification key"
 $PLONKIT_BIN export-verification-key -m $SETUP_DIR/setup_2^20.key -c $CIRCUIT_DIR/circuit.r1cs.json -v $CIRCUIT_DIR/vk.bin
 
+echo "Step4: generate verifier smart contract"
+$PLONKIT_BIN generate-verifier -v $CIRCUIT_DIR/vk.bin -s $CIRCUIT_DIR/verifier.sol
+
 if [ "$DUMP_LAGRANGE_KEY" = false ]; then
-  echo "Step4: prove with key_monomial_form"
+  echo "Step5: prove with key_monomial_form"
   $PLONKIT_BIN prove -m $SETUP_DIR/setup_2^20.key -c $CIRCUIT_DIR/circuit.r1cs.json -w $CIRCUIT_DIR/witness.json -p $CIRCUIT_DIR/proof.bin
 else
-  echo "Step4.1: dump key_lagrange_form from key_monomial_form"
+  echo "Step5.1: dump key_lagrange_form from key_monomial_form"
   $PLONKIT_BIN dump-lagrange -m $SETUP_DIR/setup_2^20.key -l $SETUP_DIR/setup_2^20_lagrange.key -c $CIRCUIT_DIR/circuit.r1cs.json
-  echo "Step4.2: prove with key_monomial_form & key_lagrange_form"
+  echo "Step5.2: prove with key_monomial_form & key_lagrange_form"
   $PLONKIT_BIN prove -m $SETUP_DIR/setup_2^20.key -l $SETUP_DIR/setup_2^20_lagrange.key -c $CIRCUIT_DIR/circuit.r1cs.json -w $CIRCUIT_DIR/witness.json -p $CIRCUIT_DIR/proof.bin
 fi
 
-echo "Step5: verify"
+echo "Step6: verify"
 $PLONKIT_BIN verify -p $CIRCUIT_DIR/proof.bin -v $CIRCUIT_DIR/vk.bin
