@@ -1,7 +1,7 @@
 extern crate bellman_ce;
+extern crate bellman_vk_codegen;
 extern crate clap;
 extern crate plonkit;
-extern crate bellman_vk_codegen;
 
 use clap::Clap;
 use std::fs::File;
