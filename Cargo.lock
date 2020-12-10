@@ -83,27 +83,7 @@ version = "0.3.2"
 source = "git+https://github.com/Fluidex/bellman?branch=plonk_release#eb9c1dbb9caf0b866d35d473ebecd3d53278b0fc"
 dependencies = [
  "bit-vec",
- "blake2s_const 0.6.0 (git+https://github.com/Fluidex/bellman?branch=plonk_release)",
- "blake2s_simd",
- "byteorder",
- "cfg-if",
- "crossbeam",
- "futures 0.3.8",
- "hex",
- "lazy_static",
- "num_cpus",
- "pairing_ce",
- "rand 0.4.6",
- "tiny-keccak",
-]
-
-[[package]]
-name = "bellman_ce"
-version = "0.3.2"
-source = "git+https://github.com/matter-labs/bellman?branch=plonk_release#f551a55d83d2ea604b2dbfe096fd9dcfdaedb189"
-dependencies = [
- "bit-vec",
- "blake2s_const 0.6.0 (git+https://github.com/matter-labs/bellman?branch=plonk_release)",
+ "blake2s_const",
  "blake2s_simd",
  "byteorder",
  "cfg-if",
@@ -120,9 +100,9 @@ dependencies = [
 [[package]]
 name = "bellman_vk_codegen"
 version = "0.1.0"
-source = "git+https://github.com/matter-labs/solidity_plonk_verifier.git?rev=3c458af#3c458aff9005c62119113653bba17e0881c41675"
+source = "git+https://github.com/Fluidex/solidity_plonk_verifier.git#f0bb1ae5ed3497e6d3b7256153130f9e366ebd11"
 dependencies = [
- "bellman_ce 0.3.2 (git+https://github.com/matter-labs/bellman?branch=plonk_release)",
+ "bellman_ce",
  "handlebars",
  "hex",
  "serde_json",
@@ -145,16 +125,6 @@ checksum = "cf1de2fe8c75bc145a2f577add951f8134889b4795d47466a54a5c846d691693"
 name = "blake2s_const"
 version = "0.6.0"
 source = "git+https://github.com/Fluidex/bellman?branch=plonk_release#eb9c1dbb9caf0b866d35d473ebecd3d53278b0fc"
-dependencies = [
- "arrayref",
- "arrayvec 0.5.2",
- "constant_time_eq",
-]
-
-[[package]]
-name = "blake2s_const"
-version = "0.6.0"
-source = "git+https://github.com/matter-labs/bellman?branch=plonk_release#f551a55d83d2ea604b2dbfe096fd9dcfdaedb189"
 dependencies = [
  "arrayref",
  "arrayvec 0.5.2",
@@ -984,7 +954,7 @@ name = "plonkit"
 version = "0.0.1"
 dependencies = [
  "anyhow",
- "bellman_ce 0.3.2 (git+https://github.com/Fluidex/bellman?branch=plonk_release)",
+ "bellman_ce",
  "bellman_vk_codegen",
  "byteorder",
  "cfg-if",
