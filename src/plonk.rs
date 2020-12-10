@@ -92,9 +92,3 @@ pub fn verify<E: Engine>(
 ) -> Result<bool, SynthesisError> {
     bellman_ce::plonk::verify::<_, RollingKeccakTranscript<<E as ScalarEngine>::Fr>>(&proof, &vk)
 }
-
-pub fn create_verifier_sol() -> String {
-    let bytes = include_bytes!("verifier_plonk.template.sol");
-    let template = String::from_utf8_lossy(bytes);
-    template.to_string()
-}
