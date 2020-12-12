@@ -78,17 +78,24 @@ circuit.circom  input.json  setup_2^20.key
 Loading circuit...
 Proving...
 Proof saved to proof.bin
+Proof json saved to proof.json
+Public input json saved to public.json
 
 # Export verification key
 > plonkit export-verification-key --srs_monomial_form setup_2^20.key --circuit circuit.r1cs.json --vk vk.bin
 Verification key saved to vk.bin
+
+# Generate verifier smart contract, which can be used to verify public.json & proof.json
+> plonkit generate-verifier --verification_key vk.bin --sol verifier.sol
+Contract saved to saved to verifier.sol
+
 # Verify the proof
 > plonkit verify --proof proof.bin --verification_key vk.bin
 Proof is correct
 
 # Here's a list of files that we have after this
 > ls
-circuit.circom  circuit.r1cs  circuit.r1cs.json  circuit.sym  circuit.wasm  input.json  proof.json  setup_2^20.key  vk.bin  witness.json  witness.wtns
+circuit.circom  circuit.r1cs  circuit.r1cs.json  circuit.sym  circuit.wasm  input.json  proof.bin  proof.json  public.json  setup_2^20.key  verifier.sol  vk.bin  witness.json  witness.wtns
 ```
 
 Also see `test_poseidon_plonk.sh` for example.
@@ -111,7 +118,7 @@ OPTIONS:
     -m, --srs_monomial_form <srs-monomial-form>    Output file for Plonk universal setup srs in monomial form
 ```
 
-You may also want to manually edit and lower down `plonk::SETUP_MIN_POW2` in the codes to fast generate a relatively small-size SRS.
+You may also want to manually edit and lower down `plonk::SETUP_MIN_POW2` in the codes to fast generate a relatively small-sized SRS.
 
 ## Installation
 
