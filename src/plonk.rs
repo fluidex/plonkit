@@ -7,7 +7,7 @@ use bellman_ce::{
         better_cs::cs::PlonkCsWidth4WithNextStepParams,
         better_cs::keys::{Proof, SetupPolynomials, VerificationKey},
         commitments::transcript::keccak_transcript::RollingKeccakTranscript,
-        make_verification_key, prove, prove_by_steps, setup, transpile,
+        is_satisfied_using_one_shot_check, make_verification_key, prove, prove_by_steps, setup, transpile,
     },
     worker::Worker,
     Circuit, ScalarEngine, SynthesisError,
@@ -62,6 +62,7 @@ impl<E: Engine> SetupForProver<E> {
     }
 
     pub fn prove<C: Circuit<E> + Clone>(&self, circuit: C) -> Result<Proof<E, PlonkCsWidth4WithNextStepParams>, SynthesisError> {
+        is_satisfied_using_one_shot_check(circuit.clone(), &self.hints).expect("must satisfy");
         match &self.key_lagrange_form {
             Some(key_lagrange_form) => prove::<_, _, RollingKeccakTranscript<<E as ScalarEngine>::Fr>>(
                 circuit,
