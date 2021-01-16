@@ -236,7 +236,7 @@ fn verify(opts: VerifyOpts) {
 
 fn generate_verifier(opts: GenerateVerifierOpts) {
     let vk = reader::load_verification_key::<Bn256>(&opts.vk);
-    bellman_vk_codegen::render_verification_key(&vk, TEMPLATE_PATH, &opts.sol);
+    bellman_vk_codegen::render_verification_key_from_default_template(&vk, &opts.sol);
     println!("Contract saved to {}", opts.sol);
 }
 
