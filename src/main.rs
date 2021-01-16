@@ -14,10 +14,11 @@ use plonkit::circom_circuit::CircomCircuit;
 use plonkit::plonk;
 use plonkit::reader;
 
-static TEMPLATE_PATH: &str = "./contrib/template.sol";
+//static TEMPLATE_PATH: &str = "./contrib/template.sol";
 
 /// A zkSNARK toolkit to work with circom zkSNARKs DSL in plonk proof system
 #[derive(Clap)]
+#[clap(version = "0.0.2")]
 struct Opts {
     #[clap(subcommand)]
     command: SubCommand,
