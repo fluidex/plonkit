@@ -83,7 +83,7 @@ version = "0.3.2"
 source = "git+https://github.com/Fluidex/bellman?branch=beta#91f521ddb7aabdc9064370de6d36bc09ca39f129"
 dependencies = [
  "bit-vec",
- "blake2s_const 0.6.0 (git+https://github.com/Fluidex/bellman?branch=beta)",
+ "blake2s_const",
  "blake2s_simd",
  "byteorder",
  "cfg-if 1.0.0",
@@ -92,27 +92,7 @@ dependencies = [
  "hex",
  "lazy_static",
  "num_cpus",
- "pairing_ce 0.24.2",
- "rand 0.4.6",
- "tiny-keccak",
-]
-
-[[package]]
-name = "bellman_ce"
-version = "0.3.2"
-source = "git+https://github.com/Fluidex/bellman?branch=plonk_release#eb9c1dbb9caf0b866d35d473ebecd3d53278b0fc"
-dependencies = [
- "bit-vec",
- "blake2s_const 0.6.0 (git+https://github.com/Fluidex/bellman?branch=plonk_release)",
- "blake2s_simd",
- "byteorder",
- "cfg-if 0.1.10",
- "crossbeam",
- "futures 0.3.12",
- "hex",
- "lazy_static",
- "num_cpus",
- "pairing_ce 0.20.0",
+ "pairing_ce",
  "rand 0.4.6",
  "tiny-keccak",
 ]
@@ -120,9 +100,9 @@ dependencies = [
 [[package]]
 name = "bellman_vk_codegen"
 version = "0.1.0"
-source = "git+https://github.com/Fluidex/solidity_plonk_verifier.git#3ec5dbc5f4be0b6ca93a30bba0419910ac10a84e"
+source = "git+https://github.com/Fluidex/solidity_plonk_verifier.git?branch=beta#b60cb60b7117b094bc688b85d90bdd1f919d188a"
 dependencies = [
- "bellman_ce 0.3.2 (git+https://github.com/Fluidex/bellman?branch=plonk_release)",
+ "bellman_ce",
  "handlebars",
  "hex",
  "serde_json",
@@ -145,16 +125,6 @@ checksum = "cf1de2fe8c75bc145a2f577add951f8134889b4795d47466a54a5c846d691693"
 name = "blake2s_const"
 version = "0.6.0"
 source = "git+https://github.com/Fluidex/bellman?branch=beta#91f521ddb7aabdc9064370de6d36bc09ca39f129"
-dependencies = [
- "arrayref",
- "arrayvec 0.5.2",
- "constant_time_eq",
-]
-
-[[package]]
-name = "blake2s_const"
-version = "0.6.0"
-source = "git+https://github.com/Fluidex/bellman?branch=plonk_release#eb9c1dbb9caf0b866d35d473ebecd3d53278b0fc"
 dependencies = [
  "arrayref",
  "arrayvec 0.5.2",
@@ -448,40 +418,14 @@ checksum = "e88a8acf291dafb59c2d96e8f59828f3838bb1a70398823ade51a84de6a6deed"
 
 [[package]]
 name = "ff_ce"
-version = "0.9.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "83c0a6a2c53b0bd6d8cae976816dc8a171e0554c03f304e3dac110473e0219fd"
-dependencies = [
- "byteorder",
- "ff_derive_ce 0.7.0",
- "hex",
- "rand 0.4.6",
-]
-
-[[package]]
-name = "ff_ce"
 version = "0.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "38107cbd8bac0d907d7e7513c9f68c95adbda9e6f6f6bdf3f5111c6ecac4fe47"
 dependencies = [
  "byteorder",
- "ff_derive_ce 0.9.0",
+ "ff_derive_ce",
  "hex",
  "rand 0.4.6",
-]
-
-[[package]]
-name = "ff_derive_ce"
-version = "0.7.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7543567f0c51910363eb5706ee2f5368a64e79a8ae607d0332aa60bae03a1bb1"
-dependencies = [
- "num-bigint",
- "num-integer",
- "num-traits",
- "proc-macro2 1.0.24",
- "quote 1.0.8",
- "syn 1.0.60",
 ]
 
 [[package]]
@@ -890,24 +834,13 @@ checksum = "2839e79665f131bdb5782e51f2c6c9599c133c6098982a54c794358bf432529c"
 
 [[package]]
 name = "pairing_ce"
-version = "0.20.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6c7b23aa7f0489d9a5e8e15cc5b7cb4f3e9b9d64812b8875fb91d25b640b0939"
-dependencies = [
- "byteorder",
- "ff_ce 0.9.0",
- "rand 0.4.6",
-]
-
-[[package]]
-name = "pairing_ce"
 version = "0.24.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1e753515675eaaa98071d814bea0148ae8c9d7995fa0531bf222e7857e3f1759"
 dependencies = [
  "byteorder",
  "cfg-if 1.0.0",
- "ff_ce 0.12.0",
+ "ff_ce",
  "rand 0.4.6",
 ]
 
@@ -1014,7 +947,7 @@ name = "plonkit"
 version = "0.0.2"
 dependencies = [
  "anyhow",
- "bellman_ce 0.3.2 (git+https://github.com/Fluidex/bellman?branch=beta)",
+ "bellman_ce",
  "bellman_vk_codegen",
  "byteorder",
  "cfg-if 0.1.10",
