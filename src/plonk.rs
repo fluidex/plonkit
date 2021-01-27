@@ -77,6 +77,7 @@ impl<E: Engine> SetupForProver<E> {
                 &self.setup_polynomials,
                 None,
                 &self.key_monomial_form,
+                None
             ),
         }
     }
