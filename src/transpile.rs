@@ -93,12 +93,12 @@ impl<E: Engine, P: PlonkConstraintSystemParams<E>> bellman_ce::ConstraintSystem<
         LB: FnOnce(bellman_ce::LinearCombination<E>) -> bellman_ce::LinearCombination<E>,
         LC: FnOnce(bellman_ce::LinearCombination<E>) -> bellman_ce::LinearCombination<E>,
     {
-        let num_gates = self.inner.num_gates();
+        let num_gates_before = self.inner.num_gates();
         let name = ann().into();
         self.inner.enforce(|| name.clone(), a, b, c);
         self.constraint_stats.push(ConstraintStat {
             name: name,
-            num_gates: self.inner.num_gates() - num_gates,
+            num_gates: self.inner.num_gates() - num_gates_before,
         });
     }
 
