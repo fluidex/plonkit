@@ -123,7 +123,7 @@ impl<'a, E: Engine> Circuit<E> for CircomCircuit<E> {
             // 0 * LC = 0 must be ignored
             if !((constraint.0.is_empty() || constraint.1.is_empty()) && constraint.2.is_empty()) {
                 cs.enforce(
-                    || format!("constraint {}", i),
+                    || format!("{}", i),
                     |_| make_lc(constraint.0.clone()),
                     |_| make_lc(constraint.1.clone()),
                     |_| make_lc(constraint.2.clone()),

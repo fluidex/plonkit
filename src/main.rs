@@ -18,7 +18,7 @@ use plonkit::reader;
 
 /// A zkSNARK toolkit to work with circom zkSNARKs DSL in plonk proof system
 #[derive(Clap)]
-#[clap(version = "0.0.2")]
+#[clap(version = "0.0.3")]
 struct Opts {
     #[clap(subcommand)]
     command: SubCommand,
@@ -26,6 +26,8 @@ struct Opts {
 
 #[derive(Clap)]
 enum SubCommand {
+    /// Analyse the circuit and output some stats
+    Analyse(AnalyseOpts),
     /// Trusted locally set up Plonk universal srs in monomial form
     Setup(SetupOpts),
     /// Dump "SRS in lagrange form" from a "SRS in monomial form"
@@ -38,6 +40,17 @@ enum SubCommand {
     GenerateVerifier(GenerateVerifierOpts),
     /// Export verifying key
     ExportVerificationKey(ExportVerificationKeyOpts),
+}
+
+/// A subcommand for analysing the circuit and outputting some stats
+#[derive(Clap)]
+struct AnalyseOpts {
+    /// Circuit R1CS or JSON file [default: circuit.r1cs|circuit.json]
+    #[clap(short = "c", long = "circuit")]
+    circuit: Option<String>,
+    /// Output file
+    #[clap(short = "o", long = "output", default_value = "analyse.json")]
+    output: String,
 }
 
 /// A subcommand for locally trusted setting up Plonk universal srs in monomial form
@@ -130,6 +143,9 @@ struct ExportVerificationKeyOpts {
 fn main() {
     let opts: Opts = Opts::parse();
     match opts.command {
+        SubCommand::Analyse(o) => {
+            analyse(o);
+        }
         SubCommand::Setup(o) => {
             setup(o);
         }
@@ -149,6 +165,21 @@ fn main() {
             export_vk(o);
         }
     }
+}
+
+fn analyse(opts: AnalyseOpts) {
+    let circuit_file = resolve_circuit_file(opts.circuit);
+    println!("Loading circuit from {}...", circuit_file);
+    let circuit = CircomCircuit {
+        r1cs: reader::load_r1cs(&circuit_file),
+        witness: None,
+        wire_mapping: None,
+        aux_offset: plonk::AUX_OFFSET,
+    };
+    let stats = plonk::analyse(circuit).expect("analyse failed");
+    let writer = File::create(&opts.output).unwrap();
+    serde_json::to_writer_pretty(writer, &stats).expect("write failed");
+    println!("output to {}", opts.output);
 }
 
 fn setup(opts: SetupOpts) {
