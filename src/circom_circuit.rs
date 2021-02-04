@@ -136,12 +136,20 @@ impl<'a, E: Engine> Circuit<E> for CircomCircuit<E> {
 }
 
 
+    // impl<E: Engine> Circuit<E> for TestCircuit4<E> {
+
+    //     fn synthesize<CS: ConstraintSystem<E>>(&self, cs: &mut CS) -> Result<(), SynthesisError> {
+
+
 /// Our demo circuit implements this `Circuit` trait which
 /// is used during paramgen and proving in order to
 /// synthesize the constraint system.
 impl<'a, E: Engine> better_better_cs::cs::Circuit<E> for CircomCircuit<E> {
+    type MainGate = better_better_cs::cs::Width4MainGateWithDNext;
+
     //noinspection RsBorrowChecker
-    fn synthesize<CS: ConstraintSystem<E>>(&self, cs: &mut CS) -> Result<(), SynthesisError> {
+    // fn synthesize<CS: ConstraintSystem<E>>(&self, cs: &mut CS) -> Result<(), SynthesisError> {
+    fn synthesize<CS: better_better_cs::cs::ConstraintSystem<E>>(&self, cs: &mut CS) -> Result<(), SynthesisError> {
         let witness = &self.witness;
         let wire_mapping = &self.wire_mapping;
         for i in 1..self.r1cs.num_inputs {
