@@ -4,10 +4,12 @@ use crate::transpile::{transpile_with_gates_count, ConstraintStat, TranspilerWra
 use bellman_ce::{
     kate_commitment::{Crs, CrsForLagrangeForm, CrsForMonomialForm},
     pairing::Engine,
+    pairing::bn256::{Bn256, Fr},
     plonk::{
         better_cs::adaptor::TranspilationVariant,
         better_cs::cs::PlonkCsWidth4WithNextStepParams,
         better_cs::keys::{Proof, SetupPolynomials, VerificationKey},
+        better_better_cs,
         commitments::transcript::keccak_transcript::RollingKeccakTranscript,
         is_satisfied_using_one_shot_check, make_verification_key, prove, prove_by_steps, setup,
     },
@@ -119,6 +121,22 @@ impl<E: Engine> SetupForProver<E> {
                 None
             ),
         }
+    }
+
+    pub fn prove2<C: better_better_cs::cs::Circuit<E> + Clone>(&self, circuit: C) /*-> Result<Proof<E, PlonkCsWidth4WithNextStepParams>, SynthesisError> */{
+        
+        let mut assembly = better_better_cs::cs::SetupAssembly::<Bn256, better_better_cs::cs::PlonkCsWidth4WithNextStepParams, better_better_cs::cs::Width4MainGateWithDNext>::new();
+        
+        let setup = assembly.create_setup::<C>(&Worker::new()).unwrap();
+
+        // let proof = assembly.create_proof::<TestCircuit4WithLookups<Bn256>, RollingKeccakTranscript<Fr>>(
+        let proof = assembly.create_proof::<_, RollingKeccakTranscript<Fr>>(
+            &Worker::new(), 
+            &setup, 
+            &self.key_monomial_form,
+            None
+        ).unwrap();
+
     }
 
     pub fn get_srs_lagrange_form_from_monomial_form(&self) -> Crs<E, CrsForLagrangeForm> {
