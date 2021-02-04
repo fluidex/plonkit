@@ -143,9 +143,9 @@ impl<E: Engine> SetupForProver<E> {
 
         // TODO:
 
-        let vk = VerificationKey::from_setup(&setup, &worker, &crs_mons).unwrap();
+        let vk = better_better_cs::setup::VerificationKey::from_setup(&setup, &Worker::new(), &crs_mons).unwrap();
 
-        let valid = verify::<Bn256, TestCircuit4WithLookups<Bn256>, RollingKeccakTranscript<Fr>>(
+        let valid = better_better_cs::verifier::verify::<E, C, RollingKeccakTranscript<<E as ScalarEngine>::Fr>>(
             &vk,
             &proof,
             None,
