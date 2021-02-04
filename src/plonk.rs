@@ -141,6 +141,16 @@ impl<E: Engine> SetupForProver<E> {
             None
         ).unwrap();
 
+        // TODO:
+
+        let vk = VerificationKey::from_setup(&setup, &worker, &crs_mons).unwrap();
+
+        let valid = verify::<Bn256, TestCircuit4WithLookups<Bn256>, RollingKeccakTranscript<Fr>>(
+            &vk,
+            &proof,
+            None,
+        ).unwrap();
+
     }
 
     pub fn get_srs_lagrange_form_from_monomial_form(&self) -> Crs<E, CrsForLagrangeForm> {
