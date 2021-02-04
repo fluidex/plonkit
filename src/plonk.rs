@@ -134,14 +134,12 @@ impl<E: Engine> SetupForProver<E> {
         assembly.finalize();
         let size = assembly.n().next_power_of_two();
         let crs_mons = Crs::<E, CrsForMonomialForm>::crs_42(size, &Worker::new());
-        // let proof = assembly.create_proof::<TestCircuit4WithLookups<Bn256>, RollingKeccakTranscript<Fr>>(
-
-        // let proof = assembly.create_proof::<E, RollingKeccakTranscript<Fr>>(
-        //     &Worker::new(), 
-        //     &setup, 
-        //     &crs_mons,
-        //     None
-        // ).unwrap();
+        let proof = assembly.create_proof::<C, RollingKeccakTranscript<<E as ScalarEngine>::Fr>>(
+            &Worker::new(), 
+            &setup, 
+            &crs_mons,
+            None
+        ).unwrap();
 
     }
 
