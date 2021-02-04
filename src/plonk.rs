@@ -123,19 +123,25 @@ impl<E: Engine> SetupForProver<E> {
         }
     }
 
-    pub fn prove2<C: better_better_cs::cs::Circuit<E> + Clone>(&self, circuit: C) /*-> Result<Proof<E, PlonkCsWidth4WithNextStepParams>, SynthesisError> */{
-        
-        let mut assembly = better_better_cs::cs::SetupAssembly::<Bn256, better_better_cs::cs::PlonkCsWidth4WithNextStepParams, better_better_cs::cs::Width4MainGateWithDNext>::new();
-        
+    pub fn prove2<C: better_better_cs::cs::Circuit<E> + Clone>(&self, circuit: C) /*-> Result<Proof<E, PlonkCsWidth4WithNextStepParams>, SynthesisError> */{        
+        let mut assembly = better_better_cs::cs::SetupAssembly::<E, better_better_cs::cs::PlonkCsWidth4WithNextStepParams, better_better_cs::cs::Width4MainGateWithDNext>::new();
+        circuit.synthesize(&mut assembly).expect("must work");
+        assembly.finalize();
         let setup = assembly.create_setup::<C>(&Worker::new()).unwrap();
-
+        
+        let mut assembly = better_better_cs::cs::ProvingAssembly::<E, better_better_cs::cs::PlonkCsWidth4WithNextStepParams, better_better_cs::cs::Width4MainGateWithDNext>::new();
+        circuit.synthesize(&mut assembly).expect("must work");
+        assembly.finalize();
+        let size = assembly.n().next_power_of_two();
+        let crs_mons = Crs::<E, CrsForMonomialForm>::crs_42(size, &Worker::new());
         // let proof = assembly.create_proof::<TestCircuit4WithLookups<Bn256>, RollingKeccakTranscript<Fr>>(
-        let proof = assembly.create_proof::<_, RollingKeccakTranscript<Fr>>(
-            &Worker::new(), 
-            &setup, 
-            &self.key_monomial_form,
-            None
-        ).unwrap();
+
+        // let proof = assembly.create_proof::<E, RollingKeccakTranscript<Fr>>(
+        //     &Worker::new(), 
+        //     &setup, 
+        //     &crs_mons,
+        //     None
+        // ).unwrap();
 
     }
 
