@@ -1,4 +1,5 @@
-use anyhow::format_err;
+use anyhow::{bail, format_err};
+use byteorder::{LittleEndian, ReadBytesExt};
 use itertools::Itertools;
 use std::collections::BTreeMap;
 use std::fs::{File, OpenOptions};
@@ -12,6 +13,7 @@ use bellman_ce::{
         better_cs::cs::PlonkCsWidth4WithNextStepParams,
         better_cs::keys::{Proof, VerificationKey},
     },
+    Field, PrimeFieldRepr,
 };
 
 use crate::circom_circuit::{CircuitJson, R1CS};
@@ -63,6 +65,14 @@ pub fn maybe_load_key_lagrange_form<E: Engine>(option_filename: Option<String>) 
 /// witness
 ///
 
+pub fn load_witness_from_file<E: Engine>(filename: &str) -> Vec<E::Fr> {
+    if filename.ends_with("json") {
+        load_witness_from_json_file::<E>(filename)
+    } else {
+        load_witness_from_bin_file::<E>(filename)
+    }
+}
+
 pub fn load_witness_from_json_file<E: Engine>(filename: &str) -> Vec<E::Fr> {
     let reader = OpenOptions::new().read(true).open(filename).expect("unable to open.");
     load_witness_from_json::<E, BufReader<File>>(BufReader::new(reader))
@@ -71,6 +81,11 @@ pub fn load_witness_from_json_file<E: Engine>(filename: &str) -> Vec<E::Fr> {
 fn load_witness_from_json<E: Engine, R: Read>(reader: R) -> Vec<E::Fr> {
     let witness: Vec<String> = serde_json::from_reader(reader).expect("unable to read.");
     witness.into_iter().map(|x| E::Fr::from_str(&x).unwrap()).collect::<Vec<E::Fr>>()
+}
+
+pub fn load_witness_from_bin_file<E: Engine>(filename: &str) -> Vec<E::Fr> {
+    let reader = OpenOptions::new().read(true).open(filename).expect("unable to open.");
+    load_witness_from_bin_reader::<E, BufReader<File>>(BufReader::new(reader)).expect("read witness failed")
 }
 
 ///
@@ -136,4 +151,57 @@ fn load_r1cs_from_bin<R: Read>(reader: R) -> (R1CS<Bn256>, Vec<usize>) {
         },
         file.wire_mapping.iter().map(|e| *e as usize).collect_vec(),
     )
+}
+
+fn load_witness_from_bin_reader<E: Engine, R: Read>(mut reader: R) -> Result<Vec<E::Fr>, anyhow::Error> {
+    let mut wtns_header = [0u8; 4];
+    reader.read_exact(&mut wtns_header)?;
+    if wtns_header != [119, 116, 110, 115] {
+        // ruby -e 'p "wtns".bytes' => [119, 116, 110, 115]
+        bail!("invalid file header");
+    }
+    let version = reader.read_u32::<LittleEndian>()?;
+    println!("wtns version {}", version);
+    if version > 2 {
+        bail!("unsupported file version");
+    }
+    let num_sections = reader.read_u32::<LittleEndian>()?;
+    if num_sections != 2 {
+        bail!("invalid num sections");
+    }
+    // read the first section
+    let sec_type = reader.read_u32::<LittleEndian>()?;
+    if sec_type != 1 {
+        bail!("invalid section type");
+    }
+    let sec_size = reader.read_u64::<LittleEndian>()?;
+    if sec_size != 4 + 32 + 4 {
+        bail!("invalid section len")
+    }
+    let field_size = reader.read_u32::<LittleEndian>()?;
+    if field_size != 32 {
+        bail!("invalid field byte size");
+    }
+    let mut prime = vec![0u8; field_size as usize];
+    reader.read_exact(&mut prime)?;
+    if prime != hex!("010000f093f5e1439170b97948e833285d588181b64550b829a031e1724e6430") {
+        bail!("invalid curve prime");
+    }
+    let witness_len = reader.read_u32::<LittleEndian>()?;
+    println!("witness len {}", witness_len);
+    let sec_type = reader.read_u32::<LittleEndian>()?;
+    if sec_type != 2 {
+        bail!("invalid section type");
+    }
+    let sec_size = reader.read_u64::<LittleEndian>()?;
+    if sec_size != (witness_len * field_size) as u64 {
+        bail!("invalid witness section size {}", sec_size);
+    }
+    let mut result = Vec::with_capacity(witness_len as usize);
+    for _ in 0..witness_len {
+        let mut repr = E::Fr::zero().into_repr();
+        repr.read_le(&mut reader)?;
+        result.push(E::Fr::from_repr(repr)?);
+    }
+    Ok(result)
 }

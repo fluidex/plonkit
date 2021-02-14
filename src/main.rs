@@ -18,7 +18,7 @@ use plonkit::reader;
 
 /// A zkSNARK toolkit to work with circom zkSNARKs DSL in plonk proof system
 #[derive(Clap)]
-#[clap(version = "0.0.3")]
+#[clap(version = "0.0.4")]
 struct Opts {
     #[clap(subcommand)]
     command: SubCommand,
@@ -91,7 +91,7 @@ struct ProveOpts {
     #[clap(short = "c", long = "circuit")]
     circuit: Option<String>,
     /// Witness JSON file
-    #[clap(short = "w", long = "witness", default_value = "witness.json")]
+    #[clap(short = "w", long = "witness", default_value = "witness.wtns")]
     witness: String,
     /// Output file for proof BIN
     #[clap(short = "p", long = "proof", default_value = "proof.bin")]
@@ -227,7 +227,7 @@ fn prove(opts: ProveOpts) {
     println!("Loading circuit from {}...", circuit_file);
     let circuit = CircomCircuit {
         r1cs: reader::load_r1cs(&circuit_file),
-        witness: Some(reader::load_witness_from_json_file::<Bn256>(&opts.witness)),
+        witness: Some(reader::load_witness_from_file::<Bn256>(&opts.witness)),
         wire_mapping: None,
         aux_offset: plonk::AUX_OFFSET,
     };
@@ -245,6 +245,8 @@ fn prove(opts: ProveOpts) {
     proof.write(writer).unwrap();
     println!("Proof saved to {}", opts.proof);
 
+    cfg_if::cfg_if! {
+        if #[cfg(feature = "solidity")] {
     let (inputs, serialized_proof) = bellman_vk_codegen::serialize_proof(&proof);
     let ser_proof_str = serde_json::to_string_pretty(&serialized_proof).unwrap();
     let ser_inputs_str = serde_json::to_string_pretty(&inputs).unwrap();
@@ -252,6 +254,8 @@ fn prove(opts: ProveOpts) {
     println!("Proof json saved to {}", opts.proofjson);
     std::fs::write(&opts.publicjson, ser_inputs_str.as_bytes()).expect("save publicjson err");
     println!("Public input json saved to {}", opts.publicjson);
+        }
+    }
 }
 
 fn verify(opts: VerifyOpts) {
@@ -267,9 +271,15 @@ fn verify(opts: VerifyOpts) {
 }
 
 fn generate_verifier(opts: GenerateVerifierOpts) {
-    let vk = reader::load_verification_key::<Bn256>(&opts.vk);
+    cfg_if::cfg_if! {
+        if #[cfg(feature = "solidity")] {
+            let vk = reader::load_verification_key::<Bn256>(&opts.vk);
     bellman_vk_codegen::render_verification_key_from_default_template(&vk, &opts.sol);
     println!("Contract saved to {}", opts.sol);
+        } else {
+            unimplemented!("you must enable `solidity` feature flag");
+        }
+    }
 }
 
 fn export_vk(opts: ExportVerificationKeyOpts) {
@@ -287,8 +297,8 @@ fn export_vk(opts: ExportVerificationKeyOpts) {
             .expect("prepare err");
     let vk = setup.make_verification_key().unwrap();
 
-    let path = Path::new(&opts.vk);
-    assert!(!path.exists(), "path for saving verification key exists: {}", path.display());
+    //let path = Path::new(&opts.vk);
+    //assert!(!path.exists(), "path for saving verification key exists: {}", path.display());
     let writer = File::create(&opts.vk).unwrap();
     vk.write(writer).unwrap();
     println!("Verification key saved to {}", opts.vk);

@@ -1,6 +1,6 @@
 [package]
 name = "plonkit"
-version = "0.0.3"
+version = "0.0.4"
 authors = ["Roman Semenov <semenov.roma@gmail.com>", "Zhuo Zhang <mycinbrin@gmail.com>", "Haoyu LIN <chris.haoyul@gmail.com>"]
 description = "Library for working with circom circuits in plonk proof system"
 homepage = "https://github.com/Fluidex/plonkit"
@@ -24,7 +24,7 @@ serde_json = "1.0"
 num-bigint = "0.2.3"
 num-traits = "0.2.8"
 itertools = "0.8.1"
-cfg-if = "0.1.10"
+cfg-if = "1.0.0"
 hex-literal = "0.2.1"
 clap = { package = "clap-v3", version = "3.0.0-beta.1" } # todo: replace with official v3 when it's released to crates.io
 bellman_ce = { git = "https://github.com/Fluidex/bellman", branch = "plonk_release", default-features = false, features = ["plonk"] } # active features depend on build type
@@ -35,4 +35,5 @@ log = "0.4.11"
 env_logger = "0.8.2"
 
 [features]
-default = ["bellman_ce/multicore"]
+default = ["bellman_ce/multicore", "solidity"]
+solidity = []
