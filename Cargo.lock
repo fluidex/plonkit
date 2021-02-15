@@ -80,7 +80,7 @@ dependencies = [
 [[package]]
 name = "bellman_ce"
 version = "0.3.2"
-source = "git+https://github.com/Fluidex/bellman?branch=beta#48441155ec7006bf7bfac553b5fb7d466d7fcd00"
+source = "git+https://github.com/matter-labs/bellman?branch=beta#48441155ec7006bf7bfac553b5fb7d466d7fcd00"
 dependencies = [
  "bit-vec",
  "blake2s_const",
@@ -100,7 +100,7 @@ dependencies = [
 [[package]]
 name = "bellman_vk_codegen"
 version = "0.1.0"
-source = "git+https://github.com/Fluidex/solidity_plonk_verifier.git?branch=beta#cf8003e54fe722f8580c5a4ee614d87ac5c62543"
+source = "git+https://github.com/Fluidex/solidity_plonk_verifier.git?branch=beta#2a9804073b8e44d4a3e15201f836175bde9bbf5b"
 dependencies = [
  "bellman_ce",
  "handlebars",
@@ -124,7 +124,7 @@ checksum = "cf1de2fe8c75bc145a2f577add951f8134889b4795d47466a54a5c846d691693"
 [[package]]
 name = "blake2s_const"
 version = "0.6.0"
-source = "git+https://github.com/Fluidex/bellman?branch=beta#48441155ec7006bf7bfac553b5fb7d466d7fcd00"
+source = "git+https://github.com/matter-labs/bellman?branch=beta#48441155ec7006bf7bfac553b5fb7d466d7fcd00"
 dependencies = [
  "arrayref",
  "arrayvec 0.5.2",
