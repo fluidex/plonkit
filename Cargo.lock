@@ -99,8 +99,8 @@ dependencies = [
 
 [[package]]
 name = "bellman_vk_codegen"
-version = "0.1.0"
-source = "git+https://github.com/Fluidex/solidity_plonk_verifier.git?branch=beta#2a9804073b8e44d4a3e15201f836175bde9bbf5b"
+version = "0.2.0"
+source = "git+https://github.com/Fluidex/solidity_plonk_verifier.git?branch=beta#28d89b0387b656a9d0e4fd9f271af58aa07d42c8"
 dependencies = [
  "bellman_ce",
  "handlebars",
@@ -944,7 +944,7 @@ checksum = "8b870d8c151b6f2fb93e84a13146138f05d02ed11c7e7c54f8826aaaf7c9f184"
 
 [[package]]
 name = "plonkit"
-version = "0.0.4"
+version = "0.0.5"
 dependencies = [
  "anyhow",
  "bellman_ce",
