@@ -274,8 +274,8 @@ fn generate_verifier(opts: GenerateVerifierOpts) {
     cfg_if::cfg_if! {
         if #[cfg(feature = "solidity")] {
             let vk = reader::load_verification_key::<Bn256>(&opts.vk);
-    bellman_vk_codegen::render_verification_key_from_default_template(&vk, &opts.sol);
-    println!("Contract saved to {}", opts.sol);
+            bellman_vk_codegen::render_verification_key_from_default_template(&vk, &opts.sol);
+            println!("Contract saved to {}", opts.sol);
         } else {
             unimplemented!("you must enable `solidity` feature flag");
         }
