@@ -9,6 +9,24 @@ PLONKIT_BIN=$DIR"/target/release/plonkit"
 #PLONKIT_BIN="plonkit"
 DUMP_LAGRANGE_KEY=false
 
+echo "Step0: check for necessary dependencies"
+REQUIRED_PKG="axel"
+PKG_OK=$(dpkg-query -W --showformat='${Status}\n' $REQUIRED_PKG|grep "install ok installed")
+echo Checking for $REQUIRED_PKG: $PKG_OK
+if [ "" = "$PKG_OK" ]; then
+  echo "$REQUIRED_PKG not found. Installing $REQUIRED_PKG."
+  sudo apt-get --yes install $REQUIRED_PKG
+fi
+
+REQUIRED_PKG="npm"
+PKG_OK=$(dpkg-query -W --showformat='${Status}\n' $REQUIRED_PKG|grep "install ok installed")
+echo Checking for $REQUIRED_PKG: $PKG_OK
+if [ "" = "$PKG_OK" ]; then
+  echo "$REQUIRED_PKG not found. Installing $REQUIRED_PKG."
+  curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash -
+  sudo apt-get --yes install $REQUIRED_PKG
+fi
+
 echo "Step0: build plonkit binary"
 cargo build --release
 #cargo install --git https://github.com/Fluidex/plonkit
