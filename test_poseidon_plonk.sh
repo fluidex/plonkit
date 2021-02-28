@@ -1,5 +1,5 @@
 #!/bin/bash
-set -exu
+#set -exu
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 TOOL_DIR=$DIR"/contrib"
@@ -10,7 +10,6 @@ PLONKIT_BIN=$DIR"/target/release/plonkit"
 DUMP_LAGRANGE_KEY=false
 REQUIRED_PKG1="axel"
 REQUIRED_PKG2="npm"
-
 
 echo "Step0: check for necessary dependencies"
 PKG_OK=""
@@ -28,7 +27,9 @@ PKG_OK=$(command -v $REQUIRED_PKG2)
 echo Checking for $REQUIRED_PKG2
 if [ -z "$PKG_OK" ]; then
   echo "$REQUIRED_PKG2 not found. Installing $REQUIRED_PKG2."
-  curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.37.2/install.sh | bash
+  source <(curl -s https://raw.githubusercontent.com/nvm-sh/nvm/v0.37.2/install.sh)
+else
+  echo $REQUIRED_PKG2 exists at $PKG_OK
 fi
 
 echo "Step1: build plonkit binary"
