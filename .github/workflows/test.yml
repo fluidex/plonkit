@@ -41,35 +41,35 @@ jobs:
       - name: NPM install
         run: npm install
 
-      - name: Run "cargo build"
+      - name: Compile plonkit (Debug-version)
         uses: actions-rs/cargo@v1
         with:
           command: build
           args: --
 
       - name: Universal setup
-        run: target/release/plonkit setup --power 20 --srs_monomial_form keys/setup/setup_2^20.key
+        run: target/debug/plonkit setup --power 20 --srs_monomial_form keys/setup/setup_2^20.key
 
       - name: Compile circuit and calculate witness using snarkjs
         run: contrib/process_circom_circuit.sh
 
       - name: Export verification key
-        run: target/release/plonkit export-verification-key -m keys/setup/setup_2^20.key -c testdata/poseidon/circuit.r1cs -v testdata/poseidon/vk.bin
+        run: target/debug/plonkit export-verification-key -m keys/setup/setup_2^20.key -c testdata/poseidon/circuit.r1cs -v testdata/poseidon/vk.bin
 
       - name: Generate verifier smart contract
-        run: target/release/plonkit generate-verifier -v testdata/poseidon/vk.bin -s testdata/poseidon/verifier.sol
+        run: target/debug/plonkit generate-verifier -v testdata/poseidon/vk.bin -s testdata/poseidon/verifier.sol
 
       - name: Prove with key_monomial_form
-        run: target/release/plonkit prove -m keys/setup/setup_2^20.key -c testdata/poseidon/circuit.r1cs -w testdata/poseidon/witness.wtns -p testdata/poseidon/proof.bin -j testdata/poseidon/proof.json -i testdata/poseidon/public.json
+        run: target/debug/plonkit prove -m keys/setup/setup_2^20.key -c testdata/poseidon/circuit.r1cs -w testdata/poseidon/witness.wtns -p testdata/poseidon/proof.bin -j testdata/poseidon/proof.json -i testdata/poseidon/public.json
 
       - name: Dump key_lagrange_form from key_monomial_form
-        run: target/release/plonkit dump-lagrange -m keys/setup/setup_2^20.key -l keys/setup/setup_2^20_lagrange.key -c testdata/poseidon/circuit.r1cs
+        run: target/debug/plonkit dump-lagrange -m keys/setup/setup_2^20.key -l keys/setup/setup_2^20_lagrange.key -c testdata/poseidon/circuit.r1cs
 
       - name: Prove with key_monomial_form & key_lagrange_form
-        run: target/release/plonkit prove -m keys/setup/setup_2^20.key -l keys/setup/setup_2^20_lagrange.key -c testdata/poseidon/circuit.r1cs -w testdata/poseidon/witness.wtns -p testdata/poseidon/proof.bin -j testdata/poseidon/proof.json -i testdata/poseidon/public.json
+        run: target/debug/plonkit prove -m keys/setup/setup_2^20.key -l keys/setup/setup_2^20_lagrange.key -c testdata/poseidon/circuit.r1cs -w testdata/poseidon/witness.wtns -p testdata/poseidon/proof.bin -j testdata/poseidon/proof.json -i testdata/poseidon/public.json
 
       - name: Verify
-        run: target/release/plonkit verify -p testdata/poseidon/proof.bin -v testdata/poseidon/vk.bin
+        run: target/debug/plonkit verify -p testdata/poseidon/proof.bin -v testdata/poseidon/vk.bin
 
       - name: Verify via smart contract
         run: cd testdata ||
