@@ -93,10 +93,11 @@ jobs:
         run: target/release/plonkit verify -p testdata/poseidon/proof.bin -v testdata/poseidon/vk.bin
 
       - name: Verify via smart contract
-        run: cd testdata ||
-            yarn install ||
-            mkdir -p contracts ||
-            cp testdata/poseidon/public.json test/data/public.json ||
-            cp testdata/poseidon/proof.json test/data/proof.json ||
-            cp testdata/poseidon/verifier.sol contracts/verifier.sol ||
-            npx hardhat test
+        run: |
+          cd testdata
+          yarn install
+          mkdir -p contracts
+          cp testdata/poseidon/public.json test/data/public.json
+          cp testdata/poseidon/proof.json test/data/proof.json
+          cp testdata/poseidon/verifier.sol contracts/verifier.sol
+          npx hardhat test
