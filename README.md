@@ -4,7 +4,6 @@ A zkSNARK toolkit to work with [circom](https://github.com/iden3/circom) zkSNARK
 
 ## Prerequisites
 + `npm i`
-+ axel
 
 ## Features & Todos
 

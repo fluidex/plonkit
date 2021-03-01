@@ -1,65 +1,70 @@
 #!/bin/bash
-set -exu
+# set -exu
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 TOOL_DIR=$DIR"/contrib"
 CIRCUIT_DIR=$DIR"/testdata/poseidon"
 SETUP_DIR=$DIR"/keys/setup"
+SETUP_MK=$SETUP_DIR"/setup_monomial.key"
+SETUP_LK=$SETUP_DIR"/setup_lagrange.key"
+DOWNLOAD_SETUP_FROM_REMOTE=false
 PLONKIT_BIN=$DIR"/target/release/plonkit"
 #PLONKIT_BIN="plonkit"
 DUMP_LAGRANGE_KEY=false
-REQUIRED_PKG1="axel"
-REQUIRED_PKG2="npm"
 
 echo "Step0: check for necessary dependencies"
-PKG_OK=""
-PKG_OK=$(command -v $REQUIRED_PKG1)
-echo Checking for $REQUIRED_PKG1
-if [ -z "$PKG_OK" ]; then
-  echo "$REQUIRED_PKG1 not found. Installing $REQUIRED_PKG1."
-  sudo apt-get --yes install $REQUIRED_PKG1
-else
-  echo $REQUIRED_PKG1 exists at $PKG_OK
-fi
-
-PKG_OK=""
-PKG_OK=$(command -v $REQUIRED_PKG2)
-echo Checking for $REQUIRED_PKG2
-if [ -z "$PKG_OK" ]; then
-  echo "$REQUIRED_PKG2 not found. Installing $REQUIRED_PKG2."
+PKG_PATH=""
+PKG_PATH=$(command -v npm)
+echo Checking for npm
+if [ -z "$PKG_PATH" ]; then
+  echo "npm not found. Installing nvm & npm & node."
   source <(curl -s https://raw.githubusercontent.com/nvm-sh/nvm/v0.37.2/install.sh)
 else
-  echo $REQUIRED_PKG2 exists at $PKG_OK
+  echo npm exists at $PKG_PATH
 fi
+PKG_PATH=""
+PKG_PATH=$(command -v axel)
+if ([ -z "$PKG_PATH" ] & $DOWNLOAD_SETUP_FROM_REMOTE) ; then
+  echo Checking for axel
+  echo "axel not found. Installing axel."
+  sudo apt-get --yes install axel
+elif [ -z "$PKG_PATH" ] ; then
+  echo axel exists at $PKG_PATH
+fi
+npm i
 
 echo "Step1: build plonkit binary"
 cargo build --release
 #cargo install --git https://github.com/Fluidex/plonkit
 #$PLONKIT_BIN --help
 
-echo "Step2: download universal setup file"
-# It is the aztec ignition trusted setup key file. Thanks to matter-labs/zksync/infrastructure/zk/src/run/run.ts
+echo "Step2: universal setup"
 pushd keys/setup
-axel -ac https://universal-setup.ams3.digitaloceanspaces.com/setup_2^20.key || true
+if ([ ! -f $SETUP_MK ] & $DOWNLOAD_SETUP_FROM_REMOTE); then
+  # It is the aztec ignition trusted setup key file. Thanks to matter-labs/zksync/infrastructure/zk/src/run/run.ts
+  axel -ac https://universal-setup.ams3.digitaloceanspaces.com/setup_2^20.key -o $SETUP_MK || true
+elif [ ! -f $SETUP_MK ] ; then
+    $PLONKIT_BIN setup --power 20 --srs_monomial_form $SETUP_MK
+fi
 popd
 
 echo "Step3: compile circuit and calculate witness using snarkjs"
 . $TOOL_DIR/process_circom_circuit.sh
 
 echo "Step4: export verification key"
-$PLONKIT_BIN export-verification-key -m $SETUP_DIR/setup_2^20.key -c $CIRCUIT_DIR/circuit.r1cs -v $CIRCUIT_DIR/vk.bin
+$PLONKIT_BIN export-verification-key -m $SETUP_MK -c $CIRCUIT_DIR/circuit.r1cs -v $CIRCUIT_DIR/vk.bin
 
 echo "Step5: generate verifier smart contract"
 $PLONKIT_BIN generate-verifier -v $CIRCUIT_DIR/vk.bin -s $CIRCUIT_DIR/verifier.sol
 
 if [ "$DUMP_LAGRANGE_KEY" = false ]; then
   echo "Step6: prove with key_monomial_form"
-  $PLONKIT_BIN prove -m $SETUP_DIR/setup_2^20.key -c $CIRCUIT_DIR/circuit.r1cs -w $CIRCUIT_DIR/witness.wtns -p $CIRCUIT_DIR/proof.bin -j $CIRCUIT_DIR/proof.json -i $CIRCUIT_DIR/public.json
+  $PLONKIT_BIN prove -m $SETUP_MK -c $CIRCUIT_DIR/circuit.r1cs -w $CIRCUIT_DIR/witness.wtns -p $CIRCUIT_DIR/proof.bin -j $CIRCUIT_DIR/proof.json -i $CIRCUIT_DIR/public.json
 else
   echo "Step6.1: dump key_lagrange_form from key_monomial_form"
-  $PLONKIT_BIN dump-lagrange -m $SETUP_DIR/setup_2^20.key -l $SETUP_DIR/setup_2^20_lagrange.key -c $CIRCUIT_DIR/circuit.r1cs
+  $PLONKIT_BIN dump-lagrange -m $SETUP_MK -l $SETUP_LK -c $CIRCUIT_DIR/circuit.r1cs
   echo "Step6.2: prove with key_monomial_form & key_lagrange_form"
-  $PLONKIT_BIN prove -m $SETUP_DIR/setup_2^20.key -l $SETUP_DIR/setup_2^20_lagrange.key -c $CIRCUIT_DIR/circuit.r1cs -w $CIRCUIT_DIR/witness.wtns -p $CIRCUIT_DIR/proof.bin -j $CIRCUIT_DIR/proof.json -i $CIRCUIT_DIR/public.json
+  $PLONKIT_BIN prove -m $SETUP_MK -l $SETUP_LK -c $CIRCUIT_DIR/circuit.r1cs -w $CIRCUIT_DIR/witness.wtns -p $CIRCUIT_DIR/proof.bin -j $CIRCUIT_DIR/proof.json -i $CIRCUIT_DIR/public.json
 fi
 
 echo "Step7: verify"
