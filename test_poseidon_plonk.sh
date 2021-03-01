@@ -72,9 +72,9 @@ $PLONKIT_BIN verify -p $CIRCUIT_DIR/proof.bin -v $CIRCUIT_DIR/vk.bin
 echo "Step8: verify via smart contract"
 pushd testdata
 yarn install
-mkdir contracts
-cp $CIRCUIT_DIR/input.json testdata/test/public.json
-cp $CIRCUIT_DIR/proof.json testdata/test/proof.json
+mkdir -p contracts
+cp $CIRCUIT_DIR/input.json test/data/public.json
+cp $CIRCUIT_DIR/proof.json test/data/proof.json
 cp $CIRCUIT_DIR/verifier.sol contracts/verifier.sol
 npx hardhat test
 popd
