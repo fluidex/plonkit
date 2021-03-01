@@ -73,7 +73,7 @@ echo "Step8: verify via smart contract"
 pushd testdata
 yarn install
 mkdir -p contracts
-cp $CIRCUIT_DIR/input.json test/data/public.json
+cp $CIRCUIT_DIR/public.json test/data/public.json
 cp $CIRCUIT_DIR/proof.json test/data/proof.json
 cp $CIRCUIT_DIR/verifier.sol contracts/verifier.sol
 npx hardhat test
