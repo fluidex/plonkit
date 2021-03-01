@@ -68,3 +68,13 @@ fi
 
 echo "Step7: verify"
 $PLONKIT_BIN verify -p $CIRCUIT_DIR/proof.bin -v $CIRCUIT_DIR/vk.bin
+
+echo "Step8: verify via smart contract"
+pushd testdata
+yarn install
+mkdir -p contracts
+cp $CIRCUIT_DIR/public.json test/data/public.json
+cp $CIRCUIT_DIR/proof.json test/data/proof.json
+cp $CIRCUIT_DIR/verifier.sol contracts/verifier.sol
+npx hardhat test
+popd
