@@ -94,10 +94,9 @@ jobs:
 
       - name: Verify via smart contract
         run: |
+          cp testdata/poseidon/public.json testdata/test/data/public.json
+          cp testdata/poseidon/proof.json testdata/test/data/proof.json
+          cp testdata/poseidon/verifier.sol testdata/contracts/verifier.sol
           cd testdata
           yarn install
-          mkdir -p contracts
-          cp testdata/poseidon/public.json test/data/public.json
-          cp testdata/poseidon/proof.json test/data/proof.json
-          cp testdata/poseidon/verifier.sol contracts/verifier.sol
           npx hardhat test
