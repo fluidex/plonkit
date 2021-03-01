@@ -1,12 +1,11 @@
 #!/bin/bash
-# set -exu
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 TOOL_DIR=$DIR"/contrib"
 CIRCUIT_DIR=$DIR"/testdata/poseidon"
 SETUP_DIR=$DIR"/keys/setup"
-SETUP_MK=$SETUP_DIR"/setup_monomial.key"
-SETUP_LK=$SETUP_DIR"/setup_lagrange.key"
+SETUP_MK=$SETUP_DIR"/setup_2^20.key"
+SETUP_LK=$SETUP_DIR"/setup_2^20_lagrange.key"
 DOWNLOAD_SETUP_FROM_REMOTE=false
 PLONKIT_BIN=$DIR"/target/release/plonkit"
 #PLONKIT_BIN="plonkit"
@@ -24,11 +23,11 @@ else
 fi
 PKG_PATH=""
 PKG_PATH=$(command -v axel)
-if ([ -z "$PKG_PATH" ] & $DOWNLOAD_SETUP_FROM_REMOTE) ; then
+if ($DOWNLOAD_SETUP_FROM_REMOTE & [ -z "$PKG_PATH" ]) ; then
   echo Checking for axel
   echo "axel not found. Installing axel."
   sudo apt-get --yes install axel
-elif [ -z "$PKG_PATH" ] ; then
+elif [ ! -z "$PKG_PATH" ] ; then
   echo axel exists at $PKG_PATH
 fi
 npm i
