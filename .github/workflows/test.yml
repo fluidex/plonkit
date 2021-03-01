@@ -41,6 +41,24 @@ jobs:
       - name: NPM install
         run: npm install
 
+      - name: Cache cargo registry
+        uses: actions/cache@v1
+        with:
+          path: ~/.cargo/registry
+          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Cache cargo index
+        uses: actions/cache@v1
+        with:
+          path: ~/.cargo/git
+          key: ${{ runner.os }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Cache cargo target
+        uses: actions/cache@v1
+        with:
+          path: target
+          key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
+
       - name: Compile plonkit (release-version)
         uses: actions-rs/cargo@v1
         with:
@@ -51,7 +69,10 @@ jobs:
         run: target/release/plonkit setup --power 20 --srs_monomial_form keys/setup/setup_2^20.key
 
       - name: Compile circuit and calculate witness using snarkjs
-        run: contrib/process_circom_circuit.sh
+        run: npx circom testdata/poseidon/circuit.circom --r1cs --wasm --sym -v
+
+      - name: Calculate witness using snarkjs
+        run: npx snarkjs wc testdata/poseidon/circuit.wasm testdata/poseidon/input.json testdata/poseidon/witness.wtns
 
       - name: Export verification key
         run: target/release/plonkit export-verification-key -m keys/setup/setup_2^20.key -c testdata/poseidon/circuit.r1cs -v testdata/poseidon/vk.bin
