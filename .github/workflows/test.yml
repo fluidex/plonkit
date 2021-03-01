@@ -69,10 +69,10 @@ jobs:
         run: target/release/plonkit setup --power 20 --srs_monomial_form keys/setup/setup_2^20.key
 
       - name: Compile circuit and calculate witness using snarkjs
-        run: npx circom testdata/poseidon/circuit.circom --r1cs --wasm --sym -v
+        run: cd testdata/poseidon/ && npx circom circuit.circom --r1cs --wasm --sym -v
 
       - name: Calculate witness using snarkjs
-        run: npx snarkjs wc testdata/poseidon/circuit.wasm testdata/poseidon/input.json testdata/poseidon/witness.wtns
+        run: cd testdata/poseidon/ && npx snarkjs wc circuit.wasm input.json witness.wtns
 
       - name: Export verification key
         run: target/release/plonkit export-verification-key -m keys/setup/setup_2^20.key -c testdata/poseidon/circuit.r1cs -v testdata/poseidon/vk.bin
