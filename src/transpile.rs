@@ -17,6 +17,7 @@ pub struct TranspilerWrapper<E: Engine, P: PlonkConstraintSystemParams<E>> {
     pub constraint_stats: Vec<ConstraintStat>,
 }
 
+#[allow(clippy::new_without_default)]
 impl<E: Engine, P: PlonkConstraintSystemParams<E>> TranspilerWrapper<E, P> {
     pub fn new() -> Self {
         Self {
@@ -94,10 +95,10 @@ impl<E: Engine, P: PlonkConstraintSystemParams<E>> bellman_ce::ConstraintSystem<
         LC: FnOnce(bellman_ce::LinearCombination<E>) -> bellman_ce::LinearCombination<E>,
     {
         let num_gates_before = self.inner.num_gates();
-        let name = ann().into();
-        self.inner.enforce(|| name.clone(), a, b, c);
+        let name_ = ann().into();
+        self.inner.enforce(|| name_.clone(), a, b, c);
         self.constraint_stats.push(ConstraintStat {
-            name: name,
+            name: name_,
             num_gates: self.inner.num_gates() - num_gates_before,
         });
     }
