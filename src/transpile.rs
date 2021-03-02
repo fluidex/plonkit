@@ -17,6 +17,7 @@ pub struct TranspilerWrapper<E: Engine, P: PlonkConstraintSystemParams<E>> {
     pub constraint_stats: Vec<ConstraintStat>,
 }
 
+#[allow(clippy::new_without_default)]
 impl<E: Engine, P: PlonkConstraintSystemParams<E>> TranspilerWrapper<E, P> {
     pub fn new() -> Self {
         Self {

@@ -212,9 +212,8 @@ fn dump_lagrange(opts: DumpLagrangeOpts) {
         aux_offset: plonk::AUX_OFFSET,
     };
 
-    let setup =
-        plonk::SetupForProver::prepare_setup_for_prover(circuit.clone(), reader::load_key_monomial_form(&opts.srs_monomial_form), None)
-            .expect("prepare err");
+    let setup = plonk::SetupForProver::prepare_setup_for_prover(circuit, reader::load_key_monomial_form(&opts.srs_monomial_form), None)
+        .expect("prepare err");
 
     let key_lagrange_form = setup.get_srs_lagrange_form_from_monomial_form();
     let writer = File::create(&opts.srs_lagrange_form).unwrap();
@@ -292,9 +291,8 @@ fn export_vk(opts: ExportVerificationKeyOpts) {
         aux_offset: plonk::AUX_OFFSET,
     };
 
-    let setup =
-        plonk::SetupForProver::prepare_setup_for_prover(circuit.clone(), reader::load_key_monomial_form(&opts.srs_monomial_form), None)
-            .expect("prepare err");
+    let setup = plonk::SetupForProver::prepare_setup_for_prover(circuit, reader::load_key_monomial_form(&opts.srs_monomial_form), None)
+        .expect("prepare err");
     let vk = setup.make_verification_key().unwrap();
 
     //let path = Path::new(&opts.vk);
