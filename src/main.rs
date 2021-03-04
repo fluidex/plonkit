@@ -14,6 +14,9 @@ use plonkit::circom_circuit::CircomCircuit;
 use plonkit::plonk;
 use plonkit::reader;
 
+#[cfg(feature = "server")]
+mod server;
+
 //static TEMPLATE_PATH: &str = "./contrib/template.sol";
 
 /// A zkSNARK toolkit to work with circom zkSNARKs DSL in plonk proof system
@@ -32,6 +35,8 @@ enum SubCommand {
     Setup(SetupOpts),
     /// Dump "SRS in lagrange form" from a "SRS in monomial form"
     DumpLagrange(DumpLagrangeOpts),
+    /// Serve for SNARK proof
+    Serve(ServerOpts),
     /// Generate a SNARK proof
     Prove(ProveOpts),
     /// Verify a SNARK proof
@@ -73,6 +78,23 @@ struct DumpLagrangeOpts {
     /// Output file for Plonk universal setup srs in lagrange form
     #[clap(short = "l", long = "srs_lagrange_form")]
     srs_lagrange_form: String,
+    /// Circuit R1CS or JSON file [default: circuit.r1cs|circuit.json]
+    #[clap(short = "c", long = "circuit")]
+    circuit: Option<String>,
+}
+
+/// A subcommand for running a server and do SNARK proving
+#[derive(Clap)]
+struct ServerOpts {
+    /// Server address
+    #[clap(long = "address")]
+    srv_addr: Option<String>, 
+    /// Source file for Plonk universal setup srs in monomial form
+    #[clap(short = "m", long = "srs_monomial_form")]
+    srs_monomial_form: String,
+    /// Source file for Plonk universal setup srs in lagrange form
+    #[clap(short = "l", long = "srs_lagrange_form")]
+    srs_lagrange_form: Option<String>,
     /// Circuit R1CS or JSON file [default: circuit.r1cs|circuit.json]
     #[clap(short = "c", long = "circuit")]
     circuit: Option<String>,
@@ -152,6 +174,9 @@ fn main() {
         SubCommand::DumpLagrange(o) => {
             dump_lagrange(o);
         }
+        SubCommand::Serve(o) => {
+            prove_server(o);
+        }
         SubCommand::Prove(o) => {
             prove(o);
         }
@@ -220,6 +245,77 @@ fn dump_lagrange(opts: DumpLagrangeOpts) {
     key_lagrange_form.write(writer).unwrap();
     println!("srs_lagrange_form saved to {}", opts.srs_lagrange_form);
 }
+
+#[cfg(feature = "server")]
+fn prove_server(opts: ServerOpts) {
+    let circuit_file = resolve_circuit_file(opts.circuit);
+    println!("Loading circuit from {}...", circuit_file);
+    let circuit_base = CircomCircuit {
+        r1cs: reader::load_r1cs(&circuit_file),
+        witness: None,
+        wire_mapping: None,
+        aux_offset: plonk::AUX_OFFSET,
+    };
+
+    let srs_monomial_form = opts.srs_monomial_form;
+    let srs_lagrange_form = opts.srs_lagrange_form;
+
+    let builder = move ||-> server::ProveCore {
+        //here we do setup, which should take some time
+        let setup = plonk::SetupForProver::prepare_setup_for_prover(
+            circuit_base.clone(),
+            reader::load_key_monomial_form(&srs_monomial_form),
+            reader::maybe_load_key_lagrange_form(srs_lagrange_form),
+        )
+        .expect("prepare err");
+
+        Box::new(move |witness: Vec<u8>, validate_only: bool| -> server::CoreResult {
+
+            let perf_t = std::time::SystemTime::now();
+
+            let mut circut = circuit_base.clone();
+            let witness_ret = reader::load_witness_from_array::<Bn256>(witness);
+            if let Ok(witness) = witness_ret {
+                circut.witness = Some(witness);
+            }else{
+                return server::CoreResult::any_prove_error(witness_ret, validate_only);
+            }
+            let proof_ret = setup.prove(circut);
+
+            if let Ok(proof) = proof_ret {
+
+                let ret = server::CoreResult::success(validate_only);
+                if validate_only {
+                    return ret;
+                }
+
+                let mut mut_resp = ret.as_prove();
+
+                let (inputs, serialized_proof) = bellman_vk_codegen::serialize_proof(&proof);
+                mut_resp.proof = serialized_proof.iter().map(ToString::to_string).collect();
+                mut_resp.inputs = inputs.iter().map(ToString::to_string).collect();
+                mut_resp.time_cost = perf_t.elapsed().unwrap_or_default().as_secs_f64();
+
+                server::CoreResult::Prove(mut_resp)
+            }else{
+                server::CoreResult::any_prove_error(proof_ret, validate_only)
+            }
+        })
+    };
+
+    println!("Starting server ... use CTRL+C to exit");
+    server::run(server::ServerOptions{
+        server_addr: opts.srv_addr,
+        build_prove_core: Box::new(builder),
+    });
+}
+
+#[cfg(not(feature = "server"))]
+fn prove_server(opts: ServerOpts) {
+    println!("Binary is not built with server feature: {:?}, {:?}, {:?}, {}", 
+        opts.srv_addr, opts.circuit, opts.srs_lagrange_form, opts.srs_monomial_form);
+}
+
 
 fn prove(opts: ProveOpts) {
     let circuit_file = resolve_circuit_file(opts.circuit);
