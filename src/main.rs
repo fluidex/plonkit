@@ -261,7 +261,6 @@ fn prove_server(opts: ServerOpts) {
     let srs_lagrange_form = opts.srs_lagrange_form;
 
     let builder = move || -> server::ProveCore {
-        //here we do setup, which should take some time
         let setup = plonk::SetupForProver::prepare_setup_for_prover(
             circuit_base.clone(),
             reader::load_key_monomial_form(&srs_monomial_form),
