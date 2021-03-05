@@ -279,14 +279,18 @@ fn prove_server(opts: ServerOpts) {
             } else {
                 return server::CoreResult::any_prove_error(witness_ret, validate_only);
             }
+
+            if validate_only {
+                match setup.validate_witness(circut) {
+                    Ok(_) => return server::CoreResult::success(validate_only),
+                    err => return server::CoreResult::any_prove_error(err, validate_only),
+                }
+            }
+
             let proof_ret = setup.prove(circut);
 
             if let Ok(proof) = proof_ret {
                 let ret = server::CoreResult::success(validate_only);
-                if validate_only {
-                    return ret;
-                }
-
                 let mut mut_resp = ret.into_prove();
 
                 let (inputs, serialized_proof) = bellman_vk_codegen::serialize_proof(&proof);

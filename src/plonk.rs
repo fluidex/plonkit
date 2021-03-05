@@ -100,6 +100,10 @@ impl<E: Engine> SetupForProver<E> {
         make_verification_key(&self.setup_polynomials, &self.key_monomial_form)
     }
 
+    pub fn validate_witness<C: Circuit<E> + Clone>(&self, circuit: C) -> Result<(), SynthesisError> {
+        is_satisfied_using_one_shot_check(circuit.clone(), &self.hints)
+    }
+
     pub fn prove<C: Circuit<E> + Clone>(&self, circuit: C) -> Result<Proof<E, PlonkCsWidth4WithNextStepParams>, SynthesisError> {
         is_satisfied_using_one_shot_check(circuit.clone(), &self.hints).expect("must satisfy");
         match &self.key_lagrange_form {
