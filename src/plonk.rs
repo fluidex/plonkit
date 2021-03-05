@@ -101,7 +101,7 @@ impl<E: Engine> SetupForProver<E> {
     }
 
     pub fn validate_witness<C: Circuit<E> + Clone>(&self, circuit: C) -> Result<(), SynthesisError> {
-        is_satisfied_using_one_shot_check(circuit.clone(), &self.hints)
+        is_satisfied_using_one_shot_check(circuit, &self.hints)
     }
 
     pub fn prove<C: Circuit<E> + Clone>(&self, circuit: C) -> Result<Proof<E, PlonkCsWidth4WithNextStepParams>, SynthesisError> {
