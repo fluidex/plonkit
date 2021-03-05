@@ -88,6 +88,10 @@ pub fn load_witness_from_bin_file<E: Engine>(filename: &str) -> Vec<E::Fr> {
     load_witness_from_bin_reader::<E, BufReader<File>>(BufReader::new(reader)).expect("read witness failed")
 }
 
+pub fn load_witness_from_array<E: Engine>(buffer: Vec<u8>) -> Result<Vec<E::Fr>, anyhow::Error> {
+    load_witness_from_bin_reader::<E, _>(buffer.as_slice())
+}
+
 ///
 /// r1cs
 ///
