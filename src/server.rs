@@ -33,19 +33,18 @@ impl CoreResult {
     }
 
     pub fn success(validate_only: bool) -> Self {
-        if validate_only {
-            Self::Validate(pb::ValidateResponse {
+        match validate_only {
+            true => Self::Validate(pb::ValidateResponse {
                 is_valid: true,
                 error_msg: String::new(),
-            })
-        } else {
-            Self::Prove(pb::ProveResponse {
+            }),
+            false => Self::Prove(pb::ProveResponse {
                 is_valid: true,
                 error_msg: String::new(),
                 time_cost: 0.0,
                 proof: Vec::new(),
                 inputs: Vec::new(),
-            })
+            }),
         }
     }
 
@@ -54,19 +53,18 @@ impl CoreResult {
         T: std::fmt::Debug,
         E: std::fmt::Display,
     {
-        if validate_only {
-            Self::Validate(pb::ValidateResponse {
+        match validate_only {
+            true => Self::Validate(pb::ValidateResponse {
                 is_valid: false,
                 error_msg: format!("{}", err_ret.unwrap_err()),
-            })
-        } else {
-            Self::Prove(pb::ProveResponse {
+            }),
+            false => Self::Prove(pb::ProveResponse {
                 is_valid: false,
                 error_msg: format!("{}", err_ret.unwrap_err()),
                 time_cost: 0.0,
                 proof: Vec::new(),
                 inputs: Vec::new(),
-            })
+            }),
         }
     }
 }

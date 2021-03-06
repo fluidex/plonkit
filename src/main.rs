@@ -272,11 +272,9 @@ fn prove_server(opts: ServerOpts) {
             let perf_t = std::time::SystemTime::now();
 
             let mut circut = circuit_base.clone();
-            let witness_ret = reader::load_witness_from_array::<Bn256>(witness);
-            if let Ok(witness) = witness_ret {
-                circut.witness = Some(witness);
-            } else {
-                return server::CoreResult::any_prove_error(witness_ret, validate_only);
+            match reader::load_witness_from_array::<Bn256>(witness) {
+                Ok(witness) => circut.witness = Some(witness),
+                err => return server::CoreResult::any_prove_error(err, validate_only),
             }
 
             if validate_only {
@@ -284,22 +282,22 @@ fn prove_server(opts: ServerOpts) {
                     Ok(_) => return server::CoreResult::success(validate_only),
                     err => return server::CoreResult::any_prove_error(err, validate_only),
                 }
-            }
-
-            let proof_ret = setup.prove(circut);
-
-            if let Ok(proof) = proof_ret {
-                let ret = server::CoreResult::success(validate_only);
-                let mut mut_resp = ret.into_prove();
-
-                let (inputs, serialized_proof) = bellman_vk_codegen::serialize_proof(&proof);
-                mut_resp.proof = serialized_proof.iter().map(ToString::to_string).collect();
-                mut_resp.inputs = inputs.iter().map(ToString::to_string).collect();
-                mut_resp.time_cost = perf_t.elapsed().unwrap_or_default().as_secs_f64();
-
-                server::CoreResult::Prove(mut_resp)
             } else {
-                server::CoreResult::any_prove_error(proof_ret, validate_only)
+                match setup.prove(circut) {
+                    Ok(proof) => {
+                        let ret = server::CoreResult::success(validate_only);
+                        let mut mut_resp = ret.into_prove();
+
+                        let (inputs, serialized_proof) = bellman_vk_codegen::serialize_proof(&proof);
+                        mut_resp.proof = serialized_proof.iter().map(ToString::to_string).collect();
+                        mut_resp.inputs = inputs.iter().map(ToString::to_string).collect();
+                        mut_resp.time_cost = perf_t.elapsed().unwrap_or_default().as_secs_f64();
+
+                        return server::CoreResult::Prove(mut_resp);
+                    }
+
+                    err => return server::CoreResult::any_prove_error(err, validate_only),
+                }
             }
         })
     };
