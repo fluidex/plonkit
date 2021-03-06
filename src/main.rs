@@ -293,10 +293,10 @@ fn prove_server(opts: ServerOpts) {
                         mut_resp.inputs = inputs.iter().map(ToString::to_string).collect();
                         mut_resp.time_cost = perf_t.elapsed().unwrap_or_default().as_secs_f64();
 
-                        server::CoreResult::Prove(mut_resp)
+                        return server::CoreResult::Prove(mut_resp)
                     }
 
-                    err => server::CoreResult::any_prove_error(err, validate_only),
+                    err => return server::CoreResult::any_prove_error(err, validate_only),
                 }
             }
         })
