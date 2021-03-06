@@ -25,7 +25,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Enable server feature
-        run: mv contrib/Cargo.server.toml Cargo.toml
+        run: mv Cargo.server.toml Cargo.toml
 
       - name: Cache cargo registry
         uses: actions/cache@v2
