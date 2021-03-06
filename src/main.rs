@@ -269,8 +269,6 @@ fn prove_server(opts: ServerOpts) {
         .expect("prepare err");
 
         Box::new(move |witness: Vec<u8>, validate_only: bool| -> server::CoreResult {
-            let perf_t = std::time::SystemTime::now();
-
             let mut circut = circuit_base.clone();
             match reader::load_witness_from_array::<Bn256>(witness) {
                 Ok(witness) => circut.witness = Some(witness),
@@ -283,15 +281,18 @@ fn prove_server(opts: ServerOpts) {
                     err => return server::CoreResult::any_prove_error(err, validate_only),
                 }
             } else {
+                let perf_t = std::time::SystemTime::now();
                 match setup.prove(circut) {
                     Ok(proof) => {
+                        let elapsed = perf_t.elapsed().unwrap_or_default().as_secs_f64();
+
                         let ret = server::CoreResult::success(validate_only);
                         let mut mut_resp = ret.into_prove();
 
                         let (inputs, serialized_proof) = bellman_vk_codegen::serialize_proof(&proof);
                         mut_resp.proof = serialized_proof.iter().map(ToString::to_string).collect();
                         mut_resp.inputs = inputs.iter().map(ToString::to_string).collect();
-                        mut_resp.time_cost = perf_t.elapsed().unwrap_or_default().as_secs_f64();
+                        mut_resp.time_cost = elapsed;
 
                         return server::CoreResult::Prove(mut_resp);
                     }
