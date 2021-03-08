@@ -18,7 +18,7 @@ message ProveRequest {
 message ProveResponse {
   bool is_valid = 1;
   string error_msg = 10;
-  double time_cost = 2;
+  double time_cost_secs = 2;
   repeated string proof = 3;
   repeated string inputs = 4;
 }

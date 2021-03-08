@@ -292,7 +292,7 @@ fn prove_server(opts: ServerOpts) {
                         let (inputs, serialized_proof) = bellman_vk_codegen::serialize_proof(&proof);
                         mut_resp.proof = serialized_proof.iter().map(ToString::to_string).collect();
                         mut_resp.inputs = inputs.iter().map(ToString::to_string).collect();
-                        mut_resp.time_cost = elapsed;
+                        mut_resp.time_cost_secs = elapsed;
 
                         return server::CoreResult::Prove(mut_resp);
                     }
