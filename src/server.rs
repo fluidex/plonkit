@@ -24,7 +24,7 @@ impl CoreResult {
             Self::Validate(ret) => pb::ProveResponse {
                 is_valid: ret.is_valid,
                 error_msg: ret.error_msg,
-                time_cost: 0.0,
+                time_cost_secs: 0.0,
                 proof: Vec::new(),
                 inputs: Vec::new(),
             },
@@ -41,7 +41,7 @@ impl CoreResult {
             false => Self::Prove(pb::ProveResponse {
                 is_valid: true,
                 error_msg: String::new(),
-                time_cost: 0.0,
+                time_cost_secs: 0.0,
                 proof: Vec::new(),
                 inputs: Vec::new(),
             }),
@@ -61,7 +61,7 @@ impl CoreResult {
             false => Self::Prove(pb::ProveResponse {
                 is_valid: false,
                 error_msg: format!("{}", err_ret.unwrap_err()),
-                time_cost: 0.0,
+                time_cost_secs: 0.0,
                 proof: Vec::new(),
                 inputs: Vec::new(),
             }),
