@@ -11,7 +11,7 @@ service PlonkitServer {
 message EmptyRequest {}
 
 message ProveRequest {
-  string task_name = 1;
+  string task_id = 1;
   bytes witness = 2;
 }
 
@@ -30,6 +30,6 @@ message ValidateResponse {
 
 message StatusResponse {
   bool avaliable = 1;
-  string current_task_name = 2;
+  string current_task_id = 2;
 }
 

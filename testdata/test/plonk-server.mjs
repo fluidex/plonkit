@@ -15,7 +15,7 @@ var task_cnt = 0
 export async function prove(witness_fn) {
 
   const result = (await client.Prove({ 
-    task_name: `task ${task_cnt}`,
+    task_id: `task ${task_cnt}`,
     witness: fs.readFileSync(witness_fn || 'witness.wtns'),
   }));
 
