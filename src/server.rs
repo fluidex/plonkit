@@ -97,7 +97,7 @@ impl ServerOptions {
 async fn schedule_prove_task(
     mut notify: mpsc::Receiver<ProveRequest>,
     tasks: Arc<Mutex<VecDeque<ProveRequest>>>,
-    cur_task_name: Arc<Mutex<Option<String>>>,
+    cur_task_id: Arc<Mutex<Option<String>>>,
     core_build: Box<dyn FnOnce() -> ProveCore + Send>,
 ) {
     let mut prove_task_h = tokio::task::spawn_blocking(move || {
@@ -108,7 +108,7 @@ async fn schedule_prove_task(
     });
 
     loop {
-        let is_task_active = cur_task_name.lock().await.is_some() || !tasks.lock().await.is_empty();
+        let is_task_active = cur_task_id.lock().await.is_some() || !tasks.lock().await.is_empty();
 
         tokio::select! {
             h_ret = &mut prove_task_h, if is_task_active => {
@@ -118,13 +118,13 @@ async fn schedule_prove_task(
 
                 let last = match tasks.lock().await.pop_back() {
                     Some((req, valid_only, notify)) => {
-                        let last_cur = cur_task_name.lock().await.replace(req.task_name.clone());
-                        log::debug!("Trigger handling new task {}", req.task_name);
+                        let last_cur = cur_task_id.lock().await.replace(req.task_id.clone());
+                        log::debug!("Trigger handling new task {}", req.task_id);
 
                         //DO prove/valid task
                         prove_task_h = tokio::task::spawn_blocking(move||{
                             if notify.send(core(req.witness, valid_only)).is_err(){
-                                log::warn!("Send task {} result failure", req.task_name);
+                                log::warn!("Send task {} result failure", req.task_id);
                             }
                             core
                         });
@@ -134,16 +134,16 @@ async fn schedule_prove_task(
                     _ => {
                         //put the core into joinhandle ("The Sword in the Stone")
                         prove_task_h = tokio::task::spawn_blocking(move||{core});
-                        cur_task_name.lock().await.take()
+                        cur_task_id.lock().await.take()
                     }
                 };
 
-                if let Some(task_name) = last {
-                    log::info!("Task {} is proven", task_name);
+                if let Some(task_id) = last {
+                    log::info!("Task {} is proven", task_id);
                 }
             }
             Some(newtask) = notify.recv() => {
-                log::debug!("Receive new task {}", newtask.0.task_name);
+                log::debug!("Receive new task {}", newtask.0.task_id);
                 tasks.lock().await.push_front(newtask);
             }
             else => {
@@ -189,7 +189,7 @@ impl PlonkitServer for GrpcHandler {
         let cur = self.cur_task.lock().await;
         Ok(tonic::Response::new(pb::StatusResponse {
             avaliable: cur.is_none(),
-            current_task_name: cur.as_ref().map(String::clone).unwrap_or_else(String::new),
+            current_task_id: cur.as_ref().map(String::clone).unwrap_or_else(String::new),
         }))
     }
 }
