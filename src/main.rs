@@ -281,10 +281,10 @@ fn prove_server(opts: ServerOpts) {
                     err => return server::CoreResult::any_prove_error(err, validate_only),
                 }
             } else {
-                let perf_t = std::time::SystemTime::now();
+                let start = std::time::Instant::now();
                 match setup.prove(circut) {
                     Ok(proof) => {
-                        let elapsed = perf_t.elapsed().unwrap_or_default().as_secs_f64();
+                        let elapsed = start.elapsed().as_secs_f64();
 
                         let ret = server::CoreResult::success(validate_only);
                         let mut mut_resp = ret.into_prove();
