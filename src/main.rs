@@ -365,7 +365,7 @@ fn verify(opts: VerifyOpts) {
     let proof = reader::load_proof::<Bn256>(&opts.proof);
     let correct = plonk::verify(&vk, &proof).unwrap();
     if correct {
-        log::info!("Proof is correct");
+        log::info!("Proof is valid.");
     } else {
         log::info!("Proof is invalid!");
         std::process::exit(400);
