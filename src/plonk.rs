@@ -78,10 +78,10 @@ impl<E: Engine> SetupForProver<E> {
         key_lagrange_form: Option<Crs<E, CrsForLagrangeForm>>,
     ) -> Result<Self, anyhow::Error> {
         let (gates_count, hints) = transpile_with_gates_count(circuit.clone())?;
-        println!("transpile done, gates_count {} hints size {}", gates_count, hints.len());
+        log::info!("transpile done, gates_count {} hints size {}", gates_count, hints.len());
         let setup_polynomials = setup(circuit, &hints)?;
         let size = setup_polynomials.n.next_power_of_two().trailing_zeros();
-        println!("circuit setup_polynomials.n {:?} size {}", setup_polynomials.n, size);
+        log::info!("circuit setup_polynomials.n {:?} size {}", setup_polynomials.n, size);
         let setup_power_of_two = std::cmp::max(size, SETUP_MIN_POW2); // for exit circuit
         anyhow::ensure!(
             (SETUP_MIN_POW2..=SETUP_MAX_POW2).contains(&setup_power_of_two),
