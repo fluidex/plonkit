@@ -165,8 +165,14 @@ struct ExportVerificationKeyOpts {
 fn main() {
     // Always print backtrace on panic.
     ::std::env::set_var("RUST_BACKTRACE", "1");
-    // ::std::env::set_var("RUST_LOG", "debug");
-    ::std::env::set_var("RUST_LOG", "info");
+    match ::std::env::var("RUST_LOG") {
+        Ok(value) => {
+            if value.len() == 0 {
+                ::std::env::set_var("RUST_LOG", "info");
+            }
+        }
+        Err(_) => ::std::env::set_var("RUST_LOG", "info"),
+    }
     env_logger::init();
 
     let opts: Opts = Opts::parse();
