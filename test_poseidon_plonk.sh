@@ -1,5 +1,7 @@
 #!/bin/bash
 
+export RUST_LOG=info
+
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 TOOL_DIR=$DIR"/contrib"
 CIRCUIT_DIR=$DIR"/testdata/poseidon"
