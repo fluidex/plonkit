@@ -320,7 +320,10 @@ fn prove_server(opts: ServerOpts) {
 fn prove_server(opts: ServerOpts) {
     log::info!(
         "Binary is not built with server feature: {:?}, {:?}, {:?}, {}",
-        opts.srv_addr, opts.circuit, opts.srs_lagrange_form, opts.srs_monomial_form
+        opts.srv_addr,
+        opts.circuit,
+        opts.srs_lagrange_form,
+        opts.srs_monomial_form
     );
 }
 
