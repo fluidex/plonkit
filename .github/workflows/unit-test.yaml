@@ -15,8 +15,8 @@ on:
 jobs:
   unit-test:
     runs-on: ubuntu-latest
-    env:
-      RUST_LOG: "info"
+    # env:
+    #   RUST_LOG: "info"
     strategy:
       matrix:
         rust:
