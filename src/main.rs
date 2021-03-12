@@ -163,6 +163,12 @@ struct ExportVerificationKeyOpts {
 }
 
 fn main() {
+    // Always print backtrace on panic.
+    ::std::env::set_var("RUST_BACKTRACE", "1");
+    // ::std::env::set_var("RUST_LOG", "debug");
+    ::std::env::set_var("RUST_LOG", "info");
+    env_logger::init();
+
     let opts: Opts = Opts::parse();
     match opts.command {
         SubCommand::Analyse(o) => {
@@ -194,7 +200,7 @@ fn main() {
 
 fn analyse(opts: AnalyseOpts) {
     let circuit_file = resolve_circuit_file(opts.circuit);
-    println!("Loading circuit from {}...", circuit_file);
+    log::info!("Loading circuit from {}...", circuit_file);
     let circuit = CircomCircuit {
         r1cs: reader::load_r1cs(&circuit_file),
         witness: None,
@@ -204,14 +210,14 @@ fn analyse(opts: AnalyseOpts) {
     let stats = plonk::analyse(circuit).expect("analyse failed");
     let writer = File::create(&opts.output).unwrap();
     serde_json::to_writer_pretty(writer, &stats).expect("write failed");
-    println!("output to {}", opts.output);
+    log::info!("output to {}", opts.output);
 }
 
 fn setup(opts: SetupOpts) {
     let srs = plonk::gen_key_monomial_form::<Bn256>(opts.power).unwrap();
     let writer = File::create(&opts.srs_monomial_form).unwrap();
     srs.write(writer).unwrap();
-    println!("srs_monomial_form saved to {}", opts.srs_monomial_form);
+    log::info!("srs_monomial_form saved to {}", opts.srs_monomial_form);
 }
 
 fn resolve_circuit_file(filename: Option<String>) -> String {
@@ -229,7 +235,7 @@ fn resolve_circuit_file(filename: Option<String>) -> String {
 
 fn dump_lagrange(opts: DumpLagrangeOpts) {
     let circuit_file = resolve_circuit_file(opts.circuit);
-    println!("Loading circuit from {}...", circuit_file);
+    log::info!("Loading circuit from {}...", circuit_file);
     let circuit = CircomCircuit {
         r1cs: reader::load_r1cs(&circuit_file),
         witness: None,
@@ -243,13 +249,13 @@ fn dump_lagrange(opts: DumpLagrangeOpts) {
     let key_lagrange_form = setup.get_srs_lagrange_form_from_monomial_form();
     let writer = File::create(&opts.srs_lagrange_form).unwrap();
     key_lagrange_form.write(writer).unwrap();
-    println!("srs_lagrange_form saved to {}", opts.srs_lagrange_form);
+    log::info!("srs_lagrange_form saved to {}", opts.srs_lagrange_form);
 }
 
 #[cfg(feature = "server")]
 fn prove_server(opts: ServerOpts) {
     let circuit_file = resolve_circuit_file(opts.circuit);
-    println!("Loading circuit from {}...", circuit_file);
+    log::info!("Loading circuit from {}...", circuit_file);
     let circuit_base = CircomCircuit {
         r1cs: reader::load_r1cs(&circuit_file),
         witness: None,
@@ -303,7 +309,7 @@ fn prove_server(opts: ServerOpts) {
         })
     };
 
-    println!("Starting server ... use CTRL+C to exit");
+    log::info!("Starting server ... use CTRL+C to exit");
     server::run(server::ServerOptions {
         server_addr: opts.srv_addr,
         build_prove_core: Box::new(builder),
@@ -312,7 +318,7 @@ fn prove_server(opts: ServerOpts) {
 
 #[cfg(not(feature = "server"))]
 fn prove_server(opts: ServerOpts) {
-    println!(
+    log::info!(
         "Binary is not built with server feature: {:?}, {:?}, {:?}, {}",
         opts.srv_addr, opts.circuit, opts.srs_lagrange_form, opts.srs_monomial_form
     );
@@ -320,7 +326,7 @@ fn prove_server(opts: ServerOpts) {
 
 fn prove(opts: ProveOpts) {
     let circuit_file = resolve_circuit_file(opts.circuit);
-    println!("Loading circuit from {}...", circuit_file);
+    log::info!("Loading circuit from {}...", circuit_file);
     let circuit = CircomCircuit {
         r1cs: reader::load_r1cs(&circuit_file),
         witness: Some(reader::load_witness_from_file::<Bn256>(&opts.witness)),
@@ -335,11 +341,11 @@ fn prove(opts: ProveOpts) {
     )
     .expect("prepare err");
 
-    println!("Proving...");
+    log::info!("Proving...");
     let proof = setup.prove(circuit).unwrap();
     let writer = File::create(&opts.proof).unwrap();
     proof.write(writer).unwrap();
-    println!("Proof saved to {}", opts.proof);
+    log::info!("Proof saved to {}", opts.proof);
 
     cfg_if::cfg_if! {
         if #[cfg(feature = "solidity")] {
@@ -347,9 +353,9 @@ fn prove(opts: ProveOpts) {
     let ser_proof_str = serde_json::to_string_pretty(&serialized_proof).unwrap();
     let ser_inputs_str = serde_json::to_string_pretty(&inputs).unwrap();
     std::fs::write(&opts.proofjson, ser_proof_str.as_bytes()).expect("save proofjson err");
-    println!("Proof json saved to {}", opts.proofjson);
+    log::info!("Proof json saved to {}", opts.proofjson);
     std::fs::write(&opts.publicjson, ser_inputs_str.as_bytes()).expect("save publicjson err");
-    println!("Public input json saved to {}", opts.publicjson);
+    log::info!("Public input json saved to {}", opts.publicjson);
         }
     }
 }
@@ -359,9 +365,9 @@ fn verify(opts: VerifyOpts) {
     let proof = reader::load_proof::<Bn256>(&opts.proof);
     let correct = plonk::verify(&vk, &proof).unwrap();
     if correct {
-        println!("Proof is correct");
+        log::info!("Proof is correct");
     } else {
-        println!("Proof is invalid!");
+        log::info!("Proof is invalid!");
         std::process::exit(400);
     }
 }
@@ -371,7 +377,7 @@ fn generate_verifier(opts: GenerateVerifierOpts) {
         if #[cfg(feature = "solidity")] {
             let vk = reader::load_verification_key::<Bn256>(&opts.vk);
             bellman_vk_codegen::render_verification_key_from_default_template(&vk, &opts.sol);
-            println!("Contract saved to {}", opts.sol);
+            log::info!("Contract saved to {}", opts.sol);
         } else {
             unimplemented!("you must enable `solidity` feature flag");
         }
@@ -380,7 +386,7 @@ fn generate_verifier(opts: GenerateVerifierOpts) {
 
 fn export_vk(opts: ExportVerificationKeyOpts) {
     let circuit_file = resolve_circuit_file(opts.circuit);
-    println!("Loading circuit from {}...", circuit_file);
+    log::info!("Loading circuit from {}...", circuit_file);
     let circuit = CircomCircuit {
         r1cs: reader::load_r1cs(&circuit_file),
         witness: None,
@@ -396,5 +402,5 @@ fn export_vk(opts: ExportVerificationKeyOpts) {
     //assert!(!path.exists(), "path for saving verification key exists: {}", path.display());
     let writer = File::create(&opts.vk).unwrap();
     vk.write(writer).unwrap();
-    println!("Verification key saved to {}", opts.vk);
+    log::info!("Verification key saved to {}", opts.vk);
 }

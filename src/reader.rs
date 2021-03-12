@@ -165,7 +165,7 @@ fn load_witness_from_bin_reader<E: Engine, R: Read>(mut reader: R) -> Result<Vec
         bail!("invalid file header");
     }
     let version = reader.read_u32::<LittleEndian>()?;
-    println!("wtns version {}", version);
+    log::info!("wtns version {}", version);
     if version > 2 {
         bail!("unsupported file version");
     }
@@ -192,7 +192,7 @@ fn load_witness_from_bin_reader<E: Engine, R: Read>(mut reader: R) -> Result<Vec
         bail!("invalid curve prime");
     }
     let witness_len = reader.read_u32::<LittleEndian>()?;
-    println!("witness len {}", witness_len);
+    log::info!("witness len {}", witness_len);
     let sec_type = reader.read_u32::<LittleEndian>()?;
     if sec_type != 2 {
         bail!("invalid section type");

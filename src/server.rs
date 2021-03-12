@@ -197,8 +197,6 @@ impl PlonkitServer for GrpcHandler {
 use futures::future::TryFutureExt;
 
 pub fn run(opt: ServerOptions) {
-    env_logger::init();
-
     tokio::runtime::Builder::new_multi_thread()
         .enable_all()
         .build()
