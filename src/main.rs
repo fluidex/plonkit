@@ -167,7 +167,7 @@ fn main() {
     ::std::env::set_var("RUST_BACKTRACE", "1");
     match ::std::env::var("RUST_LOG") {
         Ok(value) => {
-            if value.len() == 0 {
+            if value.is_empty() {
                 ::std::env::set_var("RUST_LOG", "info");
             }
         }
