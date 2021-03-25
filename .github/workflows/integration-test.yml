@@ -21,7 +21,7 @@ jobs:
     strategy:
       matrix:
         rust:
-          - 1.49.0
+          - 1.50.0
 
     steps:
       - name: Checkout sources
@@ -30,11 +30,11 @@ jobs:
       - name: Enable server feature
         run: mv Cargo.server.toml Cargo.toml
 
-      - name: Install rust 1.49.0 toolchain
+      - name: Install rust 1.50.0 toolchain
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: 1.49.0
+          toolchain: 1.50.0
           override: true
           components: rustfmt, clippy
 
