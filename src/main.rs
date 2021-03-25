@@ -358,13 +358,13 @@ fn prove(opts: ProveOpts) {
 
     cfg_if::cfg_if! {
         if #[cfg(feature = "solidity")] {
-    let (inputs, serialized_proof) = bellman_vk_codegen::serialize_proof(&proof);
-    let ser_proof_str = serde_json::to_string_pretty(&serialized_proof).unwrap();
-    let ser_inputs_str = serde_json::to_string_pretty(&inputs).unwrap();
-    std::fs::write(&opts.proofjson, ser_proof_str.as_bytes()).expect("save proofjson err");
-    log::info!("Proof json saved to {}", opts.proofjson);
-    std::fs::write(&opts.publicjson, ser_inputs_str.as_bytes()).expect("save publicjson err");
-    log::info!("Public input json saved to {}", opts.publicjson);
+            let (inputs, serialized_proof) = bellman_vk_codegen::serialize_proof(&proof);
+            let ser_proof_str = serde_json::to_string_pretty(&serialized_proof).unwrap();
+            let ser_inputs_str = serde_json::to_string_pretty(&inputs).unwrap();
+            std::fs::write(&opts.proofjson, ser_proof_str.as_bytes()).expect("save proofjson err");
+            log::info!("Proof json saved to {}", opts.proofjson);
+            std::fs::write(&opts.publicjson, ser_inputs_str.as_bytes()).expect("save publicjson err");
+            log::info!("Public input json saved to {}", opts.publicjson);
         }
     }
 }
