@@ -2,6 +2,19 @@
 # yarn lockfile v1
 
 
+"@eeston/grpc-caller@^0.20.2":
+  version "0.20.2"
+  resolved "https://registry.yarnpkg.com/@eeston/grpc-caller/-/grpc-caller-0.20.2.tgz#3833f45f4079caef51a2bf5cbdfb4b6afd2350ec"
+  integrity sha512-NmuA1+WQnCCW1Sag/H0vXruz7AvZpYwHi2O/cp046HRpS2zQb5sUwWRmcP62p1X+oF08grXlLZcjczjuGFAwzA==
+  dependencies:
+    "@grpc/proto-loader" "^0.5.6"
+    async "^3.2.0"
+    call-me-maybe "^1.0.1"
+    grpc-create-metadata "^4.0.0"
+    grpc-inspect "^0.6.0"
+    lodash "^4.17.14"
+    promisify-call "^2.0.0"
+
 "@ensdomains/ens@^0.4.4":
   version "0.4.5"
   resolved "https://registry.yarnpkg.com/@ensdomains/ens/-/ens-0.4.5.tgz#e0aebc005afdc066447c6e22feb4eda89a5edbfc"
@@ -419,7 +432,7 @@
     "@ethersproject/properties" "^5.0.7"
     "@ethersproject/strings" "^5.0.8"
 
-"@grpc/proto-loader@^0.5.0":
+"@grpc/proto-loader@^0.5.6":
   version "0.5.6"
   resolved "https://registry.yarnpkg.com/@grpc/proto-loader/-/proto-loader-0.5.6.tgz#1dea4b8a6412b05e2d58514d507137b63a52a98d"
   integrity sha512-DT14xgw3PSzPxwS13auTEwxhMMOoz33DPUKNtmYK/QYbBSpLXJy78FGGs5yVoxVobEqPm4iW9MOIoz0A3bLTRQ==
@@ -1069,7 +1082,7 @@ async@^2.0.1, async@^2.1.2, async@^2.4.0, async@^2.5.0, async@^2.6.1:
   dependencies:
     lodash "^4.17.14"
 
-async@^3.1.0:
+async@^3.2.0:
   version "3.2.0"
   resolved "https://registry.yarnpkg.com/async/-/async-3.2.0.tgz#b3a2685c5ebb641d3de02d161002c60fc9f85720"
   integrity sha512-TR2mEZFVOj2pLStYxLht7TyfuRzaydfpxr3k9RpHIzMgw7A64dzsdqCxH1WJyQdoe8T10nDXd9wnEigmiuHIZw==
@@ -3979,23 +3992,10 @@ growl@1.10.5:
   resolved "https://registry.yarnpkg.com/growl/-/growl-1.10.5.tgz#f2735dc2283674fa67478b10181059355c369e5e"
   integrity sha512-qBr4OuELkhPenW6goKVXiv47US3clb3/IbuWF9KNKEijAy9oeHxU9IgzjvJhHkUzhaj7rOUD7+YGWqUjLp5oSA==
 
-grpc-caller@^0.13.0:
-  version "0.13.0"
-  resolved "https://registry.yarnpkg.com/grpc-caller/-/grpc-caller-0.13.0.tgz#fb301e87c5d81a8a78f7119759ab611fa1bf0071"
-  integrity sha512-EV5ADuRYraq7nreAC4IFduhVi8SN7WJMpDxp+JlbGw7v8Zi3qMDoNBIcImSfcF0ajBpf0nANrqM4LGGaRxS2wg==
-  dependencies:
-    "@grpc/proto-loader" "^0.5.0"
-    async "^3.1.0"
-    call-me-maybe "^1.0.1"
-    grpc-create-metadata "^3.0.0"
-    grpc-inspect "^0.6.0"
-    lodash "^4.17.14"
-    promisify-call "^2.0.0"
-
-grpc-create-metadata@^3.0.0:
-  version "3.1.0"
-  resolved "https://registry.yarnpkg.com/grpc-create-metadata/-/grpc-create-metadata-3.1.0.tgz#c8fe0934b9827c500187041b274cc4b225414972"
-  integrity sha512-OEUnfUBGKesivUhYzg6RRsrDTi5DquqF9zeV4sSzJGrDCi51eeQWsJRkHphjuKYpIkcypq5amArRnL8IKbB7hQ==
+grpc-create-metadata@^4.0.0:
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/grpc-create-metadata/-/grpc-create-metadata-4.0.0.tgz#fa8c279dfa8e2f9b6608728a4702929206ea0f3d"
+  integrity sha512-fT333mIwtA1nqcwrrNs9tLy9MQZYq+g7H7+IQvQCbaEqNLrPTBUd3iD2KostnyGRZ//g8WAaVWR06O33LxUITg==
   dependencies:
     lodash.forown "^4.4.0"
 
