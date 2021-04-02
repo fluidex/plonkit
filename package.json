@@ -17,8 +17,7 @@
   },
   "homepage": "https://github.com/Fluidex/plonkit",
   "dependencies": {
-    "circom": "^0.5.38",
-    "circomlib": "^0.3.0",
-    "snarkjs": "^0.3.59"
+    "circomlib": "^0.5.1",
+    "snarkit": "^0.0.2"
   }
 }

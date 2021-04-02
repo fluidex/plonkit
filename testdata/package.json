@@ -8,7 +8,7 @@
     "hardhat": "^2.0.10",
     "dotenv": "^8.2.0",
     "grpc": "^1.24.2",
-    "grpc-caller": "^0.13.0"
+    "@eeston/grpc-caller": "^0.20.2"
   },
   "dependencies": {
     "@nomiclabs/buidler": "^1.4.8"
