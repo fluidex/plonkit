@@ -11,7 +11,7 @@ PLONKIT_BIN=$DIR"/target/release/plonkit"
 #PLONKIT_BIN="plonkit"
 DUMP_LAGRANGE_KEY=false
 
-echo "Step0: check for necessary dependencies"
+echo "Step0: check for necessary dependencies: node,npm,axel"
 PKG_PATH=""
 PKG_PATH=$(command -v npm)
 echo Checking for npm

@@ -18,6 +18,6 @@
   "homepage": "https://github.com/Fluidex/plonkit",
   "dependencies": {
     "circomlib": "^0.5.1",
-    "snarkit": "^0.0.2"
+    "snarkit": "^0.0.4"
   }
 }

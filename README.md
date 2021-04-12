@@ -12,9 +12,12 @@ A zkSNARK toolkit to work with [circom](https://github.com/iden3/circom) zkSNARK
  + [x] Proof verification
  + [x] Solidity verifier generation
  + [x] Local key setup for developement
- + [ ] Witness calculation without circom
 
-## Usage examples:
+## Usage examples
+
+The script [test_poseidon_plonk.sh](https://github.com/Fluidex/plonkit/blob/master/test_poseidon_plonk.sh) gives an end-to-end example using `plonkit` to setup circuits / generate proving keys and validation keys / prove circuits / validate proof in Solidity.
+
+You can also follow the step-by-step commands below.
 
 ```shell script
 # Getting help
@@ -57,23 +60,18 @@ OPTIONS:
     -m, --srs_monomial_form <srs-monomial-form>    Source file for Plonk universal setup srs in monomial form
     -w, --witness <witness>                        Witness JSON file [default: witness.json]
 
-# Suppose we have circuit file and a sample inputs, plus a plonk universal setup SRS
+# Suppose we have circuit file and a sample inputs, plus a plonk universal setup SRS (the '.key' file)
+# The key file can either be downloaded from a finished third party setup or generated locally (development only)
 > ls
 circuit.circom  input.json  setup_2^20.key
 
-# Compile the circuit
-> circom circuit.circom --r1cs --wasm --sym -v
-# Convert the R1CS to json
-> snarkjs r1cs export json circuit.r1cs circuit.r1cs.json
+# generate witness for this circuit
+# another option here is use the snarkjs/circom cli like contrib/process_circom_circuit.sh
+> npx snarkit check . --witness_type bin --backend wasm
 
-# Generate the witness using snarkjs
-# At the moment we still need to calculate witness using snarkjs
-> snarkjs wc circuit.wasm input.json witness.wtns
-# Convert the witness to json
-> snarkjs wej witness.wtns witness.json
 
 # Generate a snark proof using the universal setup monomial-form SRS
-> plonkit prove --srs_monomial_form setup_2^20.key --circuit circuit.r1cs.json --witness witness.json --proof proof.bin
+> plonkit prove --srs_monomial_form setup_2^20.key --circuit circuit.r1cs --witness witness.wtns --proof proof.bin
 Loading circuit...
 Proving...
 Proof saved to proof.bin
@@ -81,7 +79,7 @@ Proof json saved to proof.json
 Public input json saved to public.json
 
 # Export verification key
-> plonkit export-verification-key --srs_monomial_form setup_2^20.key --circuit circuit.r1cs.json --vk vk.bin
+> plonkit export-verification-key --srs_monomial_form setup_2^20.key --circuit circuit.r1cs --vk vk.bin
 Verification key saved to vk.bin
 
 # Generate verifier smart contract, which can be used to verify public.json & proof.json
@@ -94,10 +92,8 @@ Proof is correct
 
 # Here's a list of files that we have after this
 > ls
-circuit.circom  circuit.r1cs  circuit.r1cs.json  circuit.sym  circuit.wasm  input.json  proof.bin  proof.json  public.json  setup_2^20.key  verifier.sol  vk.bin  witness.json  witness.wtns
+circuit.circom  circuit.r1cs  circuit.sym  circuit.wasm  input.json  proof.bin  proof.json  public.json  setup_2^20.key  verifier.sol  vk.bin  witness.wtns
 ```
-
-Also see `test_poseidon_plonk.sh` for example.
 
 Moreover, if you want to set up a SRS locally for testing, you can make use of `setup` subcommand:
 
