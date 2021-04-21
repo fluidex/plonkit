@@ -11,7 +11,7 @@ PLONKIT_BIN=$DIR"/target/release/plonkit"
 #PLONKIT_BIN="plonkit"
 DUMP_LAGRANGE_KEY=false
 
-echo "Step0: check for necessary dependencies"
+echo "Step0: check for necessary dependencies: node,npm,axel"
 PKG_PATH=""
 PKG_PATH=$(command -v npm)
 echo Checking for npm
@@ -47,8 +47,9 @@ elif [ ! -f $SETUP_MK ] ; then
 fi
 popd
 
-echo "Step3: compile circuit and calculate witness using snarkjs"
-. $TOOL_DIR/process_circom_circuit.sh
+echo "Step3: compile circuit and calculate witness"
+npx snarkit check $CIRCUIT_DIR --witness_type bin
+#. $TOOL_DIR/process_circom_circuit.sh
 
 echo "Step4: export verification key"
 $PLONKIT_BIN export-verification-key -m $SETUP_MK -c $CIRCUIT_DIR/circuit.r1cs -v $CIRCUIT_DIR/vk.bin
