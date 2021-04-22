@@ -289,8 +289,8 @@ fn prove_server(opts: ServerOpts) {
 
             if validate_only {
                 match setup.validate_witness(circut) {
-                    Ok(_) => return server::CoreResult::success(validate_only),
-                    err => return server::CoreResult::any_prove_error(err, validate_only),
+                    Ok(_) => server::CoreResult::success(validate_only),
+                    err => server::CoreResult::any_prove_error(err, validate_only),
                 }
             } else {
                 let start = std::time::Instant::now();
@@ -306,10 +306,10 @@ fn prove_server(opts: ServerOpts) {
                         mut_resp.inputs = inputs.iter().map(ToString::to_string).collect();
                         mut_resp.time_cost_secs = elapsed;
 
-                        return server::CoreResult::Prove(mut_resp);
+                        server::CoreResult::Prove(mut_resp)
                     }
 
-                    err => return server::CoreResult::any_prove_error(err, validate_only),
+                    err => server::CoreResult::any_prove_error(err, validate_only),
                 }
             }
         })
