@@ -27,9 +27,6 @@ jobs:
       - name: Checkout sources
         uses: actions/checkout@v2
 
-      - name: Enable server feature
-        run: mv Cargo.server.toml Cargo.toml
-
       - name: Install rust 1.50.0 toolchain
         uses: actions-rs/toolchain@v1
         with:
@@ -68,7 +65,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: build
-          args: --release
+          args: --all-features --release
 
       - name: Universal setup
         run: target/release/plonkit setup --power 20 --srs_monomial_form keys/setup/setup_2^20.key
