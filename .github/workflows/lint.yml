@@ -61,4 +61,4 @@ jobs:
         # continue-on-error: true
         with:
           command: clippy
-          args: -- -D warnings
+          args: --all-features -- -D warnings
