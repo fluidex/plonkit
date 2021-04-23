@@ -19,8 +19,8 @@ message ProveResponse {
   bool is_valid = 1;
   string error_msg = 10;
   double time_cost_secs = 2;
-  bytes proof = 3;
-  bytes inputs = 4;
+  repeated string proof = 3;
+  repeated string inputs = 4;
 }
 
 message ValidateResponse {
