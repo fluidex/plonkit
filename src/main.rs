@@ -302,8 +302,8 @@ fn prove_server(opts: ServerOpts) {
                         let mut mut_resp = ret.into_prove();
 
                         let (inputs, serialized_proof) = bellman_vk_codegen::serialize_proof(&proof);
-                        mut_resp.proof = serde_json::ser::to_vec(&serialized_proof).unwrap();
-                        mut_resp.inputs = serde_json::ser::to_vec(&inputs).unwrap();
+                        mut_resp.proof = serialized_proof.iter().map(ToString::to_string).collect();
+                        mut_resp.inputs = inputs.iter().map(ToString::to_string).collect();
                         mut_resp.time_cost_secs = elapsed;
 
                         server::CoreResult::Prove(mut_resp)
