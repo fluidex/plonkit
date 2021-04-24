@@ -10,6 +10,7 @@ DOWNLOAD_SETUP_FROM_REMOTE=false
 PLONKIT_BIN=$DIR"/target/release/plonkit"
 #PLONKIT_BIN="plonkit"
 DUMP_LAGRANGE_KEY=false
+CONTRACT_TEST_DIR=$DIR"/test/contract"
 
 echo "Step0: check for necessary dependencies: node,npm,axel"
 PKG_PATH=""
@@ -71,7 +72,7 @@ echo "Step7: verify"
 $PLONKIT_BIN verify -p $CIRCUIT_DIR/proof.bin -v $CIRCUIT_DIR/vk.bin
 
 echo "Step8: verify via smart contract"
-pushd test/contract
+pushd $CONTRACT_TEST_DIR
 yarn install
 mkdir -p contracts
 cp $CIRCUIT_DIR/public.json test/data/public.json
