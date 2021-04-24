@@ -6,4 +6,4 @@ node_modules
 /trash
 keys/setup/*key
 bak
-testdata/
+test

@@ -1,4 +1,4 @@
-include "../../node_modules/circomlib/circuits/poseidon.circom";
+include "../../../node_modules/circomlib/circuits/poseidon.circom";
 
 template Circuit() {
     signal input foo;

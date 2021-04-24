@@ -2,7 +2,7 @@
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 TOOL_DIR=$DIR"/contrib"
-CIRCUIT_DIR=$DIR"/testdata/poseidon"
+CIRCUIT_DIR=$DIR"/test/circuits/poseidon"
 SETUP_DIR=$DIR"/keys/setup"
 SETUP_MK=$SETUP_DIR"/setup_2^20.key"
 SETUP_LK=$SETUP_DIR"/setup_2^20_lagrange.key"
@@ -71,7 +71,7 @@ echo "Step7: verify"
 $PLONKIT_BIN verify -p $CIRCUIT_DIR/proof.bin -v $CIRCUIT_DIR/vk.bin
 
 echo "Step8: verify via smart contract"
-pushd testdata
+pushd test/contract
 yarn install
 mkdir -p contracts
 cp $CIRCUIT_DIR/public.json test/data/public.json
