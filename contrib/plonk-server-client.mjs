@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import caller from "grpc-caller";
-const file = "../server.proto";
+const file = "../proto/server.proto";
+
 const load = {
   keepCase: true,
   longs: String,
@@ -13,7 +14,6 @@ const client = caller(`${server}`, { file, load }, "PlonkitServer");
 var task_cnt = 0
 
 export async function prove(witness_fn) {
-
   const result = (await client.Prove({ 
     task_id: `task ${task_cnt}`,
     witness: fs.readFileSync(witness_fn || 'witness.wtns'),
@@ -23,7 +23,6 @@ export async function prove(witness_fn) {
 
   return result;
 }
-
 
 export async function status() {
   return await client.Status({});
