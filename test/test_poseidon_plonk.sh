@@ -1,16 +1,16 @@
 #!/bin/bash
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-TOOL_DIR=$DIR"/contrib"
-CIRCUIT_DIR=$DIR"/test/circuits/poseidon"
-SETUP_DIR=$DIR"/keys/setup"
+REPO_DIR=$DIR/".."
+CIRCUIT_DIR=$DIR"/circuits/poseidon"
+SETUP_DIR=$REPO_DIR"/keys/setup"
 SETUP_MK=$SETUP_DIR"/setup_2^20.key"
 SETUP_LK=$SETUP_DIR"/setup_2^20_lagrange.key"
 DOWNLOAD_SETUP_FROM_REMOTE=false
-PLONKIT_BIN=$DIR"/target/release/plonkit"
+PLONKIT_BIN=$REPO_DIR"/target/release/plonkit"
 #PLONKIT_BIN="plonkit"
 DUMP_LAGRANGE_KEY=false
-CONTRACT_TEST_DIR=$DIR"/test/contract"
+CONTRACT_TEST_DIR=$DIR"/contract"
 
 echo "Step0: check for necessary dependencies: node,npm,axel"
 PKG_PATH=""
@@ -39,7 +39,7 @@ cargo build --release
 #$PLONKIT_BIN --help
 
 echo "Step2: universal setup"
-pushd keys/setup
+pushd $SETUP_DIR
 if ([ ! -f $SETUP_MK ] & $DOWNLOAD_SETUP_FROM_REMOTE); then
   # It is the aztec ignition trusted setup key file. Thanks to matter-labs/zksync/infrastructure/zk/src/run/run.ts
   axel -ac https://universal-setup.ams3.digitaloceanspaces.com/setup_2^20.key -o $SETUP_MK || true
@@ -50,7 +50,6 @@ popd
 
 echo "Step3: compile circuit and calculate witness"
 npx snarkit check $CIRCUIT_DIR --witness_type bin
-#. $TOOL_DIR/process_circom_circuit.sh
 
 echo "Step4: export verification key"
 $PLONKIT_BIN export-verification-key -m $SETUP_MK -c $CIRCUIT_DIR/circuit.r1cs -v $CIRCUIT_DIR/vk.bin
@@ -75,8 +74,8 @@ echo "Step8: verify via smart contract"
 pushd $CONTRACT_TEST_DIR
 yarn install
 mkdir -p contracts
-cp $CIRCUIT_DIR/public.json test/data/public.json
-cp $CIRCUIT_DIR/proof.json test/data/proof.json
-cp $CIRCUIT_DIR/verifier.sol contracts/verifier.sol
+cp $CIRCUIT_DIR/public.json $CONTRACT_TEST_DIR/test/data/public.json
+cp $CIRCUIT_DIR/proof.json $CONTRACT_TEST_DIR/test/data/proof.json
+cp $CIRCUIT_DIR/verifier.sol $CONTRACT_TEST_DIR/contracts/verifier.sol
 npx hardhat test
 popd
