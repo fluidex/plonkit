@@ -1,0 +1,7 @@
+{
+  "devDependencies": {
+    "dotenv": "^8.2.0",
+    "grpc": "^1.24.2",
+    "@eeston/grpc-caller": "^0.20.2"
+  }
+}
