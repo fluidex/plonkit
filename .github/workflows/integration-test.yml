@@ -72,37 +72,37 @@ jobs:
 
       - name: Compile circuit
         run: |
-          cd testdata/poseidon/
+          cd test/circuits/poseidon/
           npx circom circuit.circom --r1cs --wasm --sym -v
 
       - name: Calculate witness using snarkjs
         run: |
-          cd testdata/poseidon/
+          cd test/circuits/poseidon/
           npx snarkjs wc circuit.wasm input.json witness.wtns
 
       - name: Export verification key
-        run: target/release/plonkit export-verification-key -m keys/setup/setup_2^20.key -c testdata/poseidon/circuit.r1cs -v testdata/poseidon/vk.bin
+        run: target/release/plonkit export-verification-key -m keys/setup/setup_2^20.key -c test/circuits/poseidon/circuit.r1cs -v test/circuits/poseidon/vk.bin
 
       - name: Generate verifier smart contract
-        run: target/release/plonkit generate-verifier -v testdata/poseidon/vk.bin -s testdata/poseidon/verifier.sol
+        run: target/release/plonkit generate-verifier -v test/circuits/poseidon/vk.bin -s test/circuits/poseidon/verifier.sol
 
       - name: Prove with key_monomial_form
-        run: target/release/plonkit prove -m keys/setup/setup_2^20.key -c testdata/poseidon/circuit.r1cs -w testdata/poseidon/witness.wtns -p testdata/poseidon/proof.bin -j testdata/poseidon/proof.json -i testdata/poseidon/public.json
+        run: target/release/plonkit prove -m keys/setup/setup_2^20.key -c test/circuits/poseidon/circuit.r1cs -w test/circuits/poseidon/witness.wtns -p test/circuits/poseidon/proof.bin -j test/circuits/poseidon/proof.json -i test/circuits/poseidon/public.json
 
       - name: Dump key_lagrange_form from key_monomial_form
-        run: target/release/plonkit dump-lagrange -m keys/setup/setup_2^20.key -l keys/setup/setup_2^20_lagrange.key -c testdata/poseidon/circuit.r1cs
+        run: target/release/plonkit dump-lagrange -m keys/setup/setup_2^20.key -l keys/setup/setup_2^20_lagrange.key -c test/circuits/poseidon/circuit.r1cs
 
       - name: Prove with key_monomial_form & key_lagrange_form
-        run: target/release/plonkit prove -m keys/setup/setup_2^20.key -l keys/setup/setup_2^20_lagrange.key -c testdata/poseidon/circuit.r1cs -w testdata/poseidon/witness.wtns -p testdata/poseidon/proof.bin -j testdata/poseidon/proof.json -i testdata/poseidon/public.json
+        run: target/release/plonkit prove -m keys/setup/setup_2^20.key -l keys/setup/setup_2^20_lagrange.key -c test/circuits/poseidon/circuit.r1cs -w test/circuits/poseidon/witness.wtns -p test/circuits/poseidon/proof.bin -j test/circuits/poseidon/proof.json -i test/circuits/poseidon/public.json
 
       - name: Verify proof
-        run: target/release/plonkit verify -p testdata/poseidon/proof.bin -v testdata/poseidon/vk.bin
+        run: target/release/plonkit verify -p test/circuits/poseidon/proof.bin -v test/circuits/poseidon/vk.bin
 
       - name: Verify via smart contract
         run: |
-          cp testdata/poseidon/public.json testdata/test/data/public.json
-          cp testdata/poseidon/proof.json testdata/test/data/proof.json
-          cp testdata/poseidon/verifier.sol testdata/contracts/verifier.sol
-          cd testdata
+          cp test/circuits/poseidon/public.json test/contract/test/data/public.json
+          cp test/circuits/poseidon/proof.json test/contract/test/data/proof.json
+          cp test/circuits/poseidon/verifier.sol test/contract/contracts/verifier.sol
+          cd test/contract
           yarn install
           npx hardhat test
