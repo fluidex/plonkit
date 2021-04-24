@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import caller from "grpc-caller";
-const file = "../../proto/server.proto";
+const file = "../proto/server.proto";
+
 const load = {
   keepCase: true,
   longs: String,
