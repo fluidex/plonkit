@@ -219,7 +219,7 @@ fn analyse(opts: AnalyseOpts) {
     stats.constraint_stats.clear();
     log::info!(
         "analyse result: {}",
-        serde_json::to_string_pretty(&stats).unwrap_or("<failed>".to_owned())
+        serde_json::to_string_pretty(&stats).unwrap_or_else(|_| "<failed>".to_owned())
     );
     log::info!("output to {}", opts.output);
 }
