@@ -31,7 +31,7 @@ if ($DOWNLOAD_SETUP_FROM_REMOTE & [ -z "$PKG_PATH" ]) ; then
 elif [ ! -z "$PKG_PATH" ] ; then
   echo axel exists at $PKG_PATH
 fi
-npm i
+yarn install
 
 echo "Step1: build plonkit binary"
 cargo build --release
