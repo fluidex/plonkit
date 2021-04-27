@@ -213,9 +213,14 @@ fn analyse(opts: AnalyseOpts) {
         wire_mapping: None,
         aux_offset: plonk::AUX_OFFSET,
     };
-    let stats = plonk::analyse(circuit).expect("analyse failed");
+    let mut stats = plonk::analyse(circuit).expect("analyse failed");
     let writer = File::create(&opts.output).unwrap();
     serde_json::to_writer_pretty(writer, &stats).expect("write failed");
+    stats.constraint_stats.clear();
+    log::info!(
+        "analyse result: {}",
+        serde_json::to_string_pretty(&stats).unwrap_or("<failed>".to_owned())
+    );
     log::info!("output to {}", opts.output);
 }
 

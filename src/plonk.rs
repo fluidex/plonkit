@@ -45,6 +45,7 @@ pub struct AnalyseResult {
     pub num_nontrivial_constraints: usize,
     pub num_gates: usize,
     pub num_hints: usize,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub constraint_stats: Vec<ConstraintStat>,
 }
 
