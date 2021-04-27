@@ -3,7 +3,7 @@
 A zkSNARK toolkit to work with [circom](https://github.com/iden3/circom) zkSNARKs DSL in [plonk](https://eprint.iacr.org/2019/953) proof system. Based on [zkutil](https://github.com/poma/zkutil) and [bellman_ce](https://github.com/matter-labs/bellman).
 
 ## Prerequisites
-+ `npm i`
++ https://github.com/Fluidex/snarkit
 
 ## Features & Todos
 
