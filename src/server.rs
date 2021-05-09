@@ -11,21 +11,21 @@ use tokio::sync::{mpsc, oneshot, Mutex};
 
 #[derive(Clone, PartialEq)]
 pub enum ServerResult {
-    Prove(pb::ProveResponse),
-    Validate(pb::ValidateResponse),
+    ForProve(pb::ProveResponse),
+    ForValidate(pb::ValidateResponse),
 }
 
 impl From<ServerResult> for pb::ProveResponse {
     fn from(res: ServerResult) -> Self {
         match res {
-            ServerResult::Validate(resp) => Self {
+            ServerResult::ForValidate(resp) => Self {
                 is_valid: resp.is_valid,
                 error_msg: resp.error_msg,
                 time_cost_secs: 0.0,
                 proof: Vec::new(),
                 inputs: Vec::new(),
             },
-            ServerResult::Prove(resp) => resp,
+            ServerResult::ForProve(resp) => resp,
         }
     }
 }
@@ -33,11 +33,11 @@ impl From<ServerResult> for pb::ProveResponse {
 impl ServerResult {
     pub fn success(validate_only: bool) -> Self {
         match validate_only {
-            true => Self::Validate(pb::ValidateResponse {
+            true => Self::ForValidate(pb::ValidateResponse {
                 is_valid: true,
                 error_msg: String::new(),
             }),
-            false => Self::Prove(pb::ProveResponse {
+            false => Self::ForProve(pb::ProveResponse {
                 is_valid: true,
                 error_msg: String::new(),
                 time_cost_secs: 0.0,
@@ -53,11 +53,11 @@ impl ServerResult {
         E: std::fmt::Display,
     {
         match validate_only {
-            true => Self::Validate(pb::ValidateResponse {
+            true => Self::ForValidate(pb::ValidateResponse {
                 is_valid: false,
                 error_msg: format!("{}", err_ret.unwrap_err()),
             }),
-            false => Self::Prove(pb::ProveResponse {
+            false => Self::ForProve(pb::ProveResponse {
                 is_valid: false,
                 error_msg: format!("{}", err_ret.unwrap_err()),
                 time_cost_secs: 0.0,
@@ -74,7 +74,7 @@ pub type ServerCore = Box<dyn Fn(Vec<u8>, bool) -> ServerResult + Send>;
 
 pub struct ServerOptions {
     pub server_addr: Option<String>,
-    pub build_prove_core: Box<dyn FnOnce() -> ServerCore + Send>,
+    pub build_core: Box<dyn FnOnce() -> ServerCore + Send>,
 }
 
 struct GrpcHandler {
@@ -164,7 +164,7 @@ impl PlonkitServer for GrpcHandler {
         }
 
         match rx.await {
-            Ok(ServerResult::Prove(ret)) => Ok(tonic::Response::new(ret)),
+            Ok(ServerResult::ForProve(ret)) => Ok(tonic::Response::new(ret)),
             Ok(_) => Err(tonic::Status::internal("prove core return unmatched ret type")),
             Err(e) => Err(tonic::Status::internal(format!("recv prove response fail: {}", e))),
         }
@@ -179,7 +179,7 @@ impl PlonkitServer for GrpcHandler {
         }
 
         match rx.await {
-            Ok(ServerResult::Validate(ret)) => Ok(tonic::Response::new(ret)),
+            Ok(ServerResult::ForValidate(ret)) => Ok(tonic::Response::new(ret)),
             Ok(_) => Err(tonic::Status::internal("prove core return unmatched ret type")),
             Err(e) => Err(tonic::Status::internal(format!("recv prove response fail: {}", e))),
         }
@@ -205,7 +205,7 @@ pub fn run(opt: ServerOptions) {
             let (tx, rx) = mpsc::channel(16);
             let svr = opt.build_server(tx);
             let addr = opt.server_addr.unwrap_or_else(|| String::from("0.0.0.0:50055"));
-            let buildcore = opt.build_prove_core;
+            let buildcore = opt.build_core;
             log::info!("Starting grpc server at {}", addr);
 
             let tasks_scheduled = svr.prove_tasks.clone();

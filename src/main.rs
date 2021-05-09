@@ -312,7 +312,7 @@ fn serve(opts: ServerOpts) {
                         mut_resp.inputs = inputs.iter().map(ToString::to_string).collect();
                         mut_resp.time_cost_secs = elapsed;
 
-                        server::ServerResult::Prove(mut_resp)
+                        server::ServerResult::ForProve(mut_resp)
                     }
 
                     err => server::ServerResult::any_error(err, validate_only),
@@ -324,7 +324,7 @@ fn serve(opts: ServerOpts) {
     log::info!("Starting server ... use CTRL+C to exit");
     server::run(server::ServerOptions {
         server_addr: opts.srv_addr,
-        build_prove_core: Box::new(builder),
+        build_core: Box::new(builder),
     });
 }
 
