@@ -4,13 +4,10 @@
 #![allow(clippy::too_many_arguments)]
 #![allow(clippy::single_char_pattern)]
 
+use crate::pb;
 use std::collections::VecDeque;
 use std::sync::Arc;
 use tokio::sync::{mpsc, oneshot, Mutex};
-
-pub mod pb {
-    tonic::include_proto!("plonkitserver");
-}
 
 #[derive(Clone, PartialEq)]
 pub enum CoreResult {
@@ -18,20 +15,22 @@ pub enum CoreResult {
     Validate(pb::ValidateResponse),
 }
 
-impl CoreResult {
-    pub fn into_prove(self) -> pb::ProveResponse {
-        match self {
-            Self::Validate(ret) => pb::ProveResponse {
-                is_valid: ret.is_valid,
-                error_msg: ret.error_msg,
+impl From<CoreResult> for pb::ProveResponse {
+    fn from(ret: CoreResult) -> Self {
+        match ret {
+            CoreResult::Validate(res) => Self {
+                is_valid: res.is_valid,
+                error_msg: res.error_msg,
                 time_cost_secs: 0.0,
                 proof: Vec::new(),
                 inputs: Vec::new(),
             },
-            Self::Prove(ret) => ret,
+            CoreResult::Prove(res) => res,
         }
     }
+}
 
+impl CoreResult {
     pub fn success(validate_only: bool) -> Self {
         match validate_only {
             true => Self::Validate(pb::ValidateResponse {

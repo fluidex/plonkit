@@ -11,6 +11,7 @@ use std::str;
 use bellman_ce::pairing::bn256::Bn256;
 
 use plonkit::circom_circuit::CircomCircuit;
+use plonkit::pb;
 use plonkit::plonk;
 use plonkit::reader;
 
@@ -304,7 +305,7 @@ fn prove_server(opts: ServerOpts) {
                         let elapsed = start.elapsed().as_secs_f64();
 
                         let ret = server::CoreResult::success(validate_only);
-                        let mut mut_resp = ret.into_prove();
+                        let mut mut_resp: pb::ProveResponse = ret.into();
 
                         let (inputs, serialized_proof) = bellman_vk_codegen::serialize_proof(&proof);
                         mut_resp.proof = serialized_proof.iter().map(ToString::to_string).collect();
