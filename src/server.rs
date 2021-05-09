@@ -184,10 +184,7 @@ impl PlonkitServer for GrpcHandler {
             Err(e) => Err(tonic::Status::internal(format!("recv server response fail: {}", e))),
         }
     }
-    async fn validate_witness(
-        &self,
-        request: tonic::Request<pb::Request>,
-    ) -> Result<tonic::Response<pb::ValidateResponse>, tonic::Status> {
+    async fn validate_witness(&self, request: tonic::Request<pb::Request>) -> Result<tonic::Response<pb::ValidateResponse>, tonic::Status> {
         let (tx, rx) = oneshot::channel();
         if let Err(e) = self.req_sender.send((request.into_inner(), true, tx)).await {
             return Err(tonic::Status::internal(format!("send prove request fail: {}", e)));
