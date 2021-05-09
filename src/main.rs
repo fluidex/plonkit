@@ -305,14 +305,14 @@ fn serve(opts: ServerOpts) {
                         let elapsed = start.elapsed().as_secs_f64();
 
                         let ret = server::ServerResult::new(false);
-                        let mut mut_resp: pb::ProveResponse = ret.into();
+                        let mut inner: pb::ProveResponse = ret.into();
 
                         let (inputs, serialized_proof) = bellman_vk_codegen::serialize_proof(&proof);
-                        mut_resp.proof = serialized_proof.iter().map(ToString::to_string).collect();
-                        mut_resp.inputs = inputs.iter().map(ToString::to_string).collect();
-                        mut_resp.time_cost_secs = elapsed;
+                        inner.proof = serialized_proof.iter().map(ToString::to_string).collect();
+                        inner.inputs = inputs.iter().map(ToString::to_string).collect();
+                        inner.time_cost_secs = elapsed;
 
-                        server::ServerResult::ForProve(mut_resp).success()
+                        server::ServerResult::ForProve(inner).success()
                     }
 
                     err => server::ServerResult::any_error(err),

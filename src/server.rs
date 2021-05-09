@@ -93,31 +93,31 @@ pub struct ServerOptions {
 }
 
 struct GrpcHandler {
-    prove_tasks: Arc<Mutex<VecDeque<ServerRequest>>>,
+    tasks: Arc<Mutex<VecDeque<ServerRequest>>>,
     cur_task: Arc<Mutex<Option<String>>>,
-    prove_send: mpsc::Sender<ServerRequest>,
+    req_sender: mpsc::Sender<ServerRequest>,
 }
 
 impl ServerOptions {
-    fn build_server(&self, prove_send: mpsc::Sender<ServerRequest>) -> GrpcHandler {
+    fn build_server(&self, req_sender: mpsc::Sender<ServerRequest>) -> GrpcHandler {
         GrpcHandler {
-            prove_tasks: Arc::new(Mutex::new(VecDeque::with_capacity(32))),
+            tasks: Arc::new(Mutex::new(VecDeque::with_capacity(32))),
             cur_task: Arc::new(Mutex::new(None)),
-            prove_send,
+            req_sender,
         }
     }
 }
 
-async fn schedule_prove_task(
+async fn schedule_task(
     mut notify: mpsc::Receiver<ServerRequest>,
     tasks: Arc<Mutex<VecDeque<ServerRequest>>>,
     cur_task_id: Arc<Mutex<Option<String>>>,
     core_build: Box<dyn FnOnce() -> ServerCore + Send>,
 ) {
-    let mut prove_task_h = tokio::task::spawn_blocking(move || {
-        log::info!("Building proving core ...");
+    let mut server_task_h = tokio::task::spawn_blocking(move || {
+        log::info!("Building sever core ...");
         let core = core_build();
-        log::info!("Building proving core done");
+        log::info!("Building sever core done");
         core
     });
 
@@ -125,7 +125,7 @@ async fn schedule_prove_task(
         let is_task_active = cur_task_id.lock().await.is_some() || !tasks.lock().await.is_empty();
 
         tokio::select! {
-            h_ret = &mut prove_task_h, if is_task_active => {
+            h_ret = &mut server_task_h, if is_task_active => {
 
                 //if joinerror, we are over
                 let core = h_ret.unwrap();
@@ -136,7 +136,7 @@ async fn schedule_prove_task(
                         log::debug!("Trigger handling new task {}", req.task_id);
 
                         //DO prove/valid task
-                        prove_task_h = tokio::task::spawn_blocking(move||{
+                        server_task_h = tokio::task::spawn_blocking(move||{
                             if notify.send(core(req.witness, valid_only)).is_err(){
                                 log::warn!("Send task {} result failure", req.task_id);
                             }
@@ -147,7 +147,7 @@ async fn schedule_prove_task(
                     },
                     _ => {
                         //put the core into joinhandle ("The Sword in the Stone")
-                        prove_task_h = tokio::task::spawn_blocking(move||{core});
+                        server_task_h = tokio::task::spawn_blocking(move||{core});
                         cur_task_id.lock().await.take()
                     }
                 };
@@ -174,14 +174,14 @@ use pb::plonkit_server_server::{PlonkitServer, PlonkitServerServer};
 impl PlonkitServer for GrpcHandler {
     async fn prove(&self, request: tonic::Request<pb::ProveRequest>) -> Result<tonic::Response<pb::ProveResponse>, tonic::Status> {
         let (tx, rx) = oneshot::channel();
-        if let Err(e) = self.prove_send.send((request.into_inner(), false, tx)).await {
+        if let Err(e) = self.req_sender.send((request.into_inner(), false, tx)).await {
             return Err(tonic::Status::internal(format!("send prove request fail: {}", e)));
         }
 
         match rx.await {
             Ok(ServerResult::ForProve(ret)) => Ok(tonic::Response::new(ret)),
-            Ok(_) => Err(tonic::Status::internal("prove core return unmatched ret type")),
-            Err(e) => Err(tonic::Status::internal(format!("recv prove response fail: {}", e))),
+            Ok(_) => Err(tonic::Status::internal("server core return unmatched ret type")),
+            Err(e) => Err(tonic::Status::internal(format!("recv server response fail: {}", e))),
         }
     }
     async fn validate_witness(
@@ -189,14 +189,14 @@ impl PlonkitServer for GrpcHandler {
         request: tonic::Request<pb::ProveRequest>,
     ) -> Result<tonic::Response<pb::ValidateResponse>, tonic::Status> {
         let (tx, rx) = oneshot::channel();
-        if let Err(e) = self.prove_send.send((request.into_inner(), true, tx)).await {
+        if let Err(e) = self.req_sender.send((request.into_inner(), true, tx)).await {
             return Err(tonic::Status::internal(format!("send prove request fail: {}", e)));
         }
 
         match rx.await {
             Ok(ServerResult::ForValidate(ret)) => Ok(tonic::Response::new(ret)),
-            Ok(_) => Err(tonic::Status::internal("prove core return unmatched ret type")),
-            Err(e) => Err(tonic::Status::internal(format!("recv prove response fail: {}", e))),
+            Ok(_) => Err(tonic::Status::internal("server core return unmatched ret type")),
+            Err(e) => Err(tonic::Status::internal(format!("recv server response fail: {}", e))),
         }
     }
     async fn status(&self, _request: tonic::Request<pb::EmptyRequest>) -> Result<tonic::Response<pb::StatusResponse>, tonic::Status> {
@@ -223,10 +223,10 @@ pub fn run(opt: ServerOptions) {
             let buildcore = opt.build_core;
             log::info!("Starting grpc server at {}", addr);
 
-            let tasks_scheduled = svr.prove_tasks.clone();
+            let tasks_scheduled = svr.tasks.clone();
             let status_scheduled = svr.cur_task.clone();
             let scheduler = tokio::spawn(async move {
-                schedule_prove_task(rx, tasks_scheduled, status_scheduled, buildcore).await;
+                schedule_task(rx, tasks_scheduled, status_scheduled, buildcore).await;
             });
 
             tonic::transport::Server::builder()
