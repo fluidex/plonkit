@@ -4,42 +4,49 @@
 #![allow(clippy::too_many_arguments)]
 #![allow(clippy::single_char_pattern)]
 
+use crate::pb;
 use std::collections::VecDeque;
 use std::sync::Arc;
 use tokio::sync::{mpsc, oneshot, Mutex};
 
-pub mod pb {
-    tonic::include_proto!("plonkitserver");
+#[derive(Clone, Debug, PartialEq)]
+pub struct ErrDetail {
+    is_valid: bool,
+    error_msg: String,
 }
 
 #[derive(Clone, PartialEq)]
-pub enum CoreResult {
-    Prove(pb::ProveResponse),
-    Validate(pb::ValidateResponse),
+pub enum ServerResult {
+    ForValidate(pb::ValidateResponse),
+    ForProve(pb::ProveResponse),
+    Error(ErrDetail),
 }
 
-impl CoreResult {
-    pub fn into_prove(self) -> pb::ProveResponse {
-        match self {
-            Self::Validate(ret) => pb::ProveResponse {
-                is_valid: ret.is_valid,
-                error_msg: ret.error_msg,
+impl From<ServerResult> for pb::ProveResponse {
+    fn from(res: ServerResult) -> Self {
+        match res {
+            ServerResult::ForValidate(resp) => Self {
+                is_valid: resp.is_valid,
+                error_msg: resp.error_msg,
                 time_cost_secs: 0.0,
                 proof: Vec::new(),
                 inputs: Vec::new(),
             },
-            Self::Prove(ret) => ret,
+            ServerResult::ForProve(resp) => resp,
+            _ => unreachable!(),
         }
     }
+}
 
-    pub fn success(validate_only: bool) -> Self {
-        match validate_only {
-            true => Self::Validate(pb::ValidateResponse {
-                is_valid: true,
+impl ServerResult {
+    pub fn new(for_validate: bool) -> Self {
+        match for_validate {
+            true => Self::ForValidate(pb::ValidateResponse {
+                is_valid: false,
                 error_msg: String::new(),
             }),
-            false => Self::Prove(pb::ProveResponse {
-                is_valid: true,
+            false => Self::ForProve(pb::ProveResponse {
+                is_valid: false,
                 error_msg: String::new(),
                 time_cost_secs: 0.0,
                 proof: Vec::new(),
@@ -48,62 +55,69 @@ impl CoreResult {
         }
     }
 
-    pub fn any_prove_error<T, E>(err_ret: Result<T, E>, validate_only: bool) -> Self
+    pub fn success(self) -> Self {
+        match self {
+            Self::ForValidate(mut inner) => {
+                inner.is_valid = true;
+                inner.error_msg = String::new();
+                Self::ForValidate(inner)
+            }
+            Self::ForProve(mut inner) => {
+                inner.is_valid = true;
+                inner.error_msg = String::new();
+                Self::ForProve(inner)
+            }
+            Self::Error(_) => unreachable!(),
+        }
+    }
+
+    pub fn any_error<T, E>(err_ret: Result<T, E>) -> Self
     where
         T: std::fmt::Debug,
         E: std::fmt::Display,
     {
-        match validate_only {
-            true => Self::Validate(pb::ValidateResponse {
-                is_valid: false,
-                error_msg: format!("{}", err_ret.unwrap_err()),
-            }),
-            false => Self::Prove(pb::ProveResponse {
-                is_valid: false,
-                error_msg: format!("{}", err_ret.unwrap_err()),
-                time_cost_secs: 0.0,
-                proof: Vec::new(),
-                inputs: Vec::new(),
-            }),
-        }
+        Self::Error(ErrDetail {
+            is_valid: false,
+            error_msg: format!("{}", err_ret.unwrap_err()),
+        })
     }
 }
 
-type ProveResultNotify = oneshot::Sender<CoreResult>;
-type ProveRequest = (pb::ProveRequest, bool, ProveResultNotify);
-pub type ProveCore = Box<dyn Fn(Vec<u8>, bool) -> CoreResult + Send>;
+type ServerResultNotify = oneshot::Sender<ServerResult>;
+type ServerRequest = (pb::Request, bool, ServerResultNotify);
+pub type ServerCore = Box<dyn Fn(Vec<u8>, bool) -> ServerResult + Send>;
 
 pub struct ServerOptions {
     pub server_addr: Option<String>,
-    pub build_prove_core: Box<dyn FnOnce() -> ProveCore + Send>,
+    pub build_core: Box<dyn FnOnce() -> ServerCore + Send>,
 }
 
 struct GrpcHandler {
-    prove_tasks: Arc<Mutex<VecDeque<ProveRequest>>>,
+    tasks: Arc<Mutex<VecDeque<ServerRequest>>>,
     cur_task: Arc<Mutex<Option<String>>>,
-    prove_send: mpsc::Sender<ProveRequest>,
+    req_sender: mpsc::Sender<ServerRequest>,
 }
 
 impl ServerOptions {
-    fn build_server(&self, prove_send: mpsc::Sender<ProveRequest>) -> GrpcHandler {
+    fn build_server(&self, req_sender: mpsc::Sender<ServerRequest>) -> GrpcHandler {
         GrpcHandler {
-            prove_tasks: Arc::new(Mutex::new(VecDeque::with_capacity(32))),
+            tasks: Arc::new(Mutex::new(VecDeque::with_capacity(32))),
             cur_task: Arc::new(Mutex::new(None)),
-            prove_send,
+            req_sender,
         }
     }
 }
 
-async fn schedule_prove_task(
-    mut notify: mpsc::Receiver<ProveRequest>,
-    tasks: Arc<Mutex<VecDeque<ProveRequest>>>,
+async fn schedule_task(
+    mut notify: mpsc::Receiver<ServerRequest>,
+    tasks: Arc<Mutex<VecDeque<ServerRequest>>>,
     cur_task_id: Arc<Mutex<Option<String>>>,
-    core_build: Box<dyn FnOnce() -> ProveCore + Send>,
+    core_build: Box<dyn FnOnce() -> ServerCore + Send>,
 ) {
-    let mut prove_task_h = tokio::task::spawn_blocking(move || {
-        log::info!("Building proving core ...");
+    let mut server_task_h = tokio::task::spawn_blocking(move || {
+        log::info!("Building sever core ...");
         let core = core_build();
-        log::info!("Building proving core done");
+        log::info!("Building sever core done");
         core
     });
 
@@ -111,7 +125,7 @@ async fn schedule_prove_task(
         let is_task_active = cur_task_id.lock().await.is_some() || !tasks.lock().await.is_empty();
 
         tokio::select! {
-            h_ret = &mut prove_task_h, if is_task_active => {
+            h_ret = &mut server_task_h, if is_task_active => {
 
                 //if joinerror, we are over
                 let core = h_ret.unwrap();
@@ -122,7 +136,7 @@ async fn schedule_prove_task(
                         log::debug!("Trigger handling new task {}", req.task_id);
 
                         //DO prove/valid task
-                        prove_task_h = tokio::task::spawn_blocking(move||{
+                        server_task_h = tokio::task::spawn_blocking(move||{
                             if notify.send(core(req.witness, valid_only)).is_err(){
                                 log::warn!("Send task {} result failure", req.task_id);
                             }
@@ -133,7 +147,7 @@ async fn schedule_prove_task(
                     },
                     _ => {
                         //put the core into joinhandle ("The Sword in the Stone")
-                        prove_task_h = tokio::task::spawn_blocking(move||{core});
+                        server_task_h = tokio::task::spawn_blocking(move||{core});
                         cur_task_id.lock().await.take()
                     }
                 };
@@ -158,31 +172,31 @@ use pb::plonkit_server_server::{PlonkitServer, PlonkitServerServer};
 
 #[tonic::async_trait]
 impl PlonkitServer for GrpcHandler {
-    async fn prove(&self, request: tonic::Request<pb::ProveRequest>) -> Result<tonic::Response<pb::ProveResponse>, tonic::Status> {
+    async fn prove(&self, request: tonic::Request<pb::Request>) -> Result<tonic::Response<pb::ProveResponse>, tonic::Status> {
         let (tx, rx) = oneshot::channel();
-        if let Err(e) = self.prove_send.send((request.into_inner(), false, tx)).await {
+        if let Err(e) = self.req_sender.send((request.into_inner(), false, tx)).await {
             return Err(tonic::Status::internal(format!("send prove request fail: {}", e)));
         }
 
         match rx.await {
-            Ok(CoreResult::Prove(ret)) => Ok(tonic::Response::new(ret)),
-            Ok(_) => Err(tonic::Status::internal("prove core return unmatched ret type")),
-            Err(e) => Err(tonic::Status::internal(format!("recv prove response fail: {}", e))),
+            Ok(ServerResult::ForProve(ret)) => Ok(tonic::Response::new(ret)),
+            Ok(_) => Err(tonic::Status::internal("server core return unmatched ret type")),
+            Err(e) => Err(tonic::Status::internal(format!("recv server response fail: {}", e))),
         }
     }
     async fn validate_witness(
         &self,
-        request: tonic::Request<pb::ProveRequest>,
+        request: tonic::Request<pb::Request>,
     ) -> Result<tonic::Response<pb::ValidateResponse>, tonic::Status> {
         let (tx, rx) = oneshot::channel();
-        if let Err(e) = self.prove_send.send((request.into_inner(), true, tx)).await {
+        if let Err(e) = self.req_sender.send((request.into_inner(), true, tx)).await {
             return Err(tonic::Status::internal(format!("send prove request fail: {}", e)));
         }
 
         match rx.await {
-            Ok(CoreResult::Validate(ret)) => Ok(tonic::Response::new(ret)),
-            Ok(_) => Err(tonic::Status::internal("prove core return unmatched ret type")),
-            Err(e) => Err(tonic::Status::internal(format!("recv prove response fail: {}", e))),
+            Ok(ServerResult::ForValidate(ret)) => Ok(tonic::Response::new(ret)),
+            Ok(_) => Err(tonic::Status::internal("server core return unmatched ret type")),
+            Err(e) => Err(tonic::Status::internal(format!("recv server response fail: {}", e))),
         }
     }
     async fn status(&self, _request: tonic::Request<pb::EmptyRequest>) -> Result<tonic::Response<pb::StatusResponse>, tonic::Status> {
@@ -206,13 +220,13 @@ pub fn run(opt: ServerOptions) {
             let (tx, rx) = mpsc::channel(16);
             let svr = opt.build_server(tx);
             let addr = opt.server_addr.unwrap_or_else(|| String::from("0.0.0.0:50055"));
-            let buildcore = opt.build_prove_core;
+            let buildcore = opt.build_core;
             log::info!("Starting grpc server at {}", addr);
 
-            let tasks_scheduled = svr.prove_tasks.clone();
+            let tasks_scheduled = svr.tasks.clone();
             let status_scheduled = svr.cur_task.clone();
             let scheduler = tokio::spawn(async move {
-                schedule_prove_task(rx, tasks_scheduled, status_scheduled, buildcore).await;
+                schedule_task(rx, tasks_scheduled, status_scheduled, buildcore).await;
             });
 
             tonic::transport::Server::builder()

@@ -16,3 +16,6 @@ pub mod r1cs_file;
 pub mod reader;
 pub mod transpile;
 pub mod utils;
+pub mod pb {
+    tonic::include_proto!("plonkitserver");
+}
