@@ -305,7 +305,10 @@ fn serve(opts: ServerOpts) {
                         let elapsed = start.elapsed().as_secs_f64();
 
                         let ret = server::ServerResult::new(false);
-                        let mut inner: pb::ProveResponse = ret.into();
+                        let mut inner: pb::ProveResponse = match ret {
+                            server::ServerResult::ForProve(i) => i,
+                            _ => unreachable!(),
+                        };
 
                         let (inputs, serialized_proof) = bellman_vk_codegen::serialize_proof(&proof);
                         inner.proof = serialized_proof.iter().map(ToString::to_string).collect();

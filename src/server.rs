@@ -15,21 +15,6 @@ pub enum ServerResult {
     ForProve(pb::ProveResponse),
 }
 
-impl From<ServerResult> for pb::ProveResponse {
-    fn from(res: ServerResult) -> Self {
-        match res {
-            ServerResult::ForValidate(resp) => Self {
-                is_valid: resp.is_valid,
-                error_msg: resp.error_msg,
-                time_cost_secs: 0.0,
-                proof: Vec::new(),
-                inputs: Vec::new(),
-            },
-            ServerResult::ForProve(resp) => resp,
-        }
-    }
-}
-
 impl ServerResult {
     pub fn new(for_validate: bool) -> Self {
         match for_validate {
