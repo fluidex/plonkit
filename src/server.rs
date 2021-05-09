@@ -9,10 +9,17 @@ use std::collections::VecDeque;
 use std::sync::Arc;
 use tokio::sync::{mpsc, oneshot, Mutex};
 
+#[derive(Clone, Debug, PartialEq)]
+pub struct ErrDetail {
+    pub is_valid: bool,
+    pub error_msg: String,
+}
+
 #[derive(Clone, PartialEq)]
 pub enum ServerResult {
     ForProve(pb::ProveResponse),
     ForValidate(pb::ValidateResponse),
+    Error(ErrDetail),
 }
 
 impl From<ServerResult> for pb::ProveResponse {
@@ -26,6 +33,7 @@ impl From<ServerResult> for pb::ProveResponse {
                 inputs: Vec::new(),
             },
             ServerResult::ForProve(resp) => resp,
+            _ => unreachable!(),
         }
     }
 }
@@ -47,24 +55,15 @@ impl ServerResult {
         }
     }
 
-    pub fn any_error<T, E>(err_ret: Result<T, E>, validate_only: bool) -> Self
+    pub fn any_error<T, E>(err_ret: Result<T, E>) -> Self
     where
         T: std::fmt::Debug,
         E: std::fmt::Display,
     {
-        match validate_only {
-            true => Self::ForValidate(pb::ValidateResponse {
-                is_valid: false,
-                error_msg: format!("{}", err_ret.unwrap_err()),
-            }),
-            false => Self::ForProve(pb::ProveResponse {
-                is_valid: false,
-                error_msg: format!("{}", err_ret.unwrap_err()),
-                time_cost_secs: 0.0,
-                proof: Vec::new(),
-                inputs: Vec::new(),
-            }),
-        }
+        Self::Error(ErrDetail {
+            is_valid: false,
+            error_msg: format!("{}", err_ret.unwrap_err()),
+        })
     }
 }
 
