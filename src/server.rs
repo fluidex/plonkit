@@ -9,33 +9,10 @@ use std::collections::VecDeque;
 use std::sync::Arc;
 use tokio::sync::{mpsc, oneshot, Mutex};
 
-#[derive(Clone, Debug, PartialEq)]
-pub struct ErrDetail {
-    is_valid: bool,
-    error_msg: String,
-}
-
 #[derive(Clone, PartialEq)]
 pub enum ServerResult {
     ForValidate(pb::ValidateResponse),
     ForProve(pb::ProveResponse),
-    Error(ErrDetail),
-}
-
-impl From<ServerResult> for pb::ProveResponse {
-    fn from(res: ServerResult) -> Self {
-        match res {
-            ServerResult::ForValidate(resp) => Self {
-                is_valid: resp.is_valid,
-                error_msg: resp.error_msg,
-                time_cost_secs: 0.0,
-                proof: Vec::new(),
-                inputs: Vec::new(),
-            },
-            ServerResult::ForProve(resp) => resp,
-            _ => unreachable!(),
-        }
-    }
 }
 
 impl ServerResult {
@@ -67,19 +44,26 @@ impl ServerResult {
                 inner.error_msg = String::new();
                 Self::ForProve(inner)
             }
-            Self::Error(_) => unreachable!(),
         }
     }
 
-    pub fn any_error<T, E>(err_ret: Result<T, E>) -> Self
+    pub fn any_error<T, E>(self, err_ret: Result<T, E>) -> Self
     where
         T: std::fmt::Debug,
         E: std::fmt::Display,
     {
-        Self::Error(ErrDetail {
-            is_valid: false,
-            error_msg: format!("{}", err_ret.unwrap_err()),
-        })
+        match self {
+            ServerResult::ForValidate(mut inner) => {
+                inner.is_valid = false;
+                inner.error_msg = format!("{}", err_ret.unwrap_err());
+                Self::ForValidate(inner)
+            }
+            ServerResult::ForProve(mut inner) => {
+                inner.is_valid = false;
+                inner.error_msg = format!("{}", err_ret.unwrap_err());
+                Self::ForProve(inner)
+            }
+        }
     }
 }
 

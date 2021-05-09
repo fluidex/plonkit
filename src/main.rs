@@ -290,13 +290,13 @@ fn serve(opts: ServerOpts) {
             let mut circut = circuit_base.clone();
             match reader::load_witness_from_array::<Bn256>(witness) {
                 Ok(witness) => circut.witness = Some(witness),
-                err => return server::ServerResult::any_error(err),
+                err => return server::ServerResult::new(validate_only).any_error(err),
             }
 
             if validate_only {
                 match setup.validate_witness(circut) {
                     Ok(_) => server::ServerResult::new(true).success(),
-                    err => server::ServerResult::any_error(err),
+                    err => server::ServerResult::new(true).any_error(err),
                 }
             } else {
                 let start = std::time::Instant::now();
@@ -304,8 +304,10 @@ fn serve(opts: ServerOpts) {
                     Ok(proof) => {
                         let elapsed = start.elapsed().as_secs_f64();
 
-                        let ret = server::ServerResult::new(false);
-                        let mut inner: pb::ProveResponse = ret.into();
+                        let mut inner: pb::ProveResponse = match server::ServerResult::new(false) {
+                            server::ServerResult::ForProve(i) => i,
+                            _ => unreachable!(),
+                        };
 
                         let (inputs, serialized_proof) = bellman_vk_codegen::serialize_proof(&proof);
                         inner.proof = serialized_proof.iter().map(ToString::to_string).collect();
@@ -315,7 +317,7 @@ fn serve(opts: ServerOpts) {
                         server::ServerResult::ForProve(inner).success()
                     }
 
-                    err => server::ServerResult::any_error(err),
+                    err => server::ServerResult::new(false).any_error(err),
                 }
             }
         })
