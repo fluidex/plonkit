@@ -84,7 +84,7 @@ impl ServerResult {
 }
 
 type ServerResultNotify = oneshot::Sender<ServerResult>;
-type ServerRequest = (pb::ProveRequest, bool, ServerResultNotify);
+type ServerRequest = (pb::Request, bool, ServerResultNotify);
 pub type ServerCore = Box<dyn Fn(Vec<u8>, bool) -> ServerResult + Send>;
 
 pub struct ServerOptions {
@@ -172,7 +172,7 @@ use pb::plonkit_server_server::{PlonkitServer, PlonkitServerServer};
 
 #[tonic::async_trait]
 impl PlonkitServer for GrpcHandler {
-    async fn prove(&self, request: tonic::Request<pb::ProveRequest>) -> Result<tonic::Response<pb::ProveResponse>, tonic::Status> {
+    async fn prove(&self, request: tonic::Request<pb::Request>) -> Result<tonic::Response<pb::ProveResponse>, tonic::Status> {
         let (tx, rx) = oneshot::channel();
         if let Err(e) = self.req_sender.send((request.into_inner(), false, tx)).await {
             return Err(tonic::Status::internal(format!("send prove request fail: {}", e)));
@@ -186,7 +186,7 @@ impl PlonkitServer for GrpcHandler {
     }
     async fn validate_witness(
         &self,
-        request: tonic::Request<pb::ProveRequest>,
+        request: tonic::Request<pb::Request>,
     ) -> Result<tonic::Response<pb::ValidateResponse>, tonic::Status> {
         let (tx, rx) = oneshot::channel();
         if let Err(e) = self.req_sender.send((request.into_inner(), true, tx)).await {

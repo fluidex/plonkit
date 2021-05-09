@@ -3,14 +3,14 @@ syntax = "proto3";
 package plonkitserver;
 
 service PlonkitServer {
-  rpc Prove(ProveRequest) returns (ProveResponse);
-  rpc ValidateWitness(ProveRequest) returns (ValidateResponse);
+  rpc Prove(Request) returns (ProveResponse);
+  rpc ValidateWitness(Request) returns (ValidateResponse);
   rpc Status(EmptyRequest) returns (StatusResponse);
 }
 
 message EmptyRequest {}
 
-message ProveRequest {
+message Request {
   string task_id = 1;
   bytes witness = 2;
 }
