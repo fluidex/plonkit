@@ -11,8 +11,8 @@ use tokio::sync::{mpsc, oneshot, Mutex};
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct ErrDetail {
-    pub is_valid: bool,
-    pub error_msg: String,
+    is_valid: bool,
+    error_msg: String,
 }
 
 #[derive(Clone, PartialEq)]
