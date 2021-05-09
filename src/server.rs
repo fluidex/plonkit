@@ -17,8 +17,8 @@ pub struct ErrDetail {
 
 #[derive(Clone, PartialEq)]
 pub enum ServerResult {
-    ForProve(pb::ProveResponse),
     ForValidate(pb::ValidateResponse),
+    ForProve(pb::ProveResponse),
     Error(ErrDetail),
 }
 
@@ -39,19 +39,35 @@ impl From<ServerResult> for pb::ProveResponse {
 }
 
 impl ServerResult {
-    pub fn success(validate_only: bool) -> Self {
-        match validate_only {
+    pub fn new(for_validate: bool) -> Self {
+        match for_validate {
             true => Self::ForValidate(pb::ValidateResponse {
-                is_valid: true,
+                is_valid: false,
                 error_msg: String::new(),
             }),
             false => Self::ForProve(pb::ProveResponse {
-                is_valid: true,
+                is_valid: false,
                 error_msg: String::new(),
                 time_cost_secs: 0.0,
                 proof: Vec::new(),
                 inputs: Vec::new(),
             }),
+        }
+    }
+
+    pub fn success(self) -> Self {
+        match self {
+            Self::ForValidate(mut inner) => {
+                inner.is_valid = true;
+                inner.error_msg = String::new();
+                Self::ForValidate(inner)
+            },
+            Self::ForProve(mut inner) => {
+                inner.is_valid = true;
+                inner.error_msg = String::new();
+                Self::ForProve(inner)
+            },
+            Self::Error(_) => unreachable!(),
         }
     }
 
