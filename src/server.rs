@@ -10,27 +10,27 @@ use std::sync::Arc;
 use tokio::sync::{mpsc, oneshot, Mutex};
 
 #[derive(Clone, PartialEq)]
-pub enum CoreResult {
+pub enum ServerResult {
     Prove(pb::ProveResponse),
     Validate(pb::ValidateResponse),
 }
 
-impl From<CoreResult> for pb::ProveResponse {
-    fn from(ret: CoreResult) -> Self {
-        match ret {
-            CoreResult::Validate(res) => Self {
-                is_valid: res.is_valid,
-                error_msg: res.error_msg,
+impl From<ServerResult> for pb::ProveResponse {
+    fn from(res: ServerResult) -> Self {
+        match res {
+            ServerResult::Validate(resp) => Self {
+                is_valid: resp.is_valid,
+                error_msg: resp.error_msg,
                 time_cost_secs: 0.0,
                 proof: Vec::new(),
                 inputs: Vec::new(),
             },
-            CoreResult::Prove(res) => res,
+            ServerResult::Prove(resp) => resp,
         }
     }
 }
 
-impl CoreResult {
+impl ServerResult {
     pub fn success(validate_only: bool) -> Self {
         match validate_only {
             true => Self::Validate(pb::ValidateResponse {
@@ -47,7 +47,7 @@ impl CoreResult {
         }
     }
 
-    pub fn any_prove_error<T, E>(err_ret: Result<T, E>, validate_only: bool) -> Self
+    pub fn any_error<T, E>(err_ret: Result<T, E>, validate_only: bool) -> Self
     where
         T: std::fmt::Debug,
         E: std::fmt::Display,
@@ -68,23 +68,23 @@ impl CoreResult {
     }
 }
 
-type ProveResultNotify = oneshot::Sender<CoreResult>;
-type ProveRequest = (pb::ProveRequest, bool, ProveResultNotify);
-pub type ProveCore = Box<dyn Fn(Vec<u8>, bool) -> CoreResult + Send>;
+type ServerResultNotify = oneshot::Sender<ServerResult>;
+type ServerRequest = (pb::ProveRequest, bool, ServerResultNotify);
+pub type ServerCore = Box<dyn Fn(Vec<u8>, bool) -> ServerResult + Send>;
 
 pub struct ServerOptions {
     pub server_addr: Option<String>,
-    pub build_prove_core: Box<dyn FnOnce() -> ProveCore + Send>,
+    pub build_prove_core: Box<dyn FnOnce() -> ServerCore + Send>,
 }
 
 struct GrpcHandler {
-    prove_tasks: Arc<Mutex<VecDeque<ProveRequest>>>,
+    prove_tasks: Arc<Mutex<VecDeque<ServerRequest>>>,
     cur_task: Arc<Mutex<Option<String>>>,
-    prove_send: mpsc::Sender<ProveRequest>,
+    prove_send: mpsc::Sender<ServerRequest>,
 }
 
 impl ServerOptions {
-    fn build_server(&self, prove_send: mpsc::Sender<ProveRequest>) -> GrpcHandler {
+    fn build_server(&self, prove_send: mpsc::Sender<ServerRequest>) -> GrpcHandler {
         GrpcHandler {
             prove_tasks: Arc::new(Mutex::new(VecDeque::with_capacity(32))),
             cur_task: Arc::new(Mutex::new(None)),
@@ -94,10 +94,10 @@ impl ServerOptions {
 }
 
 async fn schedule_prove_task(
-    mut notify: mpsc::Receiver<ProveRequest>,
-    tasks: Arc<Mutex<VecDeque<ProveRequest>>>,
+    mut notify: mpsc::Receiver<ServerRequest>,
+    tasks: Arc<Mutex<VecDeque<ServerRequest>>>,
     cur_task_id: Arc<Mutex<Option<String>>>,
-    core_build: Box<dyn FnOnce() -> ProveCore + Send>,
+    core_build: Box<dyn FnOnce() -> ServerCore + Send>,
 ) {
     let mut prove_task_h = tokio::task::spawn_blocking(move || {
         log::info!("Building proving core ...");
@@ -164,7 +164,7 @@ impl PlonkitServer for GrpcHandler {
         }
 
         match rx.await {
-            Ok(CoreResult::Prove(ret)) => Ok(tonic::Response::new(ret)),
+            Ok(ServerResult::Prove(ret)) => Ok(tonic::Response::new(ret)),
             Ok(_) => Err(tonic::Status::internal("prove core return unmatched ret type")),
             Err(e) => Err(tonic::Status::internal(format!("recv prove response fail: {}", e))),
         }
@@ -179,7 +179,7 @@ impl PlonkitServer for GrpcHandler {
         }
 
         match rx.await {
-            Ok(CoreResult::Validate(ret)) => Ok(tonic::Response::new(ret)),
+            Ok(ServerResult::Validate(ret)) => Ok(tonic::Response::new(ret)),
             Ok(_) => Err(tonic::Status::internal("prove core return unmatched ret type")),
             Err(e) => Err(tonic::Status::internal(format!("recv prove response fail: {}", e))),
         }

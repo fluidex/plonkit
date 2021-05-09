@@ -188,7 +188,7 @@ fn main() {
             dump_lagrange(o);
         }
         SubCommand::Serve(o) => {
-            prove_server(o);
+            serve(o);
         }
         SubCommand::Prove(o) => {
             prove(o);
@@ -265,7 +265,7 @@ fn dump_lagrange(opts: DumpLagrangeOpts) {
 }
 
 #[cfg(feature = "server")]
-fn prove_server(opts: ServerOpts) {
+fn serve(opts: ServerOpts) {
     let circuit_file = resolve_circuit_file(opts.circuit);
     log::info!("Loading circuit from {}...", circuit_file);
     let circuit_base = CircomCircuit {
@@ -278,7 +278,7 @@ fn prove_server(opts: ServerOpts) {
     let srs_monomial_form = opts.srs_monomial_form;
     let srs_lagrange_form = opts.srs_lagrange_form;
 
-    let builder = move || -> server::ProveCore {
+    let builder = move || -> server::ServerCore {
         let setup = plonk::SetupForProver::prepare_setup_for_prover(
             circuit_base.clone(),
             reader::load_key_monomial_form(&srs_monomial_form),
@@ -286,17 +286,17 @@ fn prove_server(opts: ServerOpts) {
         )
         .expect("prepare err");
 
-        Box::new(move |witness: Vec<u8>, validate_only: bool| -> server::CoreResult {
+        Box::new(move |witness: Vec<u8>, validate_only: bool| -> server::ServerResult {
             let mut circut = circuit_base.clone();
             match reader::load_witness_from_array::<Bn256>(witness) {
                 Ok(witness) => circut.witness = Some(witness),
-                err => return server::CoreResult::any_prove_error(err, validate_only),
+                err => return server::ServerResult::any_error(err, validate_only),
             }
 
             if validate_only {
                 match setup.validate_witness(circut) {
-                    Ok(_) => server::CoreResult::success(validate_only),
-                    err => server::CoreResult::any_prove_error(err, validate_only),
+                    Ok(_) => server::ServerResult::success(validate_only),
+                    err => server::ServerResult::any_error(err, validate_only),
                 }
             } else {
                 let start = std::time::Instant::now();
@@ -304,7 +304,7 @@ fn prove_server(opts: ServerOpts) {
                     Ok(proof) => {
                         let elapsed = start.elapsed().as_secs_f64();
 
-                        let ret = server::CoreResult::success(validate_only);
+                        let ret = server::ServerResult::success(validate_only);
                         let mut mut_resp: pb::ProveResponse = ret.into();
 
                         let (inputs, serialized_proof) = bellman_vk_codegen::serialize_proof(&proof);
@@ -312,10 +312,10 @@ fn prove_server(opts: ServerOpts) {
                         mut_resp.inputs = inputs.iter().map(ToString::to_string).collect();
                         mut_resp.time_cost_secs = elapsed;
 
-                        server::CoreResult::Prove(mut_resp)
+                        server::ServerResult::Prove(mut_resp)
                     }
 
-                    err => server::CoreResult::any_prove_error(err, validate_only),
+                    err => server::ServerResult::any_error(err, validate_only),
                 }
             }
         })
@@ -329,7 +329,7 @@ fn prove_server(opts: ServerOpts) {
 }
 
 #[cfg(not(feature = "server"))]
-fn prove_server(opts: ServerOpts) {
+fn serve(opts: ServerOpts) {
     log::info!(
         "Binary is not built with server feature: {:?}, {:?}, {:?}, {}",
         opts.srv_addr,
