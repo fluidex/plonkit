@@ -61,12 +61,12 @@ impl ServerResult {
                 inner.is_valid = true;
                 inner.error_msg = String::new();
                 Self::ForValidate(inner)
-            },
+            }
             Self::ForProve(mut inner) => {
                 inner.is_valid = true;
                 inner.error_msg = String::new();
                 Self::ForProve(inner)
-            },
+            }
             Self::Error(_) => unreachable!(),
         }
     }
