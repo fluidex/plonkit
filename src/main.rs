@@ -304,8 +304,7 @@ fn serve(opts: ServerOpts) {
                     Ok(proof) => {
                         let elapsed = start.elapsed().as_secs_f64();
 
-                        let ret = server::ServerResult::new(false);
-                        let mut inner: pb::ProveResponse = match ret {
+                        let mut inner: pb::ProveResponse = match server::ServerResult::new(false) {
                             server::ServerResult::ForProve(i) => i,
                             _ => unreachable!(),
                         };
