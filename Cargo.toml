@@ -1,6 +1,6 @@
 [package]
 name = "plonkit"
-version = "0.1.0"
+version = "0.1.1"
 authors = [ "Roman Semenov <semenov.roma@gmail.com>", "Zhuo Zhang <mycinbrin@gmail.com>", "Haoyu LIN <chris.haoyul@gmail.com>" ]
 description = "Library for working with circom circuits in plonk proof system"
 homepage = "https://github.com/Fluidex/plonkit"
