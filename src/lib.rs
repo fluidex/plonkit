@@ -16,6 +16,8 @@ pub mod r1cs_file;
 pub mod reader;
 pub mod transpile;
 pub mod utils;
+
+#[cfg(feature = "server")]
 pub mod pb {
     tonic::include_proto!("plonkitserver");
 }

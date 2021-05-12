@@ -11,9 +11,11 @@ use std::str;
 use bellman_ce::pairing::bn256::Bn256;
 
 use plonkit::circom_circuit::CircomCircuit;
-use plonkit::pb;
 use plonkit::plonk;
 use plonkit::reader;
+
+#[cfg(feature = "server")]
+use plonkit::pb;
 
 #[cfg(feature = "server")]
 mod server;
