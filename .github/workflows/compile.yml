@@ -13,7 +13,7 @@ on:
       - release/*
 
 jobs:
-  integration-test:
+  compile:
     runs-on: ubuntu-latest
     # env:
     #   RUST_LOG: "info"
