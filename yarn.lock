@@ -1242,9 +1242,9 @@ supports-color@^7.1.0:
     has-flag "^4.0.0"
 
 systeminformation@^5.6.10:
-  version "5.6.20"
-  resolved "https://registry.yarnpkg.com/systeminformation/-/systeminformation-5.6.20.tgz#f4a5a09820c6f5b8f9f10f15269e4dfeded51620"
-  integrity sha512-rSnsnnY5Xtl7avVb8ebuSiEWtissFGyWN+5HufmLHKlmS60SDOU5V4YBr69Bx7jSiievXH9B6x6SGnoqtA2mgQ==
+  version "5.6.21"
+  resolved "https://registry.yarnpkg.com/systeminformation/-/systeminformation-5.6.21.tgz#02ec2272392fa2658d703431726cd25b0c493f29"
+  integrity sha512-9OaqZfyYBn37yTWof+bQqGbFyPjJua9a3+6w6iHHCPyYc0N59sscGaQn5lFosiP/CY4IgR+i5ZpDW/XJNbjV4Q==
 
 timed-out@^4.0.1:
   version "4.0.1"
@@ -1291,10 +1291,10 @@ type-detect@^4.0.0, type-detect@^4.0.5:
   resolved "https://registry.yarnpkg.com/type-detect/-/type-detect-4.0.8.tgz#7646fb5f18871cfbb7749e69bd39a6388eb7450c"
   integrity sha512-0fr/mIH1dlO+x7TlcMy+bIDqKPsw/70tVyeHW787goQjhmqaZe10uwLujubK9q9Lg6Fiho1KUKDYz0Z7k7g5/g==
 
-underscore@1.9.1:
-  version "1.9.1"
-  resolved "https://registry.yarnpkg.com/underscore/-/underscore-1.9.1.tgz#06dce34a0e68a7babc29b365b8e74b8925203961"
-  integrity sha512-5/4etnCkd9c8gwgowi5/om/mYO5ajCaOgdzj/oW+0eQV9WxKBDZw5+ycmKmeaTXjInS/W0BzpGLo2xR2aBwZdg==
+underscore@1.12.1:
+  version "1.12.1"
+  resolved "https://registry.yarnpkg.com/underscore/-/underscore-1.12.1.tgz#7bb8cc9b3d397e201cf8553336d262544ead829e"
+  integrity sha512-hEQt0+ZLDVUMhebKxL4x1BTtDY7bavVofhZ9KZ4aI26X9SRaE+Y3m83XUL1UP2jn8ynjndwCCpEHdUG+9pP1Tw==
 
 url-set-query@^1.0.0:
   version "1.0.0"
@@ -1353,9 +1353,9 @@ web-worker@^1.0.0:
   integrity sha512-BzuMqeKVkKKwHV6tJuwePFcxYMxvC97D448mXTgh/CxXAB4sRtoV26gRPN+JDxsXRR7QZyioMV9O6NzQaASf7Q==
 
 web3-utils@^1.3.0:
-  version "1.3.5"
-  resolved "https://registry.yarnpkg.com/web3-utils/-/web3-utils-1.3.5.tgz#14ee2ff1a7a226867698d6eaffd21aa97aed422e"
-  integrity sha512-5apMRm8ElYjI/92GHqijmaLC+s+d5lgjpjHft+rJSs/dsnX8I8tQreqev0dmU+wzU+2EEe4Sx9a/OwGWHhQv3A==
+  version "1.3.6"
+  resolved "https://registry.yarnpkg.com/web3-utils/-/web3-utils-1.3.6.tgz#390bc9fa3a7179746963cfaca55bb80ac4d8dc10"
+  integrity sha512-hHatFaQpkQgjGVER17gNx8u1qMyaXFZtM0y0XLGH1bzsjMPlkMPLRcYOrZ00rOPfTEuYFOdrpGOqZXVmGrMZRg==
   dependencies:
     bn.js "^4.11.9"
     eth-lib "0.2.8"
@@ -1363,7 +1363,7 @@ web3-utils@^1.3.0:
     ethjs-unit "0.1.6"
     number-to-bn "1.7.0"
     randombytes "^2.1.0"
-    underscore "1.9.1"
+    underscore "1.12.1"
     utf8 "3.0.0"
 
 which-module@^2.0.0:
