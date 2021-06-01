@@ -5,7 +5,7 @@ A zkSNARK toolkit to work with [circom](https://github.com/iden3/circom) zkSNARK
 ## Prerequisites
 + https://github.com/Fluidex/snarkit
 
-## Features & Todos
+## Features
 
  + [x] Proof Generation
  + [x] Verification key generation
