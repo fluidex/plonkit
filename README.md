@@ -15,7 +15,7 @@ A zkSNARK toolkit to work with [circom](https://github.com/iden3/circom) zkSNARK
 
 ## Usage examples
 
-The script [test_poseidon_plonk.sh](https://github.com/Fluidex/plonkit/blob/master/test_poseidon_plonk.sh) gives an end-to-end example using `plonkit` to setup circuits / generate proving keys and validation keys / prove circuits / validate proof in Solidity.
+The script [test_poseidon_plonk.sh](./test/test_poseidon_plonk.sh) gives an end-to-end example using `plonkit` to setup circuits / generate proving keys and validation keys / prove circuits / validate proof in Solidity.
 
 You can also follow the step-by-step commands below.
 
