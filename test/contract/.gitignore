@@ -1,0 +1,6 @@
+artifacts/
+cache/
+contracts/verifier.sol
+test/data/proof.json
+test/data/public.json
+
