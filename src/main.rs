@@ -149,6 +149,9 @@ struct GenerateVerifierOpts {
     /// Output solidity file
     #[clap(short = "s", long = "sol", default_value = "verifier.sol")]
     sol: String,
+    /// Solidity template file
+    #[clap(short = "t", long = "template")]
+    tpl: Option<String>,
 }
 
 /// A subcommand for exporting verifying keys
@@ -395,7 +398,14 @@ fn generate_verifier(opts: GenerateVerifierOpts) {
     cfg_if::cfg_if! {
         if #[cfg(feature = "solidity")] {
             let vk = reader::load_verification_key::<Bn256>(&opts.vk);
-            bellman_vk_codegen::render_verification_key_from_default_template(&vk, &opts.sol);
+            match opts.tpl {
+                Some(tpl) => {
+                    bellman_vk_codegen::render_verification_key(&vk, &tpl, &opts.sol);
+                },
+                None => {
+                    bellman_vk_codegen::render_verification_key_from_default_template(&vk, &opts.sol);
+                }
+            }
             log::info!("Contract saved to {}", opts.sol);
         } else {
             unimplemented!("you must enable `solidity` feature flag");

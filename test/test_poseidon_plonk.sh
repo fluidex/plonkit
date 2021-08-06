@@ -55,7 +55,7 @@ echo "Step4: export verification key"
 $PLONKIT_BIN export-verification-key -m $SETUP_MK -c $CIRCUIT_DIR/circuit.r1cs -v $CIRCUIT_DIR/vk.bin
 
 echo "Step5: generate verifier smart contract"
-$PLONKIT_BIN generate-verifier -v $CIRCUIT_DIR/vk.bin -s $CIRCUIT_DIR/verifier.sol
+$PLONKIT_BIN generate-verifier -v $CIRCUIT_DIR/vk.bin -s $CIRCUIT_DIR/verifier.sol #-t contrib/template.sol
 
 if [ "$DUMP_LAGRANGE_KEY" = false ]; then
   echo "Step6: prove with key_monomial_form"
