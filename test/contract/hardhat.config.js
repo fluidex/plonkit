@@ -2,7 +2,7 @@ require("@nomiclabs/hardhat-waffle");
 require("hardhat-gas-reporter");
 module.exports = {
   solidity: {
-    version: "0.6.7",
+    version: "0.8.4",
     settings: {
       optimizer: {
         enabled: true,
