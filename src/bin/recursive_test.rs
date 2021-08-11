@@ -31,7 +31,6 @@ fn main() {
     let rns_params = RnsParameters::<Bn256, <Bn256 as Engine>::Fq>::new_for_field(68, 110, 4);
     let rescue_params = Bn256RescueParams::new_checked_2_into_1();
 
-
     let worker = Worker::new();
     let crs_mons = Crs::<Bn256, CrsForMonomialForm>::crs_42(1 << 20, &worker);
 
@@ -50,9 +49,8 @@ fn main() {
     let proof_ids = vec![1, 0];
 
     let mut queries = vec![];
-    for idx in 0..2 {
-        let proof_id = proof_ids[idx];
-        let vk = &vks_in_tree[proof_id];
+    for proof_id in &proof_ids {
+        let vk = &vks_in_tree[*proof_id];
 
         let leaf_values = vk.into_witness_for_params(&rns_params).expect("must transform into limbed witness");
 
@@ -88,15 +86,15 @@ fn main() {
     let recursive_circuit =
             //RecursiveAggregationCircuit::<Bn256, PlonkCsWidth4WithNextStepParams, WrapperUnchecked<Bn256>, _, RescueChannelGadget<Bn256>> {
                 RecursiveAggregationCircuitBn256 {
-                num_proofs_to_check: num_proofs_to_check,
-                num_inputs: num_inputs,
+                num_proofs_to_check,
+                num_inputs,
                 vk_tree_depth: tree_depth,
                 vk_root: Some(vks_tree_root),
 
-                vk_witnesses: Some(vec![vk.clone(), vk.clone()]),
+                vk_witnesses: Some(vec![vk.clone(), vk]),
                 vk_auth_paths: Some(queries),
                 proof_ids: Some(proof_ids),
-                proofs: Some(vec![proof1.clone(), proof2.clone()]),
+                proofs: Some(vec![proof1, proof2]),
 
                 rescue_params: &rescue_params,
                 rns_params: &rns_params,

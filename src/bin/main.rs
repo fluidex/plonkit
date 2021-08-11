@@ -309,7 +309,8 @@ fn serve(opts: ServerOpts) {
                 }
             } else {
                 let start = std::time::Instant::now();
-                match setup.prove(circut) {
+                // TODO: use correct transcript
+                match setup.prove(circut, "keccak") {
                     Ok(proof) => {
                         let elapsed = start.elapsed().as_secs_f64();
 
