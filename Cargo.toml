@@ -13,11 +13,17 @@ crate-type = [ "cdylib", "lib" ]
 
 [[bin]]
 name = "plonkit"
-path = "src/main.rs"
+path = "src/bin/main.rs"
+
+[[bin]]
+name = "plonkit_recursive_test"
+path = "src/bin/recursive_test.rs"
 
 [dependencies]
 anyhow = "1.0.34"
 bellman_ce = { git = "https://github.com/matter-labs/bellman", branch = "beta", default-features = false, features = [ "plonk" ] } # active features depend on build type
+recursive_aggregation_circuit = { package = "recursive_aggregation_circuit", version = "1.0.0", git = "https://github.com/matter-labs/recursive_aggregation_circuit.git", branch="master"}
+franklin-crypto = {git = "https://github.com/matter-labs/franklin-crypto", branch = "beta", features = ["multicore", "plonk"]}
 bellman_vk_codegen = { git = "https://github.com/fluidex/solidity_plonk_verifier.git" }
 byteorder = "1"
 cfg-if = "1.0.0"
