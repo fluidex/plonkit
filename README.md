@@ -3,7 +3,7 @@
 A zkSNARK toolkit to work with [circom](https://github.com/iden3/circom) zkSNARKs DSL in [plonk](https://eprint.iacr.org/2019/953) proof system. Based on [zkutil](https://github.com/poma/zkutil) and [bellman_ce](https://github.com/matter-labs/bellman).
 
 ## Prerequisites
-+ https://github.com/Fluidex/snarkit
++ https://github.com/fluidex/snarkit
 
 ## Features
 
@@ -126,14 +126,14 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 Install plonkit globally
 
 ```shell script
-cargo install --git https://github.com/Fluidex/plonkit
+cargo install --git https://github.com/fluidex/plonkit
 # Make sure `~/.cargo/bin` is in $PATH (should be added automatically during Rust installation)
 ```
 
 Or alternatively you can compile and run it instead:
 
 ```shell script
-git clone https://github.com/Fluidex/plonkit
+git clone https://github.com/fluidex/plonkit
 cd plonkit
 cargo run --release -- prove --help
 ```
