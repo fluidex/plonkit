@@ -35,7 +35,7 @@ yarn install
 
 echo "Step1: build plonkit binary"
 cargo build --release
-#cargo install --git https://github.com/Fluidex/plonkit
+#cargo install --git https://github.com/fluidex/plonkit
 #$PLONKIT_BIN --help
 
 echo "Step2: universal setup"

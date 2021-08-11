@@ -8,14 +8,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Fluidex/plonkit.git"
+    "url": "git+https://github.com/fluidex/plonkit.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/Fluidex/plonkit/issues"
+    "url": "https://github.com/fluidex/plonkit/issues"
   },
-  "homepage": "https://github.com/Fluidex/plonkit",
+  "homepage": "https://github.com/fluidex/plonkit",
   "dependencies": {
     "circomlib": "^0.5.1",
     "snarkit": "^0.0.4"
