@@ -18,7 +18,7 @@ use plonkit::reader;
 use plonkit::pb;
 
 #[cfg(feature = "server")]
-mod server;
+use plonkit::server;
 
 //static TEMPLATE_PATH: &str = "./contrib/template.sol";
 
@@ -127,6 +127,8 @@ struct ProveOpts {
     /// Output file for public input json
     #[clap(short = "i", long = "publicjson", default_value = "public.json")]
     publicjson: String,
+    #[clap(short = "t", long = "transcript", default_value = "keccak")]
+    transcript: String,
 }
 
 /// A subcommand for verifying a SNARK proof
@@ -138,6 +140,8 @@ struct VerifyOpts {
     /// Verification key file
     #[clap(short = "v", long = "verification_key", default_value = "vk.bin")]
     vk: String,
+    #[clap(short = "t", long = "transcript", default_value = "keccak")]
+    transcript: String,
 }
 
 /// A subcommand for generating a Solidity verifier smart contract
@@ -231,7 +235,7 @@ fn analyse(opts: AnalyseOpts) {
 }
 
 fn setup(opts: SetupOpts) {
-    let srs = plonk::gen_key_monomial_form::<Bn256>(opts.power).unwrap();
+    let srs = plonk::gen_key_monomial_form(opts.power).unwrap();
     let writer = File::create(&opts.srs_monomial_form).unwrap();
     srs.write(writer).unwrap();
     log::info!("srs_monomial_form saved to {}", opts.srs_monomial_form);
@@ -364,7 +368,7 @@ fn prove(opts: ProveOpts) {
     .expect("prepare err");
 
     log::info!("Proving...");
-    let proof = setup.prove(circuit).unwrap();
+    let proof = setup.prove(circuit, &opts.transcript).unwrap();
     let writer = File::create(&opts.proof).unwrap();
     proof.write(writer).unwrap();
     log::info!("Proof saved to {}", opts.proof);
@@ -384,8 +388,9 @@ fn prove(opts: ProveOpts) {
 
 fn verify(opts: VerifyOpts) {
     let vk = reader::load_verification_key::<Bn256>(&opts.vk);
+
     let proof = reader::load_proof::<Bn256>(&opts.proof);
-    let correct = plonk::verify(&vk, &proof).unwrap();
+    let correct = plonk::verify(&vk, &proof, &opts.transcript).unwrap();
     if correct {
         log::info!("Proof is valid.");
     } else {
