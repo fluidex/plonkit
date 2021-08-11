@@ -3,9 +3,9 @@ name = "plonkit"
 version = "0.1.3"
 authors = [ "Roman Semenov <semenov.roma@gmail.com>", "Zhuo Zhang <mycinbrin@gmail.com>", "Haoyu LIN <chris.haoyul@gmail.com>" ]
 description = "Library for working with circom circuits in plonk proof system"
-homepage = "https://github.com/Fluidex/plonkit"
+homepage = "https://github.com/fluidex/plonkit"
 license = "MIT"
-repository = "https://github.com/Fluidex/plonkit"
+repository = "https://github.com/fluidex/plonkit"
 edition = "2018"
 
 [lib]
@@ -18,7 +18,7 @@ path = "src/main.rs"
 [dependencies]
 anyhow = "1.0.34"
 bellman_ce = { git = "https://github.com/matter-labs/bellman", branch = "beta", default-features = false, features = [ "plonk" ] } # active features depend on build type
-bellman_vk_codegen = { git = "https://github.com/Fluidex/solidity_plonk_verifier.git" }
+bellman_vk_codegen = { git = "https://github.com/fluidex/solidity_plonk_verifier.git" }
 byteorder = "1"
 cfg-if = "1.0.0"
 clap = { package = "clap-v3", version = "3.0.0-beta.1" } # todo: replace with official v3 when it's released to crates.io

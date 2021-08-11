@@ -138,7 +138,7 @@ dependencies = [
 [[package]]
 name = "bellman_vk_codegen"
 version = "0.2.0"
-source = "git+https://github.com/Fluidex/solidity_plonk_verifier.git#d5dd215cdd152b2c7b6c56b01912bdcceed7df51"
+source = "git+https://github.com/fluidex/solidity_plonk_verifier.git#d5dd215cdd152b2c7b6c56b01912bdcceed7df51"
 dependencies = [
  "bellman_ce",
  "handlebars",
