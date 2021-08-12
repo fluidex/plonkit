@@ -475,8 +475,7 @@ fn recursive_prove(opts: RecursiveProveOpts) {
 fn recursive_verify(opts: RecursiveVerifyOpts) {
     let vk = reader::load_verification_key::<Bn256>(&opts.vk);
     let proof = reader::load_proof::<Bn256>(&opts.proof);
-    let correct = recursive::verify::<_, _, RollingKeccakTranscript<<Bn256 as ScalarEngine>::Fr>>(&vk, &proof, None)
-        .expect("fail to verify recursive proof");
+    let correct = recursive::verify(&vk, &proof).expect("fail to verify recursive proof");
     if correct {
         log::info!("Proof is valid.");
     } else {
