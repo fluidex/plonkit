@@ -13,10 +13,10 @@ use bellman_ce::pairing::bn256::Bn256;
 use plonkit::circom_circuit::CircomCircuit;
 use plonkit::plonk;
 use plonkit::reader;
+use plonkit::recursive;
 
 #[cfg(feature = "server")]
 use plonkit::pb;
-
 #[cfg(feature = "server")]
 use plonkit::server;
 
@@ -180,12 +180,17 @@ struct ExportVerificationKeyOpts {
 
 /// A subcommand for aggregating multiple proofs
 #[derive(Clap)]
-struct RecursiveProveOpts {
-}
+struct RecursiveProveOpts {}
 
 /// A subcommand for verifying recursive proof
 #[derive(Clap)]
 struct RecursiveVerifyOpts {
+    /// Proof BIN file
+    #[clap(short = "p", long = "proof", default_value = "proof.bin")]
+    proof: String,
+    /// Verification key file
+    #[clap(short = "v", long = "verification_key", default_value = "vk.bin")]
+    vk: String,
 }
 
 fn main() {
@@ -414,7 +419,7 @@ fn verify(opts: VerifyOpts) {
     let vk = reader::load_verification_key::<Bn256>(&opts.vk);
 
     let proof = reader::load_proof::<Bn256>(&opts.proof);
-    let correct = plonk::verify(&vk, &proof, &opts.transcript).unwrap();
+    let correct = plonk::verify(&vk, &proof, &opts.transcript).expect("fail to verify proof");
     if correct {
         log::info!("Proof is valid.");
     } else {
@@ -468,5 +473,14 @@ fn recursive_prove(opts: RecursiveProveOpts) {
 }
 
 fn recursive_verify(opts: RecursiveVerifyOpts) {
-    unimplemented!()
+    let vk = reader::load_verification_key::<Bn256>(&opts.vk);
+    let proof = reader::load_proof::<Bn256>(&opts.proof);
+    let correct = recursive::verify::<_, _, RollingKeccakTranscript<<Bn256 as ScalarEngine>::Fr>>(&vk, &proof, None)
+        .expect("fail to verify recursive proof");
+    if correct {
+        log::info!("Proof is valid.");
+    } else {
+        log::info!("Proof is invalid!");
+        std::process::exit(400);
+    }
 }
