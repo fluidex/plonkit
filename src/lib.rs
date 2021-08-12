@@ -16,6 +16,7 @@ pub mod r1cs_file;
 pub mod reader;
 pub mod transpile;
 pub mod utils;
+pub mod recursive;
 
 #[cfg(feature = "server")]
 pub mod server;

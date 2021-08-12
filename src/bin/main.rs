@@ -49,7 +49,9 @@ enum SubCommand {
     /// Export verifying key
     ExportVerificationKey(ExportVerificationKeyOpts),
     /// Aggregate multiple proofs
-    RecurseProve(RecurseProveOpts),
+    RecursiveProve(RecursiveProveOpts),
+    /// Verifying recursive proof
+    RecursiveVerify(RecursiveVerifyOpts),
 }
 
 /// A subcommand for analysing the circuit and outputting some stats
@@ -175,9 +177,15 @@ struct ExportVerificationKeyOpts {
     #[clap(short = "v", long = "vk", default_value = "vk.bin")]
     vk: String,
 }
+
 /// A subcommand for aggregating multiple proofs
 #[derive(Clap)]
-struct RecurseProveOpts {
+struct RecursiveProveOpts {
+}
+
+/// A subcommand for verifying recursive proof
+#[derive(Clap)]
+struct RecursiveVerifyOpts {
 }
 
 fn main() {
@@ -219,8 +227,11 @@ fn main() {
         SubCommand::ExportVerificationKey(o) => {
             export_vk(o);
         }
-        SubCommand::RecurseProve(o) => {
-            recurse_prove(o);
+        SubCommand::RecursiveProve(o) => {
+            recursive_prove(o);
+        }
+        SubCommand::RecursiveVerify(o) => {
+            recursive_verify(o);
         }
     }
 }
@@ -452,6 +463,10 @@ fn export_vk(opts: ExportVerificationKeyOpts) {
     log::info!("Verification key saved to {}", opts.vk);
 }
 
-fn recurse_prove(opts: RecurseProveOpts) {
+fn recursive_prove(opts: RecursiveProveOpts) {
+    unimplemented!()
+}
+
+fn recursive_verify(opts: RecursiveVerifyOpts) {
     unimplemented!()
 }
