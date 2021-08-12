@@ -39,7 +39,7 @@ pub fn gen_key_monomial_form(power: u32) -> Result<Crs<E, CrsForMonomialForm>, a
         Crs::<E, CrsForMonomialForm>::crs_42(1 << small_power, &Worker::new());
         let elapsed = t.elapsed().as_secs_f64();
         let estimated_time = elapsed * (1 << (power - small_power)) as f64;
-        println!("estimated run time: {} secs", estimated_time);
+        log::info!("estimated run time: {} secs", estimated_time);
     }
     Ok(Crs::<E, CrsForMonomialForm>::crs_42(1 << power, &Worker::new()))
 }

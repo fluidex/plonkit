@@ -16,7 +16,6 @@ use plonkit::reader;
 
 #[cfg(feature = "server")]
 use plonkit::pb;
-
 #[cfg(feature = "server")]
 use plonkit::server;
 
@@ -345,11 +344,12 @@ fn serve(opts: ServerOpts) {
 #[cfg(not(feature = "server"))]
 fn serve(opts: ServerOpts) {
     log::info!(
-        "Binary is not built with server feature: {:?}, {:?}, {:?}, {}",
+        "Binary is not built with server feature: {:?}, {:?}, {:?}, {}, {:?}",
         opts.srv_addr,
         opts.circuit,
         opts.srs_lagrange_form,
-        opts.srs_monomial_form
+        opts.srs_monomial_form,
+        opts.transcript
     );
 }
 
@@ -393,7 +393,7 @@ fn verify(opts: VerifyOpts) {
     let vk = reader::load_verification_key::<Bn256>(&opts.vk);
 
     let proof = reader::load_proof::<Bn256>(&opts.proof);
-    let correct = plonk::verify(&vk, &proof, &opts.transcript).unwrap();
+    let correct = plonk::verify(&vk, &proof, &opts.transcript).expect("fail to verify proof");
     if correct {
         log::info!("Proof is valid.");
     } else {
