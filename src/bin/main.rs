@@ -473,8 +473,8 @@ fn recursive_prove(opts: RecursiveProveOpts) {
 }
 
 fn recursive_verify(opts: RecursiveVerifyOpts) {
-    let vk = reader::load_recursive_verification_key::<Bn256>(&opts.vk);
-    let proof = reader::load_recursive_proof::<Bn256>(&opts.proof);
+    let vk = reader::load_recursive_verification_key(&opts.vk);
+    let proof = reader::load_recursive_proof(&opts.proof);
     let correct = recursive::verify(&vk, &proof).expect("fail to verify recursive proof");
     if correct {
         log::info!("Proof is valid.");

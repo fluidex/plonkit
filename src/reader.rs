@@ -30,8 +30,8 @@ pub fn load_proof<E: Engine>(filename: &str) -> Proof<E, PlonkCsWidth4WithNextSt
     Proof::<E, PlonkCsWidth4WithNextStepParams>::read(File::open(filename).expect("read proof file err")).expect("read proof err")
 }
 
-pub fn load_recursive_proof<E: Engine>(filename: &str) -> RecursiveProof<E, RecursiveAggregationCircuitBn256> {
-    RecursiveProof::<E, RecursiveAggregationCircuitBn256>::read(File::open(filename).expect("read proof file err")).expect("read proof err")
+pub fn load_recursive_proof(filename: &str) -> RecursiveProof<Bn256, RecursiveAggregationCircuitBn256> {
+    RecursiveProof::<Bn256, RecursiveAggregationCircuitBn256>::read(File::open(filename).expect("read proof file err")).expect("read proof err")
 }
 
 ///
@@ -43,9 +43,9 @@ pub fn load_verification_key<E: Engine>(filename: &str) -> VerificationKey<E, Pl
     VerificationKey::<E, PlonkCsWidth4WithNextStepParams>::read(&mut reader).expect("read vk err")
 }
 
-pub fn load_recursive_verification_key<E: Engine>(filename: &str) -> RecursiveVerificationKey<E, RecursiveAggregationCircuitBn256> {
+pub fn load_recursive_verification_key(filename: &str) -> RecursiveVerificationKey<Bn256, RecursiveAggregationCircuitBn256> {
     let mut reader = std::io::BufReader::with_capacity(1 << 24, File::open(filename).expect("read vk file err"));
-    RecursiveVerificationKey::<E, RecursiveAggregationCircuitBn256>::read(&mut reader).expect("read vk err")
+    RecursiveVerificationKey::<Bn256, RecursiveAggregationCircuitBn256>::read(&mut reader).expect("read vk err")
 }
 
 ///
