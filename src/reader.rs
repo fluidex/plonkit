@@ -31,7 +31,7 @@ pub fn load_proof<E: Engine>(filename: &str) -> Proof<E, PlonkCsWidth4WithNextSt
 }
 
 pub fn load_recursive_proof(filename: &str) -> RecursiveProof<Bn256, RecursiveAggregationCircuitBn256> {
-    RecursiveProof::<Bn256, RecursiveAggregationCircuitBn256>::read(File::open(filename).expect("read proof file err")).expect("read proof err")
+    RecursiveProof::<Bn256, RecursiveAggregationCircuitBn256>::read(File::open(filename).expect("read recursive proof file err")).expect("read recursive proof err")
 }
 
 ///
@@ -44,8 +44,8 @@ pub fn load_verification_key<E: Engine>(filename: &str) -> VerificationKey<E, Pl
 }
 
 pub fn load_recursive_verification_key(filename: &str) -> RecursiveVerificationKey<Bn256, RecursiveAggregationCircuitBn256> {
-    let mut reader = std::io::BufReader::with_capacity(1 << 24, File::open(filename).expect("read vk file err"));
-    RecursiveVerificationKey::<Bn256, RecursiveAggregationCircuitBn256>::read(&mut reader).expect("read vk err")
+    let mut reader = std::io::BufReader::with_capacity(1 << 24, File::open(filename).expect("read recursive vk file err"));
+    RecursiveVerificationKey::<Bn256, RecursiveAggregationCircuitBn256>::read(&mut reader).expect("read recursive vk err")
 }
 
 ///
