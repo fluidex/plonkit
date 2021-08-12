@@ -48,6 +48,8 @@ enum SubCommand {
     GenerateVerifier(GenerateVerifierOpts),
     /// Export verifying key
     ExportVerificationKey(ExportVerificationKeyOpts),
+    /// Aggregate multiple proofs
+    RecurseProve(RecurseProveOpts),
 }
 
 /// A subcommand for analysing the circuit and outputting some stats
@@ -172,6 +174,10 @@ struct ExportVerificationKeyOpts {
     /// Output verifying key file
     #[clap(short = "v", long = "vk", default_value = "vk.bin")]
     vk: String,
+}
+/// A subcommand for aggregating multiple proofs
+#[derive(Clap)]
+struct RecurseProveOpts {
 }
 
 fn main() {
