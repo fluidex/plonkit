@@ -219,6 +219,9 @@ fn main() {
         SubCommand::ExportVerificationKey(o) => {
             export_vk(o);
         }
+        SubCommand::RecurseProve(o) => {
+            recurse_prove(o);
+        }
     }
 }
 
@@ -351,11 +354,12 @@ fn serve(opts: ServerOpts) {
 #[cfg(not(feature = "server"))]
 fn serve(opts: ServerOpts) {
     log::info!(
-        "Binary is not built with server feature: {:?}, {:?}, {:?}, {}",
+        "Binary is not built with server feature: {:?}, {:?}, {:?}, {}, {:?}",
         opts.srv_addr,
         opts.circuit,
         opts.srs_lagrange_form,
-        opts.srs_monomial_form
+        opts.srs_monomial_form,
+        opts.transcript
     );
 }
 
@@ -446,4 +450,8 @@ fn export_vk(opts: ExportVerificationKeyOpts) {
     let writer = File::create(&opts.vk).unwrap();
     vk.write(writer).unwrap();
     log::info!("Verification key saved to {}", opts.vk);
+}
+
+fn recurse_prove(opts: RecurseProveOpts) {
+    unimplemented!()
 }
