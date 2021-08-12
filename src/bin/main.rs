@@ -180,15 +180,19 @@ struct ExportVerificationKeyOpts {
 
 /// A subcommand for aggregating multiple proofs
 #[derive(Clap)]
-struct RecursiveProveOpts {}
+struct RecursiveProveOpts {
+    /// Output file for aggregated proof BIN
+    #[clap(short = "p", long = "proof", default_value = "proof.bin")]
+    proof: String,
+}
 
 /// A subcommand for verifying recursive proof
 #[derive(Clap)]
 struct RecursiveVerifyOpts {
-    /// Proof BIN file
+    /// Aggregated Proof BIN file
     #[clap(short = "p", long = "proof", default_value = "proof.bin")]
     proof: String,
-    /// Verification key file
+    /// Aggregation verification key file
     #[clap(short = "v", long = "verification_key", default_value = "vk.bin")]
     vk: String,
 }
