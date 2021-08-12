@@ -16,6 +16,10 @@ use bellman_ce::{
     Field, PrimeFieldRepr,
 };
 
+use franklin_crypto::bellman::plonk::better_better_cs::proof::Proof as RecursiveProof;
+use franklin_crypto::bellman::plonk::better_better_cs::setup::VerificationKey as RecursiveVerificationKey;
+use recursive_aggregation_circuit::circuit::RecursiveAggregationCircuitBn256;
+
 use crate::circom_circuit::{CircuitJson, R1CS};
 
 ///
@@ -26,6 +30,10 @@ pub fn load_proof<E: Engine>(filename: &str) -> Proof<E, PlonkCsWidth4WithNextSt
     Proof::<E, PlonkCsWidth4WithNextStepParams>::read(File::open(filename).expect("read proof file err")).expect("read proof err")
 }
 
+pub fn load_recursive_proof<E: Engine>(filename: &str) -> RecursiveProof<E, RecursiveAggregationCircuitBn256> {
+    RecursiveProof::<E, RecursiveAggregationCircuitBn256>::read(File::open(filename).expect("read proof file err")).expect("read proof err")
+}
+
 ///
 /// verification key
 ///
@@ -33,6 +41,11 @@ pub fn load_proof<E: Engine>(filename: &str) -> Proof<E, PlonkCsWidth4WithNextSt
 pub fn load_verification_key<E: Engine>(filename: &str) -> VerificationKey<E, PlonkCsWidth4WithNextStepParams> {
     let mut reader = std::io::BufReader::with_capacity(1 << 24, File::open(filename).expect("read vk file err"));
     VerificationKey::<E, PlonkCsWidth4WithNextStepParams>::read(&mut reader).expect("read vk err")
+}
+
+pub fn load_recursive_verification_key<E: Engine>(filename: &str) -> RecursiveVerificationKey<E, RecursiveAggregationCircuitBn256> {
+    let mut reader = std::io::BufReader::with_capacity(1 << 24, File::open(filename).expect("read vk file err"));
+    RecursiveVerificationKey::<E, RecursiveAggregationCircuitBn256>::read(&mut reader).expect("read vk err")
 }
 
 ///
