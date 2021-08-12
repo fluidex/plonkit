@@ -101,6 +101,8 @@ struct ServerOpts {
     /// Circuit R1CS or JSON file [default: circuit.r1cs|circuit.json]
     #[clap(short = "c", long = "circuit")]
     circuit: Option<String>,
+    #[clap(short = "t", long = "transcript", default_value = "keccak")]
+    transcript: String,
 }
 
 /// A subcommand for generating a SNARK proof
@@ -286,6 +288,7 @@ fn serve(opts: ServerOpts) {
 
     let srs_monomial_form = opts.srs_monomial_form;
     let srs_lagrange_form = opts.srs_lagrange_form;
+    let transcript = opts.transcript;
 
     let builder = move || -> server::ServerCore {
         let setup = plonk::SetupForProver::prepare_setup_for_prover(
@@ -309,8 +312,7 @@ fn serve(opts: ServerOpts) {
                 }
             } else {
                 let start = std::time::Instant::now();
-                // TODO: use correct transcript
-                match setup.prove(circut, "keccak") {
+                match setup.prove(circut, &transcript) {
                     Ok(proof) => {
                         let elapsed = start.elapsed().as_secs_f64();
 
