@@ -24,11 +24,11 @@ use recursive_aggregation_circuit::circuit::{
     RecursiveAggregationCircuitBn256,
 };
 
-pub fn make_circuit(
+pub fn make_circuit_and_setup(
     crs: Crs<Bn256, CrsForMonomialForm>,
     old_proofs: Vec<OldProof<Bn256, PlonkCsWidth4WithNextStepParams>>,
     old_vk: OldVerificationKey<Bn256, PlonkCsWidth4WithNextStepParams>,
-) {
+) -> Result<(Setup<Bn256, RecursiveAggregationCircuitBn256<'static>>), SynthesisError> {
     let num_proofs_to_check = old_proofs.len();
     assert!(num_proofs_to_check > 0);
     let num_inputs = old_proofs[0].num_inputs;
@@ -45,6 +45,7 @@ pub fn make_circuit(
     let aux_data = BN256AuxData::new();
 
     // TODO: should fill in tree?
+    // TODO: use make_vks_tree?
     let vks = old_proofs.iter().map(|_| old_vk.clone()).collect_vec();
 
     // // TODO: what's the outer?
@@ -69,21 +70,26 @@ pub fn make_circuit(
 
     //         _m: std::marker::PhantomData,
     // };
+
+    let vk_tree_depth = 8; // TODO: config?
+    let setup = create_recursive_circuit_setup(num_proofs_to_check, num_inputs, vk_tree_depth)?;
+    Ok((setup))
 }
 
 // TODO: remove lifetime?
-pub fn setup<'a>(
-    old_proofs: Vec<OldProof<Bn256, PlonkCsWidth4WithNextStepParams>>,
-) -> Result<Setup<Bn256, RecursiveAggregationCircuitBn256<'a>>, SynthesisError> {
-    let num_proofs_to_check = old_proofs.len();
-    assert!(num_proofs_to_check > 0);
-    let num_inputs = old_proofs[0].num_inputs;
-    for p in &old_proofs {
-        assert!(p.num_inputs == num_inputs, "proofs num_inputs mismatch!");
-    }
-    let vk_tree_depth = 8; // TODO: config?
-    create_recursive_circuit_setup(num_proofs_to_check, num_inputs, vk_tree_depth)
-}
+// TODO: I don't think this function is necessary
+// pub fn setup<'a>(
+//     old_proofs: Vec<OldProof<Bn256, PlonkCsWidth4WithNextStepParams>>,
+// ) -> Result<Setup<Bn256, RecursiveAggregationCircuitBn256<'a>>, SynthesisError> {
+//     let num_proofs_to_check = old_proofs.len();
+//     assert!(num_proofs_to_check > 0);
+//     let num_inputs = old_proofs[0].num_inputs;
+//     for p in &old_proofs {
+//         assert!(p.num_inputs == num_inputs, "proofs num_inputs mismatch!");
+//     }
+//     let vk_tree_depth = 8; // TODO: config?
+//     create_recursive_circuit_setup(num_proofs_to_check, num_inputs, vk_tree_depth)
+// }
 
 pub fn verify(
     vk: &VerificationKey<Bn256, RecursiveAggregationCircuitBn256>,
