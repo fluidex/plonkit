@@ -61,7 +61,7 @@ pub fn prove(
     let circuit = RecursiveAggregationCircuitBn256 {
         num_proofs_to_check,
         num_inputs,
-        // vk_tree_depth: tree_depth,
+        vk_tree_depth: VK_TREE_DEPTH,
         // vk_root: Some(vks_tree_root),
         vk_witnesses: Some(vks),
         // vk_auth_paths: Some(queries),
