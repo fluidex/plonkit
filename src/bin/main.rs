@@ -518,9 +518,9 @@ fn export_recursive_vk(opts: ExportRecursiveVerificationKeyOpts) {
 
 fn recursive_prove(opts: RecursiveProveOpts) {
     let old_proofs = reader::load_proofs::<Bn256>(&opts.old_proofs_dir);
-    let circuit = recursive::make_circuit(old_proofs);
+    // let circuit = recursive::make_circuit(old_proofs);
 
-    unimplemented!()
+    // unimplemented!()
 }
 
 fn recursive_verify(opts: RecursiveVerifyOpts) {

@@ -19,29 +19,29 @@ use recursive_aggregation_circuit::circuit::{
 };
 
 pub fn make_circuit(proofs: Vec<OldProof<Bn256, PlonkCsWidth4WithNextStepParams>>) {
-    let recursive_circuit =
-    // WIP
-    //RecursiveAggregationCircuit::<Bn256, PlonkCsWidth4WithNextStepParams, WrapperUnchecked<Bn256>, _, RescueChannelGadget<Bn256>> {
-        RecursiveAggregationCircuitBn256 {
-        num_proofs_to_check,
-        num_inputs,
-        vk_tree_depth: tree_depth,
-        vk_root: Some(vks_tree_root),
+    // let recursive_circuit =
+    // // WIP
+    // //RecursiveAggregationCircuit::<Bn256, PlonkCsWidth4WithNextStepParams, WrapperUnchecked<Bn256>, _, RescueChannelGadget<Bn256>> {
+    //     RecursiveAggregationCircuitBn256 {
+    //     num_proofs_to_check,
+    //     num_inputs,
+    //     vk_tree_depth: tree_depth,
+    //     vk_root: Some(vks_tree_root),
 
-        vk_witnesses: Some(vec![vk.clone(), vk]),
-        vk_auth_paths: Some(queries),
-        proof_ids: Some(proof_ids),
-        proofs: Some(vec![proof1, proof2]),
+    //     vk_witnesses: Some(vec![vk.clone(), vk]),
+    //     vk_auth_paths: Some(queries),
+    //     proof_ids: Some(proof_ids),
+    //     proofs: Some(vec![proof1, proof2]),
 
-        rescue_params: &rescue_params,
-        rns_params: &rns_params,
-        aux_data,
-        transcript_params: &rescue_params,
+    //     rescue_params: &rescue_params,
+    //     rns_params: &rns_params,
+    //     aux_data,
+    //     transcript_params: &rescue_params,
 
-        g2_elements: Some(g2_bases),
+    //     g2_elements: Some(g2_bases),
 
-        _m: std::marker::PhantomData,
-    };
+    //     _m: std::marker::PhantomData,
+    // };
 }
 
 pub fn verify(

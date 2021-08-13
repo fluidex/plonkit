@@ -32,14 +32,23 @@ pub fn load_proof<E: Engine>(filename: &str) -> Proof<E, PlonkCsWidth4WithNextSt
 
 pub fn load_proofs<E: Engine>(dir: &str) -> Vec<Proof<E, PlonkCsWidth4WithNextStepParams>> {
     let mut proofs: Vec<Proof<E, PlonkCsWidth4WithNextStepParams>> = vec![];
+
     let paths = fs::read_dir(dir).unwrap();
     for path in paths {
         let filename = path.unwrap().path();
         log::info!("reading {}", filename.display());
         let p =
             Proof::<E, PlonkCsWidth4WithNextStepParams>::read(File::open(filename).expect("read proof file err")).expect("read proof err");
+        log::debug!("{:#?}", p);
         proofs.push(p);
     }
+    assert!(proofs.len() > 0, "no proof file found!");
+
+    let num_inputs = proofs[0].num_inputs;
+    for p in &proofs {
+        assert!(p.num_inputs == num_inputs, "proofs num_inputs mismatch!");
+    }
+
     proofs
 }
 
