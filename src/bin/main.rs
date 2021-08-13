@@ -196,26 +196,32 @@ struct ExportRecursiveVerificationKeyOpts {
     #[clap(short = "m", long = "srs_monomial_form")]
     srs_monomial_form: String,
     /// Output verifying key file
-    #[clap(short = "v", long = "vk", default_value = "vk.bin")]
+    #[clap(short = "v", long = "vk", default_value = "recursive_vk.bin")]
     vk: String,
 }
 
 /// A subcommand for aggregating multiple proofs
 #[derive(Clap)]
 struct RecursiveProveOpts {
+    /// Old proofs dir
+    #[clap(short = "p", long = "old_proofs_dir")]
+    old_proof: String,
+    /// Old vk
+    #[clap(short = "v", long = "old_vk", default_value = "vk.bin")]
+    old_vk: String,
     /// Output file for aggregated proof BIN
-    #[clap(short = "p", long = "proof", default_value = "proof.bin")]
-    proof: String,
+    #[clap(short = "n", long = "new_proof", default_value = "recursive_proof.bin")]
+    new_proof: String,
 }
 
 /// A subcommand for verifying recursive proof
 #[derive(Clap)]
 struct RecursiveVerifyOpts {
     /// Aggregated Proof BIN file
-    #[clap(short = "p", long = "proof", default_value = "proof.bin")]
+    #[clap(short = "p", long = "proof", default_value = "recursive_proof.bin")]
     proof: String,
     /// Aggregation verification key file
-    #[clap(short = "v", long = "verification_key", default_value = "vk.bin")]
+    #[clap(short = "v", long = "verification_key", default_value = "recursive_vk.bin")]
     vk: String,
 }
 
@@ -497,6 +503,8 @@ fn export_vk(opts: ExportVerificationKeyOpts) {
     log::info!("Verification key saved to {}", opts.vk);
 }
 
+// TODO: check tree_depth?
+// TODO: check crs big enough (2^24)?
 fn export_recursive_vk(opts: ExportRecursiveVerificationKeyOpts) {
     let crs = reader::load_key_monomial_form(&opts.srs_monomial_form);
     let vk = recursive::export_vk(opts.num_proofs_to_check, opts.num_inputs, opts.tree_depth, &crs)
