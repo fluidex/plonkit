@@ -19,13 +19,13 @@ use recursive_aggregation_circuit::circuit::{
 };
 
 pub fn make_circuit(
-    proofs: Vec<OldProof<Bn256, PlonkCsWidth4WithNextStepParams>>,
+    old_proofs: Vec<OldProof<Bn256, PlonkCsWidth4WithNextStepParams>>,
     old_vk: OldVerificationKey<Bn256, PlonkCsWidth4WithNextStepParams>,
 ) {
-    let num_proofs_to_check = proofs.len();
+    let num_proofs_to_check = old_proofs.len();
     assert!(num_proofs_to_check > 0);
-    let num_inputs = proofs[0].num_inputs;
-    for p in &proofs {
+    let num_inputs = old_proofs[0].num_inputs;
+    for p in &old_proofs {
         assert!(p.num_inputs == num_inputs, "proofs num_inputs mismatch!");
     }
 
