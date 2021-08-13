@@ -7,6 +7,7 @@ use bellman_ce::SynthesisError;
 use franklin_crypto::bellman::pairing::bn256::Bn256;
 use franklin_crypto::bellman::pairing::ff::ScalarEngine;
 use franklin_crypto::bellman::pairing::{CurveAffine, Engine};
+use franklin_crypto::plonk::circuit::verifier_circuit::data_structs::IntoLimbedWitness;
 use franklin_crypto::bellman::plonk::better_better_cs::cs::PlonkCsWidth4WithNextStepAndCustomGatesParams;
 use franklin_crypto::bellman::plonk::better_better_cs::cs::ProvingAssembly;
 use franklin_crypto::bellman::plonk::better_better_cs::cs::TrivialAssembly;
@@ -60,14 +61,48 @@ pub fn prove(
     let (vks_tree, all_witness_values) = make_vks_tree(&vks, &rescue_params, &rns_params);
     let vks_tree_root = vks_tree.get_commitment();
 
+    let mut proof_ids = (0..num_proofs_to_check).collect_vec();
+    proof_ids.reverse();
+
+    let mut queries = vec![];
+    for proof_id in 0..num_proofs_to_check {
+        // let vk = &vks[*proof_id];
+        // let leaf_values = vk.into_witness_for_params(&rns_params).expect("must transform into limbed witness");
+        let leaf_values = old_vk.into_witness_for_params(&rns_params).expect("must transform into limbed witness");
+
+        let values_per_leaf = leaf_values.len();
+        let intra_leaf_indexes_to_query: Vec<_> = ((proof_id * values_per_leaf)..((proof_id + 1) * values_per_leaf)).collect();
+        let q = vks_tree.produce_query(intra_leaf_indexes_to_query, &all_witness_values);
+
+        assert_eq!(q.values(), &leaf_values[..]);
+
+        queries.push(q.path().to_vec());
+    }
+
+    // let aggregate = make_aggregate(
+    //     &vec![proof1.clone(), proof2.clone()],
+    //     &vec![vk.clone(), vk.clone()],
+    //     &rescue_params,
+    //     &rns_params,
+    // )
+    // .unwrap();
+
+    // let (_, _) = make_public_input_and_limbed_aggregate(
+    //     vks_tree_root,
+    //     &proof_ids,
+    //     &vec![proof1.clone(), proof2.clone()],
+    //     &aggregate,
+    //     &rns_params,
+    // );
+
     let circuit = RecursiveAggregationCircuitBn256 {
         num_proofs_to_check,
         num_inputs,
         vk_tree_depth: VK_TREE_DEPTH,
         vk_root: Some(vks_tree_root),
         vk_witnesses: Some(vks), // len(vk_witnesses) == len(old_proofs)
-        // vk_auth_paths: Some(queries),
-        // proof_ids: Some(proof_ids),
+        vk_auth_paths: Some(queries),
+        proof_ids: Some(proof_ids),
         proofs: Some(old_proofs),
 
         rescue_params: &rescue_params,

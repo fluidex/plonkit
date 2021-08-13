@@ -524,9 +524,9 @@ fn recursive_prove(opts: RecursiveProveOpts) {
     let old_vk = reader::load_verification_key::<Bn256>(&opts.old_vk);
     // TODO: refactor to a wrapper
     let proof = recursive::prove(big_crs, old_proofs, old_vk).unwrap();
-    let writer = File::create(&opts.proof).unwrap();
+    let writer = File::create(&opts.new_proof).unwrap();
     proof.write(writer).unwrap();
-    log::info!("Proof saved to {}", opts.proof);
+    log::info!("Proof saved to {}", opts.new_proof);
 }
 
 fn recursive_verify(opts: RecursiveVerifyOpts) {
