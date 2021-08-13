@@ -56,8 +56,6 @@ pub fn prove(
     g2_bases.copy_from_slice(&big_crs.g2_monomial_bases.as_ref()[..]);
     let aux_data = BN256AuxData::new();
 
-    // TODO: should fill in tree?
-    // TODO: use make_vks_tree?
     let vks = old_proofs.iter().map(|_| old_vk.clone()).collect_vec();
     let (vks_tree, all_witness_values) = make_vks_tree(&vks, &rescue_params, &rns_params);
     let vks_tree_root = vks_tree.get_commitment();
