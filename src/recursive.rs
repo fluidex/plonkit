@@ -10,7 +10,7 @@ use franklin_crypto::bellman::pairing::bn256::Bn256;
 use franklin_crypto::bellman::pairing::ff::ScalarEngine;
 use franklin_crypto::bellman::pairing::{CurveAffine, Engine};
 use franklin_crypto::bellman::plonk::better_better_cs::proof::Proof;
-use franklin_crypto::bellman::plonk::better_better_cs::setup::VerificationKey;
+use franklin_crypto::bellman::plonk::better_better_cs::setup::{Setup, VerificationKey};
 use franklin_crypto::bellman::plonk::better_better_cs::verifier::verify as core_verify;
 use franklin_crypto::bellman::plonk::commitments::transcript::keccak_transcript::RollingKeccakTranscript;
 use franklin_crypto::plonk::circuit::bigint::field::RnsParameters;
@@ -18,6 +18,7 @@ use franklin_crypto::plonk::circuit::verifier_circuit::affine_point_wrapper::aux
 use franklin_crypto::rescue::bn256::Bn256RescueParams;
 use itertools::Itertools;
 use recursive_aggregation_circuit::circuit::{
+    create_recursive_circuit_setup,
     create_recursive_circuit_vk_and_setup,
     // make_aggregate, make_public_input_and_limbed_aggregate, make_vks_tree,
     RecursiveAggregationCircuitBn256,
@@ -68,6 +69,20 @@ pub fn make_circuit(
 
     //         _m: std::marker::PhantomData,
     // };
+}
+
+// TODO: remove lifetime?
+pub fn setup<'a>(
+    old_proofs: Vec<OldProof<Bn256, PlonkCsWidth4WithNextStepParams>>,
+) -> Result<Setup<Bn256, RecursiveAggregationCircuitBn256<'a>>, SynthesisError> {
+    let num_proofs_to_check = old_proofs.len();
+    assert!(num_proofs_to_check > 0);
+    let num_inputs = old_proofs[0].num_inputs;
+    for p in &old_proofs {
+        assert!(p.num_inputs == num_inputs, "proofs num_inputs mismatch!");
+    }
+    let vk_tree_depth = 8; // TODO: config?
+    create_recursive_circuit_setup(num_proofs_to_check, num_inputs, vk_tree_depth)
 }
 
 pub fn verify(
