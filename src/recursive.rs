@@ -43,6 +43,7 @@ pub fn make_circuit(
     g2_bases.copy_from_slice(&crs.g2_monomial_bases.as_ref()[..]);
     let aux_data = BN256AuxData::new();
 
+    // TODO: should fill in tree?
     let vks = old_proofs.iter().map(|_| old_vk.clone()).collect_vec();
 
     // // TODO: what's the outer?
