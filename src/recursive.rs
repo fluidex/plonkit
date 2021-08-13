@@ -1,5 +1,3 @@
-// use bellman_ce::bn256::Bn256;
-// use bellman_ce::ScalarEngine;
 use bellman_ce::kate_commitment::{Crs, CrsForMonomialForm};
 use bellman_ce::plonk::{
     better_cs::cs::PlonkCsWidth4WithNextStepParams,
@@ -27,12 +25,16 @@ use itertools::Itertools;
 use recursive_aggregation_circuit::circuit::{
     create_recursive_circuit_setup,
     create_recursive_circuit_vk_and_setup,
-    // make_aggregate, make_public_input_and_limbed_aggregate, make_vks_tree,
+    // make_aggregate, make_public_input_and_limbed_aggregate, 
+    make_vks_tree,
     RecursiveAggregationCircuitBn256,
 };
 
 const VK_TREE_DEPTH: usize = 8;
 
+// TODO: 
+// assert!(index <= max_index);
+// assert!(index < 256, "for now tree should not be larger than 256 elements");
 pub fn prove(
     big_crs: Crs<Bn256, CrsForMonomialForm>,
     old_proofs: Vec<OldProof<Bn256, PlonkCsWidth4WithNextStepParams>>,
@@ -57,13 +59,15 @@ pub fn prove(
     // TODO: should fill in tree?
     // TODO: use make_vks_tree?
     let vks = old_proofs.iter().map(|_| old_vk.clone()).collect_vec();
+    let (vks_tree, all_witness_values) = make_vks_tree(&vks, &rescue_params, &rns_params);
+    let vks_tree_root = vks_tree.get_commitment();
 
     let circuit = RecursiveAggregationCircuitBn256 {
         num_proofs_to_check,
         num_inputs,
         vk_tree_depth: VK_TREE_DEPTH,
-        // vk_root: Some(vks_tree_root),
-        vk_witnesses: Some(vks),
+        vk_root: Some(vks_tree_root),
+        vk_witnesses: Some(vks), // len(vk_witnesses) == len(old_proofs)
         // vk_auth_paths: Some(queries),
         // proof_ids: Some(proof_ids),
         proofs: Some(old_proofs),
