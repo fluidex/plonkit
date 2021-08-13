@@ -6,7 +6,6 @@ use franklin_crypto::bellman::plonk::better_better_cs::verifier::verify as core_
 use franklin_crypto::bellman::plonk::commitments::transcript::keccak_transcript::RollingKeccakTranscript;
 // use bellman_ce::bn256::Bn256;
 // use bellman_ce::ScalarEngine;
-use anyhow::Result;
 use bellman_ce::kate_commitment::{Crs, CrsForMonomialForm};
 use bellman_ce::SynthesisError;
 use recursive_aggregation_circuit::circuit::{
@@ -27,7 +26,7 @@ pub fn export_vk(
     num_inputs: usize,
     tree_depth: usize,
     crs: &Crs<Bn256, CrsForMonomialForm>,
-) -> Result<VerificationKey<Bn256, RecursiveAggregationCircuitBn256>> {
+) -> Result<VerificationKey<Bn256, RecursiveAggregationCircuitBn256>, anyhow::Error> {
     let (recursive_circuit_vk, _recursive_circuit_setup) =
         create_recursive_circuit_vk_and_setup(num_proofs_to_check, num_inputs, tree_depth, crs)?;
     Ok(recursive_circuit_vk)
