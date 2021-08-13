@@ -24,6 +24,8 @@ use recursive_aggregation_circuit::circuit::{
     RecursiveAggregationCircuitBn256,
 };
 
+const VK_TREE_DEPTH: usize = 8;
+
 pub fn make_circuit_and_setup(
     crs: Crs<Bn256, CrsForMonomialForm>,
     old_proofs: Vec<OldProof<Bn256, PlonkCsWidth4WithNextStepParams>>,
@@ -68,8 +70,7 @@ pub fn make_circuit_and_setup(
         _m: std::marker::PhantomData,
     };
 
-    let vk_tree_depth = 8; // TODO: config?
-    let setup = create_recursive_circuit_setup(num_proofs_to_check, num_inputs, vk_tree_depth)?;
+    let setup = create_recursive_circuit_setup(num_proofs_to_check, num_inputs, VK_TREE_DEPTH)?;
     Ok((circuit, setup))
 }
 
@@ -98,10 +99,10 @@ pub fn verify(
 pub fn export_vk(
     num_proofs_to_check: usize,
     num_inputs: usize,
-    tree_depth: usize,
+    _tree_depth: usize,
     big_crs: &Crs<Bn256, CrsForMonomialForm>,
 ) -> Result<VerificationKey<Bn256, RecursiveAggregationCircuitBn256>, anyhow::Error> {
     let (recursive_circuit_vk, _recursive_circuit_setup) =
-        create_recursive_circuit_vk_and_setup(num_proofs_to_check, num_inputs, tree_depth, big_crs)?;
+        create_recursive_circuit_vk_and_setup(num_proofs_to_check, num_inputs, VK_TREE_DEPTH, big_crs)?;
     Ok(recursive_circuit_vk)
 }
