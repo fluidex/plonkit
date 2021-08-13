@@ -205,7 +205,7 @@ struct ExportRecursiveVerificationKeyOpts {
 struct RecursiveProveOpts {
     /// Old proofs dir
     #[clap(short = "p", long = "old_proofs_dir")]
-    old_proof: String,
+    old_proofs_dir: String,
     /// Old vk
     #[clap(short = "v", long = "old_vk", default_value = "vk.bin")]
     old_vk: String,
@@ -517,6 +517,9 @@ fn export_recursive_vk(opts: ExportRecursiveVerificationKeyOpts) {
 }
 
 fn recursive_prove(opts: RecursiveProveOpts) {
+    let old_proofs = reader::load_proofs::<Bn256>(&opts.old_proofs_dir);
+    let circuit = recursive::make_circuit(old_proofs);
+
     unimplemented!()
 }
 

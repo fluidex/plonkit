@@ -1,18 +1,48 @@
+// use bellman_ce::bn256::Bn256;
+// use bellman_ce::ScalarEngine;
+use bellman_ce::kate_commitment::{Crs, CrsForMonomialForm};
+use bellman_ce::plonk::{
+    better_cs::cs::PlonkCsWidth4WithNextStepParams,
+    better_cs::keys::{Proof as OldProof, VerificationKey as OldVerificationKey},
+};
+use bellman_ce::SynthesisError;
 use franklin_crypto::bellman::pairing::bn256::Bn256;
 use franklin_crypto::bellman::pairing::ff::ScalarEngine;
 use franklin_crypto::bellman::plonk::better_better_cs::proof::Proof;
 use franklin_crypto::bellman::plonk::better_better_cs::setup::VerificationKey;
 use franklin_crypto::bellman::plonk::better_better_cs::verifier::verify as core_verify;
 use franklin_crypto::bellman::plonk::commitments::transcript::keccak_transcript::RollingKeccakTranscript;
-// use bellman_ce::bn256::Bn256;
-// use bellman_ce::ScalarEngine;
-use bellman_ce::kate_commitment::{Crs, CrsForMonomialForm};
-use bellman_ce::SynthesisError;
 use recursive_aggregation_circuit::circuit::{
     create_recursive_circuit_vk_and_setup,
     // make_aggregate, make_public_input_and_limbed_aggregate, make_vks_tree,
     RecursiveAggregationCircuitBn256,
 };
+
+pub fn make_circuit(proofs: Vec<OldProof<Bn256, PlonkCsWidth4WithNextStepParams>>) {
+    let recursive_circuit =
+    // WIP
+    //RecursiveAggregationCircuit::<Bn256, PlonkCsWidth4WithNextStepParams, WrapperUnchecked<Bn256>, _, RescueChannelGadget<Bn256>> {
+        RecursiveAggregationCircuitBn256 {
+        num_proofs_to_check,
+        num_inputs,
+        vk_tree_depth: tree_depth,
+        vk_root: Some(vks_tree_root),
+
+        vk_witnesses: Some(vec![vk.clone(), vk]),
+        vk_auth_paths: Some(queries),
+        proof_ids: Some(proof_ids),
+        proofs: Some(vec![proof1, proof2]),
+
+        rescue_params: &rescue_params,
+        rns_params: &rns_params,
+        aux_data,
+        transcript_params: &rescue_params,
+
+        g2_elements: Some(g2_bases),
+
+        _m: std::marker::PhantomData,
+    };
+}
 
 pub fn verify(
     vk: &VerificationKey<Bn256, RecursiveAggregationCircuitBn256>,

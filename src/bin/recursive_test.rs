@@ -112,7 +112,7 @@ fn main() {
     cs.finalize();
     println!("Padded number of gates: {}", cs.n());
     assert!(cs.is_satisfied());
-    println!("satisfiled {}", cs.is_satisfied());
+    println!("satisfied {}", cs.is_satisfied());
     // why num_inputs is 1 here?
     assert_eq!(cs.num_inputs, 1);
 

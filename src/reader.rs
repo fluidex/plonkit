@@ -2,7 +2,7 @@ use anyhow::{bail, format_err};
 use byteorder::{LittleEndian, ReadBytesExt};
 use itertools::Itertools;
 use std::collections::BTreeMap;
-use std::fs::{File, OpenOptions};
+use std::fs::{self, File, OpenOptions};
 use std::io::{BufReader, Read};
 use std::str;
 
@@ -28,6 +28,19 @@ use crate::circom_circuit::{CircuitJson, R1CS};
 
 pub fn load_proof<E: Engine>(filename: &str) -> Proof<E, PlonkCsWidth4WithNextStepParams> {
     Proof::<E, PlonkCsWidth4WithNextStepParams>::read(File::open(filename).expect("read proof file err")).expect("read proof err")
+}
+
+pub fn load_proofs<E: Engine>(dir: &str) -> Vec<Proof<E, PlonkCsWidth4WithNextStepParams>> {
+    let mut proofs: Vec<Proof<E, PlonkCsWidth4WithNextStepParams>> = vec![];
+    let paths = fs::read_dir(dir).unwrap();
+    for path in paths {
+        let filename = path.unwrap().path();
+        log::info!("reading {}", filename.display());
+        let p =
+            Proof::<E, PlonkCsWidth4WithNextStepParams>::read(File::open(filename).expect("read proof file err")).expect("read proof err");
+        proofs.push(p);
+    }
+    proofs
 }
 
 pub fn load_recursive_proof(filename: &str) -> RecursiveProof<Bn256, RecursiveAggregationCircuitBn256> {
