@@ -185,25 +185,19 @@ struct ExportVerificationKeyOpts {
 struct ExportRecursiveVerificationKeyOpts {
     /// Num of proofs to check
     #[clap(short = "c", long = "num_proofs_to_check")]
-    num_proofs_to_check: u32,
+    num_proofs_to_check: usize,
     /// Num of inputs
     #[clap(short = "i", long = "num_inputs")]
-    num_inputs: u32,
+    num_inputs: usize,
     /// Tree depth
     #[clap(short = "d", long = "tree_depth")]
-    tree_depth: u32,
+    tree_depth: usize,
     /// Source file for Plonk universal setup srs in monomial form
     #[clap(short = "m", long = "srs_monomial_form")]
     srs_monomial_form: String,
     /// Output verifying key file
     #[clap(short = "v", long = "vk", default_value = "vk.bin")]
     vk: String,
-    // /// Input old verifying key file
-    // #[clap(short = "o", long = "old_vk", default_value = "old_vk.bin")]
-    // old_vk: String,
-    // /// Output new verifying key file
-    // #[clap(short = "n", long = "new_vk", default_value = "new_vk.bin")]
-    // new_vk: String,
 }
 
 /// A subcommand for aggregating multiple proofs
@@ -263,6 +257,9 @@ fn main() {
         }
         SubCommand::ExportVerificationKey(o) => {
             export_vk(o);
+        }
+        SubCommand::ExportRecursiveVerificationKey(o) => {
+            export_recursive_vk(o);
         }
         SubCommand::RecursiveProve(o) => {
             recursive_prove(o);
@@ -498,6 +495,16 @@ fn export_vk(opts: ExportVerificationKeyOpts) {
     let writer = File::create(&opts.vk).unwrap();
     vk.write(writer).unwrap();
     log::info!("Verification key saved to {}", opts.vk);
+}
+
+fn export_recursive_vk(opts: ExportRecursiveVerificationKeyOpts) {
+    let crs = reader::load_key_monomial_form(&opts.srs_monomial_form);
+    let vk = recursive::export_vk(opts.num_proofs_to_check, opts.num_inputs, opts.tree_depth, &crs);
+    //let path = Path::new(&opts.vk);
+    //assert!(!path.exists(), "path for saving verification key exists: {}", path.display());
+    let writer = File::create(&opts.vk).unwrap();
+    vk.write(writer).unwrap();
+    log::info!("Recursive verification key saved to {}", opts.vk);
 }
 
 fn recursive_prove(opts: RecursiveProveOpts) {
