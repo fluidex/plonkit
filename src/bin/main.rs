@@ -48,6 +48,8 @@ enum SubCommand {
     GenerateVerifier(GenerateVerifierOpts),
     /// Export verifying key
     ExportVerificationKey(ExportVerificationKeyOpts),
+    /// Export Recursive verifying key
+    ExportRecursiveVerificationKey(ExportRecursiveVerificationKeyOpts),
     /// Aggregate multiple proofs
     RecursiveProve(RecursiveProveOpts),
     /// Verifying recursive proof
@@ -176,6 +178,32 @@ struct ExportVerificationKeyOpts {
     /// Output verifying key file
     #[clap(short = "v", long = "vk", default_value = "vk.bin")]
     vk: String,
+}
+
+/// A subcommand for exporting recursive verifying keys
+#[derive(Clap)]
+struct ExportRecursiveVerificationKeyOpts {
+    /// Num of proofs to check
+    #[clap(short = "c", long = "num_proofs_to_check")]
+    num_proofs_to_check: u32,
+    /// Num of inputs
+    #[clap(short = "i", long = "num_inputs")]
+    num_inputs: u32,
+    /// Tree depth
+    #[clap(short = "d", long = "tree_depth")]
+    tree_depth: u32,
+    /// Source file for Plonk universal setup srs in monomial form
+    #[clap(short = "m", long = "srs_monomial_form")]
+    srs_monomial_form: String,
+    /// Output verifying key file
+    #[clap(short = "v", long = "vk", default_value = "vk.bin")]
+    vk: String,
+    // /// Input old verifying key file
+    // #[clap(short = "o", long = "old_vk", default_value = "old_vk.bin")]
+    // old_vk: String,
+    // /// Output new verifying key file
+    // #[clap(short = "n", long = "new_vk", default_value = "new_vk.bin")]
+    // new_vk: String,
 }
 
 /// A subcommand for aggregating multiple proofs
