@@ -30,7 +30,7 @@ pub fn make_circuit(
         assert!(p.num_inputs == num_inputs, "proofs num_inputs mismatch!");
     }
 
-    // TODO: 2????
+    // TODO: why 2 ????
     let mut g2_bases = [<<Bn256 as Engine>::G2Affine as CurveAffine>::zero(); 2];
     g2_bases.copy_from_slice(&crs.g2_monomial_bases.as_ref()[..]);
     let aux_data = BN256AuxData::new();
@@ -41,6 +41,7 @@ pub fn make_circuit(
         vks.push(old_vk.clone());
     }
 
+    // TODO: what's the outer?
     let recursive_circuit = //RecursiveAggregationCircuit::<Bn256, PlonkCsWidth4WithNextStepParams, WrapperUnchecked<Bn256>, _, RescueChannelGadget<Bn256>> {
         RecursiveAggregationCircuitBn256 {
             num_proofs_to_check,
