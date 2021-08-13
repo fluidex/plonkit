@@ -16,6 +16,7 @@ use franklin_crypto::bellman::plonk::commitments::transcript::keccak_transcript:
 use franklin_crypto::plonk::circuit::bigint::field::RnsParameters;
 use franklin_crypto::plonk::circuit::verifier_circuit::affine_point_wrapper::aux_data::{AuxData, BN256AuxData};
 use franklin_crypto::rescue::bn256::Bn256RescueParams;
+use itertools::Itertools;
 use recursive_aggregation_circuit::circuit::{
     create_recursive_circuit_vk_and_setup,
     // make_aggregate, make_public_input_and_limbed_aggregate, make_vks_tree,
@@ -42,34 +43,30 @@ pub fn make_circuit(
     g2_bases.copy_from_slice(&crs.g2_monomial_bases.as_ref()[..]);
     let aux_data = BN256AuxData::new();
 
-    let mut vks: Vec<OldVerificationKey<Bn256, PlonkCsWidth4WithNextStepParams>> = vec![];
-    // TODO: refactor?
-    for _ in &old_proofs {
-        vks.push(old_vk.clone());
-    }
+    let vks = old_proofs.iter().map(|_| old_vk.clone()).collect_vec();
 
-    // TODO: what's the outer?
-    let recursive_circuit = //RecursiveAggregationCircuit::<Bn256, PlonkCsWidth4WithNextStepParams, WrapperUnchecked<Bn256>, _, RescueChannelGadget<Bn256>> {
-        RecursiveAggregationCircuitBn256 {
-            num_proofs_to_check,
-            num_inputs,
-            // vk_tree_depth: tree_depth,
-            // vk_root: Some(vks_tree_root),
+    // // TODO: what's the outer?
+    // let recursive_circuit = //RecursiveAggregationCircuit::<Bn256, PlonkCsWidth4WithNextStepParams, WrapperUnchecked<Bn256>, _, RescueChannelGadget<Bn256>> {
+    //     RecursiveAggregationCircuitBn256 {
+    //         num_proofs_to_check,
+    //         num_inputs,
+    //         // vk_tree_depth: tree_depth,
+    //         // vk_root: Some(vks_tree_root),
 
-            vk_witnesses: Some(vks),
-            // vk_auth_paths: Some(queries),
-            // proof_ids: Some(proof_ids),
-            proofs: Some(old_proofs),
+    //         vk_witnesses: Some(vks),
+    //         // vk_auth_paths: Some(queries),
+    //         // proof_ids: Some(proof_ids),
+    //         proofs: Some(old_proofs),
 
-            rescue_params: &rescue_params,
-            rns_params: &rns_params,
-            aux_data,
-            transcript_params: &rescue_params,
+    //         rescue_params: &rescue_params,
+    //         rns_params: &rns_params,
+    //         aux_data,
+    //         transcript_params: &rescue_params,
 
-            g2_elements: Some(g2_bases),
+    //         g2_elements: Some(g2_bases),
 
-            _m: std::marker::PhantomData,
-    };
+    //         _m: std::marker::PhantomData,
+    // };
 }
 
 pub fn verify(
