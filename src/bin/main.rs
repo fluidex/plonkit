@@ -203,6 +203,9 @@ struct ExportRecursiveVerificationKeyOpts {
 /// A subcommand for aggregating multiple proofs
 #[derive(Clap)]
 struct RecursiveProveOpts {
+    /// Source file for Plonk universal setup srs in monomial form
+    #[clap(short = "m", long = "srs_monomial_form")]
+    srs_monomial_form: String,
     /// Old proofs dir
     #[clap(short = "p", long = "old_proofs_dir")]
     old_proofs_dir: String,
@@ -516,10 +519,12 @@ fn export_recursive_vk(opts: ExportRecursiveVerificationKeyOpts) {
     log::info!("Recursive verification key saved to {}", opts.vk);
 }
 
+// TODO: don't need to check crs big enough (2^20)?
 fn recursive_prove(opts: RecursiveProveOpts) {
+    let crs = reader::load_key_monomial_form(&opts.srs_monomial_form);
     let old_proofs = reader::load_proofs::<Bn256>(&opts.old_proofs_dir);
     let old_vk = reader::load_verification_key::<Bn256>(&opts.old_vk);
-    let circuit = recursive::make_circuit(old_proofs, old_vk);
+    let circuit = recursive::make_circuit(crs, old_proofs, old_vk);
 
     // unimplemented!()
 }
