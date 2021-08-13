@@ -499,7 +499,8 @@ fn export_vk(opts: ExportVerificationKeyOpts) {
 
 fn export_recursive_vk(opts: ExportRecursiveVerificationKeyOpts) {
     let crs = reader::load_key_monomial_form(&opts.srs_monomial_form);
-    let vk = recursive::export_vk(opts.num_proofs_to_check, opts.num_inputs, opts.tree_depth, &crs);
+    let vk = recursive::export_vk(opts.num_proofs_to_check, opts.num_inputs, opts.tree_depth, &crs)
+        .expect("must create recursive circuit verification key");
     //let path = Path::new(&opts.vk);
     //assert!(!path.exists(), "path for saving verification key exists: {}", path.display());
     let writer = File::create(&opts.vk).unwrap();
