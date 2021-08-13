@@ -28,7 +28,7 @@ pub fn make_circuit_and_setup(
     crs: Crs<Bn256, CrsForMonomialForm>,
     old_proofs: Vec<OldProof<Bn256, PlonkCsWidth4WithNextStepParams>>,
     old_vk: OldVerificationKey<Bn256, PlonkCsWidth4WithNextStepParams>,
-) -> Result<(Setup<Bn256, RecursiveAggregationCircuitBn256<'static>>), SynthesisError> {
+) -> Result<(RecursiveAggregationCircuitBn256<'static>, Setup<Bn256, RecursiveAggregationCircuitBn256<'static>>), SynthesisError> {
     let num_proofs_to_check = old_proofs.len();
     assert!(num_proofs_to_check > 0);
     let num_inputs = old_proofs[0].num_inputs;
@@ -48,32 +48,29 @@ pub fn make_circuit_and_setup(
     // TODO: use make_vks_tree?
     let vks = old_proofs.iter().map(|_| old_vk.clone()).collect_vec();
 
-    // // TODO: what's the outer?
-    // let recursive_circuit = //RecursiveAggregationCircuit::<Bn256, PlonkCsWidth4WithNextStepParams, WrapperUnchecked<Bn256>, _, RescueChannelGadget<Bn256>> {
-    //     RecursiveAggregationCircuitBn256 {
-    //         num_proofs_to_check,
-    //         num_inputs,
-    //         // vk_tree_depth: tree_depth,
-    //         // vk_root: Some(vks_tree_root),
+    let circuit = RecursiveAggregationCircuitBn256 {
+        num_proofs_to_check,
+        num_inputs,
+        // vk_tree_depth: tree_depth,
+        // vk_root: Some(vks_tree_root),
+        vk_witnesses: Some(vks),
+        // vk_auth_paths: Some(queries),
+        // proof_ids: Some(proof_ids),
+        proofs: Some(old_proofs),
 
-    //         vk_witnesses: Some(vks),
-    //         // vk_auth_paths: Some(queries),
-    //         // proof_ids: Some(proof_ids),
-    //         proofs: Some(old_proofs),
+        rescue_params: &rescue_params,
+        rns_params: &rns_params,
+        aux_data,
+        transcript_params: &rescue_params,
 
-    //         rescue_params: &rescue_params,
-    //         rns_params: &rns_params,
-    //         aux_data,
-    //         transcript_params: &rescue_params,
+        g2_elements: Some(g2_bases),
 
-    //         g2_elements: Some(g2_bases),
-
-    //         _m: std::marker::PhantomData,
-    // };
+        _m: std::marker::PhantomData,
+    };
 
     let vk_tree_depth = 8; // TODO: config?
     let setup = create_recursive_circuit_setup(num_proofs_to_check, num_inputs, vk_tree_depth)?;
-    Ok((setup))
+    Ok((circuit, setup))
 }
 
 // TODO: remove lifetime?
