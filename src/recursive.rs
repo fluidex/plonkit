@@ -13,7 +13,6 @@ use recursive_aggregation_circuit::circuit::{
     // make_aggregate, make_public_input_and_limbed_aggregate, make_vks_tree,
     RecursiveAggregationCircuitBn256,
 };
-// make_aggregate, make_public_input_and_limbed_aggregate, make_vks_tree,
 
 pub fn verify(
     vk: &VerificationKey<Bn256, RecursiveAggregationCircuitBn256>,
