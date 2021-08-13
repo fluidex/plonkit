@@ -29,7 +29,13 @@ pub fn make_circuit(
         assert!(p.num_inputs == num_inputs, "proofs num_inputs mismatch!");
     }
 
-    // // WIP
+    let mut vks: Vec<OldVerificationKey<Bn256, PlonkCsWidth4WithNextStepParams>> = vec![];
+    // TODO: refactor?
+    for _ in &old_proofs {
+        // TODO: clone?
+        vks.push(old_vk);
+    }
+
     let recursive_circuit =
     //RecursiveAggregationCircuit::<Bn256, PlonkCsWidth4WithNextStepParams, WrapperUnchecked<Bn256>, _, RescueChannelGadget<Bn256>> {
         RecursiveAggregationCircuitBn256 {
@@ -38,7 +44,7 @@ pub fn make_circuit(
     //     vk_tree_depth: tree_depth,
     //     vk_root: Some(vks_tree_root),
 
-    //     vk_witnesses: Some(vec![vk.clone(), vk]),
+            vk_witnesses: Some(vks),
     //     vk_auth_paths: Some(queries),
     //     proof_ids: Some(proof_ids),
     //     proofs: Some(vec![proof1, proof2]),
