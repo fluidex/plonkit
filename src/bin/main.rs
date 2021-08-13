@@ -518,7 +518,8 @@ fn export_recursive_vk(opts: ExportRecursiveVerificationKeyOpts) {
 
 fn recursive_prove(opts: RecursiveProveOpts) {
     let old_proofs = reader::load_proofs::<Bn256>(&opts.old_proofs_dir);
-    // let circuit = recursive::make_circuit(old_proofs);
+    let old_vk = reader::load_verification_key::<Bn256>(&opts.old_vk);
+    let circuit = recursive::make_circuit(old_proofs, old_vk);
 
     // unimplemented!()
 }

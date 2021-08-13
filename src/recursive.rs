@@ -18,13 +18,23 @@ use recursive_aggregation_circuit::circuit::{
     RecursiveAggregationCircuitBn256,
 };
 
-pub fn make_circuit(proofs: Vec<OldProof<Bn256, PlonkCsWidth4WithNextStepParams>>) {
-    // let recursive_circuit =
+pub fn make_circuit(
+    proofs: Vec<OldProof<Bn256, PlonkCsWidth4WithNextStepParams>>,
+    old_vk: OldVerificationKey<Bn256, PlonkCsWidth4WithNextStepParams>,
+) {
+    let num_proofs_to_check = proofs.len();
+    assert!(num_proofs_to_check > 0);
+    let num_inputs = proofs[0].num_inputs;
+    for p in &proofs {
+        assert!(p.num_inputs == num_inputs, "proofs num_inputs mismatch!");
+    }
+
     // // WIP
-    // //RecursiveAggregationCircuit::<Bn256, PlonkCsWidth4WithNextStepParams, WrapperUnchecked<Bn256>, _, RescueChannelGadget<Bn256>> {
-    //     RecursiveAggregationCircuitBn256 {
-    //     num_proofs_to_check,
-    //     num_inputs,
+    let recursive_circuit =
+    //RecursiveAggregationCircuit::<Bn256, PlonkCsWidth4WithNextStepParams, WrapperUnchecked<Bn256>, _, RescueChannelGadget<Bn256>> {
+        RecursiveAggregationCircuitBn256 {
+            num_proofs_to_check,
+            num_inputs,
     //     vk_tree_depth: tree_depth,
     //     vk_root: Some(vks_tree_root),
 
@@ -40,8 +50,8 @@ pub fn make_circuit(proofs: Vec<OldProof<Bn256, PlonkCsWidth4WithNextStepParams>
 
     //     g2_elements: Some(g2_bases),
 
-    //     _m: std::marker::PhantomData,
-    // };
+            _m: std::marker::PhantomData,
+    };
 }
 
 pub fn verify(
