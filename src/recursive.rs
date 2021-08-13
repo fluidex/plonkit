@@ -26,7 +26,7 @@ use itertools::Itertools;
 use recursive_aggregation_circuit::circuit::{
     create_recursive_circuit_setup,
     create_recursive_circuit_vk_and_setup,
-    // make_aggregate, make_public_input_and_limbed_aggregate, 
+    make_aggregate, make_public_input_and_limbed_aggregate, 
     make_vks_tree,
     RecursiveAggregationCircuitBn256,
 };
@@ -52,7 +52,6 @@ pub fn prove(
     let rns_params = RnsParameters::<Bn256, <Bn256 as Engine>::Fq>::new_for_field(68, 110, 4);
     let rescue_params = Bn256RescueParams::new_checked_2_into_1();
 
-    // TODO: why 2 ????
     let mut g2_bases = [<<Bn256 as Engine>::G2Affine as CurveAffine>::zero(); 2];
     g2_bases.copy_from_slice(&big_crs.g2_monomial_bases.as_ref()[..]);
     let aux_data = BN256AuxData::new();
@@ -66,10 +65,10 @@ pub fn prove(
 
     let mut queries = vec![];
     for proof_id in 0..num_proofs_to_check {
-        // let vk = &vks[*proof_id];
-        // let leaf_values = vk.into_witness_for_params(&rns_params).expect("must transform into limbed witness");
-        let leaf_values = old_vk.into_witness_for_params(&rns_params).expect("must transform into limbed witness");
+        let vk = &vks[proof_id];
 
+        let leaf_values = vk.into_witness_for_params(&rns_params).expect("must transform into limbed witness");
+        
         let values_per_leaf = leaf_values.len();
         let intra_leaf_indexes_to_query: Vec<_> = ((proof_id * values_per_leaf)..((proof_id + 1) * values_per_leaf)).collect();
         let q = vks_tree.produce_query(intra_leaf_indexes_to_query, &all_witness_values);
@@ -79,21 +78,20 @@ pub fn prove(
         queries.push(q.path().to_vec());
     }
 
-    // let aggregate = make_aggregate(
-    //     &vec![proof1.clone(), proof2.clone()],
-    //     &vec![vk.clone(), vk.clone()],
-    //     &rescue_params,
-    //     &rns_params,
-    // )
-    // .unwrap();
+    let aggregate = make_aggregate(
+        &old_proofs,
+        &vks,
+        &rescue_params,
+        &rns_params,
+    )?;
 
-    // let (_, _) = make_public_input_and_limbed_aggregate(
-    //     vks_tree_root,
-    //     &proof_ids,
-    //     &vec![proof1.clone(), proof2.clone()],
-    //     &aggregate,
-    //     &rns_params,
-    // );
+    let (_, _) = make_public_input_and_limbed_aggregate(
+        vks_tree_root,
+        &proof_ids,
+        &old_proofs,
+        &aggregate,
+        &rns_params,
+    );
 
     let circuit = RecursiveAggregationCircuitBn256 {
         num_proofs_to_check,
