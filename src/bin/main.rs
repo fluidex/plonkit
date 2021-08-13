@@ -203,7 +203,7 @@ struct ExportRecursiveVerificationKeyOpts {
 /// A subcommand for aggregating multiple proofs
 #[derive(Clap)]
 struct RecursiveProveOpts {
-    /// Source file for Plonk universal setup srs in monomial form
+    /// Source file for a BIG Plonk universal setup srs in monomial form
     #[clap(short = "m", long = "srs_monomial_form")]
     srs_monomial_form: String,
     /// Old proofs dir
@@ -519,11 +519,11 @@ fn export_recursive_vk(opts: ExportRecursiveVerificationKeyOpts) {
 }
 
 fn recursive_prove(opts: RecursiveProveOpts) {
-    let crs = reader::load_key_monomial_form(&opts.srs_monomial_form);
+    let big_crs = reader::load_key_monomial_form(&opts.srs_monomial_form);
     let old_proofs = reader::load_proofs::<Bn256>(&opts.old_proofs_dir);
     let old_vk = reader::load_verification_key::<Bn256>(&opts.old_vk);
     // TODO: refactor to a wrapper
-    let proof = recursive::prove(crs, old_proofs, old_vk).unwrap();
+    let proof = recursive::prove(big_crs, old_proofs, old_vk).unwrap();
     let writer = File::create(&opts.proof).unwrap();
     proof.write(writer).unwrap();
     log::info!("Proof saved to {}", opts.proof);
