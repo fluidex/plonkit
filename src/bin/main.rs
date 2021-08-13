@@ -522,9 +522,11 @@ fn recursive_prove(opts: RecursiveProveOpts) {
     let crs = reader::load_key_monomial_form(&opts.srs_monomial_form);
     let old_proofs = reader::load_proofs::<Bn256>(&opts.old_proofs_dir);
     let old_vk = reader::load_verification_key::<Bn256>(&opts.old_vk);
+    // TODO: refactor to a wrapper
     let proof = recursive::prove(crs, old_proofs, old_vk).unwrap();
-
-    // unimplemented!()
+    let writer = File::create(&opts.proof).unwrap();
+    proof.write(writer).unwrap();
+    log::info!("Proof saved to {}", opts.proof);
 }
 
 fn recursive_verify(opts: RecursiveVerifyOpts) {
