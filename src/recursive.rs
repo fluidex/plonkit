@@ -10,9 +10,16 @@ use franklin_crypto::bellman::pairing::bn256::Bn256;
 use franklin_crypto::bellman::pairing::ff::ScalarEngine;
 use franklin_crypto::bellman::pairing::{CurveAffine, Engine};
 use franklin_crypto::bellman::plonk::better_better_cs::proof::Proof;
-use franklin_crypto::bellman::plonk::better_better_cs::setup::{Setup, VerificationKey};
+// use franklin_crypto::bellman::plonk::better_better_cs::setup::Setup;
+use franklin_crypto::bellman::plonk::better_better_cs::cs::Circuit;
+use franklin_crypto::bellman::plonk::better_better_cs::cs::PlonkCsWidth4WithNextStepAndCustomGatesParams;
+// use franklin_crypto::bellman::plonk::better_better_cs::cs::TrivialAssembly;
+use franklin_crypto::bellman::plonk::better_better_cs::cs::ProvingAssembly;
+use franklin_crypto::bellman::plonk::better_better_cs::cs::Width4MainGateWithDNext;
+use franklin_crypto::bellman::plonk::better_better_cs::setup::VerificationKey;
 use franklin_crypto::bellman::plonk::better_better_cs::verifier::verify as core_verify;
 use franklin_crypto::bellman::plonk::commitments::transcript::keccak_transcript::RollingKeccakTranscript;
+use franklin_crypto::bellman::worker::Worker;
 use franklin_crypto::plonk::circuit::bigint::field::RnsParameters;
 use franklin_crypto::plonk::circuit::verifier_circuit::affine_point_wrapper::aux_data::{AuxData, BN256AuxData};
 use franklin_crypto::rescue::bn256::Bn256RescueParams;
@@ -26,11 +33,11 @@ use recursive_aggregation_circuit::circuit::{
 
 const VK_TREE_DEPTH: usize = 8;
 
-pub fn make_circuit_and_setup(
-    crs: Crs<Bn256, CrsForMonomialForm>,
+pub fn prove(
+    big_crs: Crs<Bn256, CrsForMonomialForm>,
     old_proofs: Vec<OldProof<Bn256, PlonkCsWidth4WithNextStepParams>>,
     old_vk: OldVerificationKey<Bn256, PlonkCsWidth4WithNextStepParams>,
-) -> Result<(RecursiveAggregationCircuitBn256<'static>, Setup<Bn256, RecursiveAggregationCircuitBn256<'static>>), SynthesisError> {
+) -> Result<Proof<Bn256, RecursiveAggregationCircuitBn256<'static>>, SynthesisError> {
     let num_proofs_to_check = old_proofs.len();
     assert!(num_proofs_to_check > 0);
     let num_inputs = old_proofs[0].num_inputs;
@@ -38,12 +45,13 @@ pub fn make_circuit_and_setup(
         assert!(p.num_inputs == num_inputs, "proofs num_inputs mismatch!");
     }
 
+    let worker = Worker::new();
     let rns_params = RnsParameters::<Bn256, <Bn256 as Engine>::Fq>::new_for_field(68, 110, 4);
     let rescue_params = Bn256RescueParams::new_checked_2_into_1();
 
     // TODO: why 2 ????
     let mut g2_bases = [<<Bn256 as Engine>::G2Affine as CurveAffine>::zero(); 2];
-    g2_bases.copy_from_slice(&crs.g2_monomial_bases.as_ref()[..]);
+    g2_bases.copy_from_slice(&big_crs.g2_monomial_bases.as_ref()[..]);
     let aux_data = BN256AuxData::new();
 
     // TODO: should fill in tree?
@@ -71,7 +79,12 @@ pub fn make_circuit_and_setup(
     };
 
     let setup = create_recursive_circuit_setup(num_proofs_to_check, num_inputs, VK_TREE_DEPTH)?;
-    Ok((circuit, setup))
+
+    let mut assembly = ProvingAssembly::<Bn256, PlonkCsWidth4WithNextStepAndCustomGatesParams, Width4MainGateWithDNext>::new();
+    circuit.synthesize(&mut assembly).expect("must synthesize");
+    assembly.finalize();
+
+    assembly.create_proof::<_, RollingKeccakTranscript<<Bn256 as ScalarEngine>::Fr>>(&worker, &setup, &big_crs, None)
 }
 
 // TODO: remove lifetime?
