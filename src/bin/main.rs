@@ -192,7 +192,7 @@ struct ExportRecursiveVerificationKeyOpts {
     /// Tree depth
     #[clap(short = "d", long = "tree_depth")]
     tree_depth: usize,
-    /// Source file for Plonk universal setup srs in monomial form
+    /// Source file for a BIG Plonk universal setup srs in monomial form
     #[clap(short = "m", long = "srs_monomial_form")]
     srs_monomial_form: String,
     /// Output verifying key file
@@ -507,10 +507,9 @@ fn export_vk(opts: ExportVerificationKeyOpts) {
 }
 
 // TODO: check tree_depth?
-// TODO: check crs big enough (2^24)?
 fn export_recursive_vk(opts: ExportRecursiveVerificationKeyOpts) {
-    let crs = reader::load_key_monomial_form(&opts.srs_monomial_form);
-    let vk = recursive::export_vk(opts.num_proofs_to_check, opts.num_inputs, opts.tree_depth, &crs)
+    let big_crs = reader::load_key_monomial_form(&opts.srs_monomial_form);
+    let vk = recursive::export_vk(opts.num_proofs_to_check, opts.num_inputs, opts.tree_depth, &big_crs)
         .expect("must create recursive circuit verification key");
     //let path = Path::new(&opts.vk);
     //assert!(!path.exists(), "path for saving verification key exists: {}", path.display());
@@ -519,7 +518,6 @@ fn export_recursive_vk(opts: ExportRecursiveVerificationKeyOpts) {
     log::info!("Recursive verification key saved to {}", opts.vk);
 }
 
-// TODO: don't need to check crs big enough (2^20)?
 fn recursive_prove(opts: RecursiveProveOpts) {
     let crs = reader::load_key_monomial_form(&opts.srs_monomial_form);
     let old_proofs = reader::load_proofs::<Bn256>(&opts.old_proofs_dir);
