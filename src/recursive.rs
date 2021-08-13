@@ -13,7 +13,9 @@ use franklin_crypto::bellman::plonk::better_better_cs::proof::Proof;
 use franklin_crypto::bellman::plonk::better_better_cs::setup::VerificationKey;
 use franklin_crypto::bellman::plonk::better_better_cs::verifier::verify as core_verify;
 use franklin_crypto::bellman::plonk::commitments::transcript::keccak_transcript::RollingKeccakTranscript;
+use franklin_crypto::plonk::circuit::bigint::field::RnsParameters;
 use franklin_crypto::plonk::circuit::verifier_circuit::affine_point_wrapper::aux_data::{AuxData, BN256AuxData};
+use franklin_crypto::rescue::bn256::Bn256RescueParams;
 use recursive_aggregation_circuit::circuit::{
     create_recursive_circuit_vk_and_setup,
     // make_aggregate, make_public_input_and_limbed_aggregate, make_vks_tree,
@@ -31,6 +33,9 @@ pub fn make_circuit(
     for p in &old_proofs {
         assert!(p.num_inputs == num_inputs, "proofs num_inputs mismatch!");
     }
+
+    let rns_params = RnsParameters::<Bn256, <Bn256 as Engine>::Fq>::new_for_field(68, 110, 4);
+    let rescue_params = Bn256RescueParams::new_checked_2_into_1();
 
     // TODO: why 2 ????
     let mut g2_bases = [<<Bn256 as Engine>::G2Affine as CurveAffine>::zero(); 2];
@@ -56,10 +61,10 @@ pub fn make_circuit(
             // proof_ids: Some(proof_ids),
             proofs: Some(old_proofs),
 
-            // rescue_params: &rescue_params,
-            // rns_params: &rns_params,
+            rescue_params: &rescue_params,
+            rns_params: &rns_params,
             aux_data,
-            // transcript_params: &rescue_params,
+            transcript_params: &rescue_params,
 
             g2_elements: Some(g2_bases),
 
