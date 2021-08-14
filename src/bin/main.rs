@@ -52,7 +52,7 @@ enum SubCommand {
     ExportRecursiveVerificationKey(ExportRecursiveVerificationKeyOpts),
     /// Aggregate multiple proofs
     RecursiveProve(RecursiveProveOpts),
-    /// Verifying recursive proof
+    /// Verify recursive proof
     RecursiveVerify(RecursiveVerifyOpts),
 }
 
@@ -220,7 +220,7 @@ struct RecursiveVerifyOpts {
     /// Aggregated Proof BIN file
     #[clap(short = "p", long = "proof", default_value = "recursive_proof.bin")]
     proof: String,
-    /// Aggregation verification key file
+    /// Aggregated verification key file
     #[clap(short = "v", long = "verification_key", default_value = "recursive_vk.bin")]
     vk: String,
 }
@@ -518,7 +518,6 @@ fn recursive_prove(opts: RecursiveProveOpts) {
     let big_crs = reader::load_key_monomial_form(&opts.srs_monomial_form);
     let old_proofs = reader::load_proofs::<Bn256>(&opts.old_proofs_dir);
     let old_vk = reader::load_verification_key::<Bn256>(&opts.old_vk);
-    // TODO: refactor to a wrapper
     let proof = recursive::prove(big_crs, old_proofs, old_vk).unwrap();
     let writer = File::create(&opts.new_proof).unwrap();
     proof.write(writer).unwrap();
