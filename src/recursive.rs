@@ -28,7 +28,7 @@ use recursive_aggregation_circuit::circuit::{
     make_public_input_and_limbed_aggregate, RecursiveAggregationCircuitBn256,
 };
 
-const VK_TREE_DEPTH: usize = 8;
+const VK_TREE_DEPTH: usize = 2;
 
 pub fn prove(
     big_crs: Crs<Bn256, CrsForMonomialForm>,

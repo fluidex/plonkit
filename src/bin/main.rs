@@ -207,7 +207,7 @@ struct RecursiveProveOpts {
     #[clap(short = "m", long = "srs_monomial_form")]
     srs_monomial_form: String,
     /// Old proofs dir
-    #[clap(short = "p", long = "old_proofs_dir")]
+    #[clap(short = "o", long = "old_proofs_dir")]
     old_proofs_dir: String,
     /// Old vk
     #[clap(short = "v", long = "old_vk", default_value = "vk.bin")]
