@@ -30,7 +30,7 @@ use recursive_aggregation_circuit::circuit::{
     make_public_input_and_limbed_aggregate, RecursiveAggregationCircuitBn256,
 };
 
-// only support <8 depth. different depths do really make performance different
+// only support depth<8. different depths don't really make performance different
 const VK_TREE_DEPTH: usize = 7;
 
 pub fn prove(
