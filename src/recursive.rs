@@ -1,3 +1,5 @@
+#![allow(clippy::needless_range_loop)]
+
 use bellman_ce::kate_commitment::{Crs, CrsForMonomialForm};
 use bellman_ce::plonk::{
     better_cs::cs::PlonkCsWidth4WithNextStepParams,

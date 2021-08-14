@@ -42,7 +42,7 @@ pub fn load_proofs<E: Engine>(dir: &str) -> Vec<Proof<E, PlonkCsWidth4WithNextSt
         log::debug!("{:#?}", p);
         proofs.push(p);
     }
-    assert!(proofs.len() > 0, "no proof file found!");
+    assert!(!proofs.is_empty(), "no proof file found!");
 
     let num_inputs = proofs[0].num_inputs;
     for p in &proofs {
