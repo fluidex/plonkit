@@ -28,7 +28,7 @@ use recursive_aggregation_circuit::circuit::{
     make_public_input_and_limbed_aggregate, RecursiveAggregationCircuitBn256,
 };
 
-const VK_TREE_DEPTH: usize = 2;
+const VK_TREE_DEPTH: usize = 7;
 
 pub fn prove(
     big_crs: Crs<Bn256, CrsForMonomialForm>,
@@ -127,7 +127,6 @@ pub fn verify(
 pub fn export_vk(
     num_proofs_to_check: usize,
     num_inputs: usize,
-    _tree_depth: usize,
     big_crs: &Crs<Bn256, CrsForMonomialForm>,
 ) -> Result<VerificationKey<Bn256, RecursiveAggregationCircuitBn256>, anyhow::Error> {
     let (recursive_circuit_vk, _recursive_circuit_setup) =

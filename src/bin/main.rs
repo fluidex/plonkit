@@ -189,9 +189,6 @@ struct ExportRecursiveVerificationKeyOpts {
     /// Num of inputs
     #[clap(short = "i", long = "num_inputs")]
     num_inputs: usize,
-    /// Tree depth
-    #[clap(short = "d", long = "tree_depth")]
-    tree_depth: usize,
     /// Source file for a BIG Plonk universal setup srs in monomial form
     #[clap(short = "m", long = "srs_monomial_form")]
     srs_monomial_form: String,
@@ -506,10 +503,9 @@ fn export_vk(opts: ExportVerificationKeyOpts) {
     log::info!("Verification key saved to {}", opts.vk);
 }
 
-// TODO: check tree_depth?
 fn export_recursive_vk(opts: ExportRecursiveVerificationKeyOpts) {
     let big_crs = reader::load_key_monomial_form(&opts.srs_monomial_form);
-    let vk = recursive::export_vk(opts.num_proofs_to_check, opts.num_inputs, opts.tree_depth, &big_crs)
+    let vk = recursive::export_vk(opts.num_proofs_to_check, opts.num_inputs, &big_crs)
         .expect("must create recursive circuit verification key");
     //let path = Path::new(&opts.vk);
     //assert!(!path.exists(), "path for saving verification key exists: {}", path.display());

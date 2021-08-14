@@ -27,13 +27,13 @@ do
 done
 
 echo "Step: export recursive vk"
-$PLONKIT_BIN export-recursive-verification-key -c $i -i 3 -d 8 -m $SETUP_MK -v $CIRCUIT_DIR/recursive_vk.bin
+time ($PLONKIT_BIN export-recursive-verification-key -c $i -i 3 -m $SETUP_MK -v $CIRCUIT_DIR/recursive_vk.bin)
 
 echo "Step: generate recursive proof"
-$PLONKIT_BIN recursive-prove -m $SETUP_MK -o $OLD_PROOFS_DIR -v $CIRCUIT_DIR/vk.bin -n $CIRCUIT_DIR/recursive_proof.bin
+time ($PLONKIT_BIN recursive-prove -m $SETUP_MK -o $OLD_PROOFS_DIR -v $CIRCUIT_DIR/vk.bin -n $CIRCUIT_DIR/recursive_proof.bin)
 
 echo "Step: verify recursive proof"
-$PLONKIT_BIN recursive-verify -p $CIRCUIT_DIR/recursive_proof.bin -v $CIRCUIT_DIR/recursive_vk.bin
+time ($PLONKIT_BIN recursive-verify -p $CIRCUIT_DIR/recursive_proof.bin -v $CIRCUIT_DIR/recursive_vk.bin)
 
 exit
 
