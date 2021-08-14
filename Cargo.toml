@@ -15,10 +15,6 @@ crate-type = [ "cdylib", "lib" ]
 name = "plonkit"
 path = "src/bin/main.rs"
 
-[[bin]]
-name = "plonkit_recursive_test"
-path = "src/bin/recursive_test.rs"
-
 [dependencies]
 anyhow = "1.0.34"
 bellman_ce = { git = "https://github.com/matter-labs/bellman", branch = "beta", default-features = false, features = [ "plonk" ] } # active features depend on build type

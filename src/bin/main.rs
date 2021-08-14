@@ -13,6 +13,7 @@ use bellman_ce::pairing::bn256::Bn256;
 use plonkit::circom_circuit::CircomCircuit;
 use plonkit::plonk;
 use plonkit::reader;
+use plonkit::recursive;
 
 #[cfg(feature = "server")]
 use plonkit::pb;
@@ -47,6 +48,12 @@ enum SubCommand {
     GenerateVerifier(GenerateVerifierOpts),
     /// Export verifying key
     ExportVerificationKey(ExportVerificationKeyOpts),
+    /// Export Recursive verifying key
+    ExportRecursiveVerificationKey(ExportRecursiveVerificationKeyOpts),
+    /// Aggregate multiple proofs
+    RecursiveProve(RecursiveProveOpts),
+    /// Verify recursive proof
+    RecursiveVerify(RecursiveVerifyOpts),
 }
 
 /// A subcommand for analysing the circuit and outputting some stats
@@ -173,6 +180,51 @@ struct ExportVerificationKeyOpts {
     vk: String,
 }
 
+/// A subcommand for exporting recursive verifying keys
+#[derive(Clap)]
+struct ExportRecursiveVerificationKeyOpts {
+    /// Num of proofs to check
+    #[clap(short = "c", long = "num_proofs_to_check")]
+    num_proofs_to_check: usize,
+    /// Num of inputs
+    #[clap(short = "i", long = "num_inputs")]
+    num_inputs: usize,
+    /// Source file for a BIG Plonk universal setup srs in monomial form
+    #[clap(short = "m", long = "srs_monomial_form")]
+    srs_monomial_form: String,
+    /// Output verifying key file
+    #[clap(short = "v", long = "vk", default_value = "recursive_vk.bin")]
+    vk: String,
+}
+
+/// A subcommand for aggregating multiple proofs
+#[derive(Clap)]
+struct RecursiveProveOpts {
+    /// Source file for a BIG Plonk universal setup srs in monomial form
+    #[clap(short = "m", long = "srs_monomial_form")]
+    srs_monomial_form: String,
+    /// Old proofs dir
+    #[clap(short = "o", long = "old_proofs_dir")]
+    old_proofs_dir: String,
+    /// Old vk
+    #[clap(short = "v", long = "old_vk", default_value = "vk.bin")]
+    old_vk: String,
+    /// Output file for aggregated proof BIN
+    #[clap(short = "n", long = "new_proof", default_value = "recursive_proof.bin")]
+    new_proof: String,
+}
+
+/// A subcommand for verifying recursive proof
+#[derive(Clap)]
+struct RecursiveVerifyOpts {
+    /// Aggregated Proof BIN file
+    #[clap(short = "p", long = "proof", default_value = "recursive_proof.bin")]
+    proof: String,
+    /// Aggregated verification key file
+    #[clap(short = "v", long = "verification_key", default_value = "recursive_vk.bin")]
+    vk: String,
+}
+
 fn main() {
     // Always print backtrace on panic.
     ::std::env::set_var("RUST_BACKTRACE", "1");
@@ -211,6 +263,15 @@ fn main() {
         }
         SubCommand::ExportVerificationKey(o) => {
             export_vk(o);
+        }
+        SubCommand::ExportRecursiveVerificationKey(o) => {
+            export_recursive_vk(o);
+        }
+        SubCommand::RecursiveProve(o) => {
+            recursive_prove(o);
+        }
+        SubCommand::RecursiveVerify(o) => {
+            recursive_verify(o);
         }
     }
 }
@@ -440,4 +501,37 @@ fn export_vk(opts: ExportVerificationKeyOpts) {
     let writer = File::create(&opts.vk).unwrap();
     vk.write(writer).unwrap();
     log::info!("Verification key saved to {}", opts.vk);
+}
+
+fn export_recursive_vk(opts: ExportRecursiveVerificationKeyOpts) {
+    let big_crs = reader::load_key_monomial_form(&opts.srs_monomial_form);
+    let vk =
+        recursive::export_vk(opts.num_proofs_to_check, opts.num_inputs, &big_crs).expect("must create recursive circuit verification key");
+    //let path = Path::new(&opts.vk);
+    //assert!(!path.exists(), "path for saving verification key exists: {}", path.display());
+    let writer = File::create(&opts.vk).unwrap();
+    vk.write(writer).unwrap();
+    log::info!("Recursive verification key saved to {}", opts.vk);
+}
+
+fn recursive_prove(opts: RecursiveProveOpts) {
+    let big_crs = reader::load_key_monomial_form(&opts.srs_monomial_form);
+    let old_proofs = reader::load_proofs::<Bn256>(&opts.old_proofs_dir);
+    let old_vk = reader::load_verification_key::<Bn256>(&opts.old_vk);
+    let proof = recursive::prove(big_crs, old_proofs, old_vk).unwrap();
+    let writer = File::create(&opts.new_proof).unwrap();
+    proof.write(writer).unwrap();
+    log::info!("Proof saved to {}", opts.new_proof);
+}
+
+fn recursive_verify(opts: RecursiveVerifyOpts) {
+    let vk = reader::load_recursive_verification_key(&opts.vk);
+    let proof = reader::load_recursive_proof(&opts.proof);
+    let correct = recursive::verify(&vk, &proof).expect("fail to verify recursive proof");
+    if correct {
+        log::info!("Proof is valid.");
+    } else {
+        log::info!("Proof is invalid!");
+        std::process::exit(400);
+    }
 }
