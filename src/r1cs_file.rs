@@ -1,3 +1,4 @@
+// some codes borrowed from https://github.com/poma/zkutil/blob/master/src/r1cs_reader.rs
 #![allow(unused_variables, dead_code)]
 use crate::circom_circuit::Constraint;
 use bellman_ce::pairing::{
