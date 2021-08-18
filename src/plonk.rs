@@ -23,7 +23,7 @@ use franklin_crypto::rescue::RescueEngine;
 
 pub const AUX_OFFSET: usize = 1;
 
-const SETUP_MIN_POW2: u32 = 20;
+const SETUP_MIN_POW2: u32 = 10;
 const SETUP_MAX_POW2: u32 = 26;
 
 pub fn gen_key_monomial_form(power: u32) -> Result<Crs<E, CrsForMonomialForm>, anyhow::Error> {
@@ -31,8 +31,9 @@ pub fn gen_key_monomial_form(power: u32) -> Result<Crs<E, CrsForMonomialForm>, a
         (SETUP_MIN_POW2..=SETUP_MAX_POW2).contains(&power),
         "setup power of two is not in the correct range"
     );
-    {
-        // run a small setup to estimate time
+
+    // run a small setup to estimate time
+    if power > 15 {
         use std::time::Instant;
         let t = Instant::now();
         let small_power = 12;
@@ -41,6 +42,7 @@ pub fn gen_key_monomial_form(power: u32) -> Result<Crs<E, CrsForMonomialForm>, a
         let estimated_time = elapsed * (1 << (power - small_power)) as f64;
         log::info!("estimated run time: {} secs", estimated_time);
     }
+
     Ok(Crs::<E, CrsForMonomialForm>::crs_42(1 << power, &Worker::new()))
 }
 

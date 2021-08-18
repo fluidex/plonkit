@@ -3,9 +3,11 @@
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 REPO_DIR="${DIR}/../../.."
 CIRCUIT_DIR="${REPO_DIR}/test/circuits/simple"
+POWER=10
 SETUP_DIR=$REPO_DIR"/keys/setup"
-SETUP_MK=$SETUP_DIR"/setup_2^20.key"
-SETUP_LK=$SETUP_DIR"/setup_2^20_lagrange.key"
+SETUP_MK=$SETUP_DIR"/setup_2^${POWER}.key"
+# TODO: lagrange key should be put into circuit dir later
+SETUP_LK=$SETUP_DIR"/setup_2^${POWER}_lagrange.key"
 DOWNLOAD_SETUP_FROM_REMOTE=false
 PLONKIT_BIN=$REPO_DIR"/target/release/plonkit"
 #PLONKIT_BIN="plonkit"
@@ -42,9 +44,9 @@ echo "Step2: universal setup"
 pushd $SETUP_DIR
 if ([ ! -f $SETUP_MK ] & $DOWNLOAD_SETUP_FROM_REMOTE); then
   # It is the aztec ignition trusted setup key file. Thanks to matter-labs/zksync/infrastructure/zk/src/run/run.ts
-  axel -ac https://universal-setup.ams3.digitaloceanspaces.com/setup_2^20.key -o $SETUP_MK || true
+  axel -ac https://universal-setup.ams3.digitaloceanspaces.com/setup_2^${POWER}.key -o $SETUP_MK || true
 elif [ ! -f $SETUP_MK ] ; then
-    $PLONKIT_BIN setup --power 20 --srs_monomial_form $SETUP_MK
+    $PLONKIT_BIN setup --power ${POWER} --srs_monomial_form $SETUP_MK
 fi
 popd
 
