@@ -1,3 +1,15 @@
-*/
 !*/input.json
 !*/*.circom
+
+**/srcs.sum
+**/circuit.json
+**/circuit.r1cs
+**/circuit.r1cs.json
+**/circuit.sym
+**/circuit.wasm
+**/proof.bin
+**/proof.json
+**/public.json
+**/verifier.sol
+**/vk.bin
+**/witness.wtns
