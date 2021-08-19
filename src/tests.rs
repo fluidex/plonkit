@@ -1,8 +1,8 @@
 use std::fs;
 
-use bellman_ce::bn256::Bn256;
 use crate::circom_circuit::CircomCircuit;
-use crate::{reader, plonk};
+use crate::{plonk, reader};
+use bellman_ce::bn256::Bn256;
 
 const CIRCUIT_FILE: &'static str = concat!(env!("CARGO_MANIFEST_DIR"), "/test/circuits/simple/circuit.r1cs.json");
 const WITNESS_FILE: &'static str = concat!(env!("CARGO_MANIFEST_DIR"), "/test/circuits/simple/witness.json");
@@ -20,11 +20,7 @@ fn test_export_verification_key() {
         aux_offset: plonk::AUX_OFFSET,
     };
 
-    let setup = plonk::SetupForProver::prepare_setup_for_prover(
-        circuit,
-        reader::load_key_monomial_form(MONOMIAL_KEY_FILE),
-        None
-    )
+    let setup = plonk::SetupForProver::prepare_setup_for_prover(circuit, reader::load_key_monomial_form(MONOMIAL_KEY_FILE), None)
         .expect("prepare err");
     let vk = setup.make_verification_key().unwrap();
     let mut buf = vec![];
@@ -46,7 +42,8 @@ fn test_prove() {
         circuit.clone(),
         reader::load_key_monomial_form(MONOMIAL_KEY_FILE),
         reader::maybe_load_key_lagrange_form(None),
-    ).unwrap();
+    )
+    .unwrap();
 
     let proof = setup.prove(circuit, DEFAULT_TRANSCRIPT).unwrap();
     let mut buf = vec![];
