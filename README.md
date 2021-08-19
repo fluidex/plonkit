@@ -1,4 +1,6 @@
 # plonkit!
+![ci](https://github.com/fluidex/plonkit/actions/workflows/unit-test.yaml/badge.svg)
+[![codecov](https://codecov.io/gh/fluidex/plonkit/branch/master/graph/badge.svg?token=2GVjdWgRZC)](https://codecov.io/gh/fluidex/plonkit)
 
 A zkSNARK toolkit to work with [circom](https://github.com/iden3/circom) zkSNARKs DSL in [plonk](https://eprint.iacr.org/2019/953) proof system. Based on [zkutil](https://github.com/poma/zkutil) and [bellman_ce](https://github.com/matter-labs/bellman).
 
