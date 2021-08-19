@@ -23,7 +23,7 @@ env:
   CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
 jobs:
-  unit-test:
+  codecov:
     runs-on: ubuntu-latest
     # env:
     #   RUST_LOG: "info"
