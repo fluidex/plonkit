@@ -139,7 +139,7 @@ mod tests {
     #[test]
     fn sample() {
         let data = hex!(
-        "
+            "
         72316373
         01000000
         03000000
@@ -188,7 +188,7 @@ mod tests {
         0f000000 00000000
         44010000 00000000
     "
-    );
+        );
 
         use bellman_ce::pairing::ff;
         let file = from_reader(&data[..]).unwrap();
