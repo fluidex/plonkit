@@ -45,6 +45,10 @@ fn test_prove() {
     )
     .unwrap();
 
+    assert!(setup.validate_witness(circuit.clone()));
+
+    let _ = setup.get_srs_lagrange_form_from_monomial_form();
+
     let proof = setup.prove(circuit, DEFAULT_TRANSCRIPT).unwrap();
     let mut buf = vec![];
     proof.write(&mut buf).unwrap();

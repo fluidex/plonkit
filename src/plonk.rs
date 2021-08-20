@@ -203,3 +203,13 @@ fn get_default_rescue_transcript_params() -> (<E as RescueEngine>::Params, RnsPa
     let transcript_params: (<E as RescueEngine>::Params, RnsParameters<E, <E as Engine>::Fq>) = (rescue_params, rns_params);
     transcript_params
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_gen_key_monomial_form() {
+        gen_key_monomial_form(10).unwrap();
+    }
+}
