@@ -11,6 +11,22 @@ const PROOF_FILE: &'static str = concat!(env!("CARGO_MANIFEST_DIR"), "/test/circ
 const MONOMIAL_KEY_FILE: &'static str = concat!(env!("CARGO_MANIFEST_DIR"), "/keys/setup/setup_2^10.key");
 const DEFAULT_TRANSCRIPT: &'static str = "keccak";
 
+const CIRCUIT_ANALYZE_RESULT: &'static str = r#"{"num_inputs":2,"num_aux":2,"num_variables":4,"num_constraints":2,"num_nontrivial_constraints":2,"num_gates":3,"num_hints":2,"constraint_stats":[{"name":"0","num_gates":1},{"name":"1","num_gates":2}]}"#;
+
+#[test]
+fn test_analyze() {
+    let circuit = CircomCircuit {
+        r1cs: reader::load_r1cs(CIRCUIT_FILE),
+        witness: None,
+        wire_mapping: None,
+        aux_offset: plonk::AUX_OFFSET,
+    };
+
+    let result = crate::plonk::analyse(circuit).unwrap();
+
+    assert_eq!(CIRCUIT_ANALYZE_RESULT, serde_json::to_string(&result).unwrap());
+}
+
 #[test]
 fn test_export_verification_key() {
     let circuit = CircomCircuit {
