@@ -132,9 +132,13 @@ pub fn from_reader<R: Read>(mut reader: R) -> Result<R1CSFile<Bn256>> {
     })
 }
 
-#[test]
-fn sample() {
-    let data = hex!(
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn sample() {
+        let data = hex!(
         "
         72316373
         01000000
@@ -186,30 +190,40 @@ fn sample() {
     "
     );
 
-    use bellman_ce::pairing::ff;
-    let file = from_reader(&data[..]).unwrap();
-    assert_eq!(file.version, 1);
+        use bellman_ce::pairing::ff;
+        let file = from_reader(&data[..]).unwrap();
+        assert_eq!(file.version, 1);
 
-    assert_eq!(file.header.field_size, 32);
-    assert_eq!(
-        file.header.prime_size,
-        &hex!("010000f093f5e1439170b97948e833285d588181b64550b829a031e1724e6430")
-    );
-    assert_eq!(file.header.n_wires, 7);
-    assert_eq!(file.header.n_pub_out, 1);
-    assert_eq!(file.header.n_pub_in, 2);
-    assert_eq!(file.header.n_prv_in, 3);
-    assert_eq!(file.header.n_labels, 0x03e8);
-    assert_eq!(file.header.n_constraints, 3);
+        assert_eq!(file.header.field_size, 32);
+        assert_eq!(
+            file.header.prime_size,
+            &hex!("010000f093f5e1439170b97948e833285d588181b64550b829a031e1724e6430")
+        );
+        assert_eq!(file.header.n_wires, 7);
+        assert_eq!(file.header.n_pub_out, 1);
+        assert_eq!(file.header.n_pub_in, 2);
+        assert_eq!(file.header.n_prv_in, 3);
+        assert_eq!(file.header.n_labels, 0x03e8);
+        assert_eq!(file.header.n_constraints, 3);
 
-    assert_eq!(file.constraints.len(), 3);
-    assert_eq!(file.constraints[0].0.len(), 2);
-    assert_eq!(file.constraints[0].0[0].0, 5);
-    assert_eq!(file.constraints[0].0[0].1, ff::from_hex("0x03").unwrap());
-    assert_eq!(file.constraints[2].1[0].0, 0);
-    assert_eq!(file.constraints[2].1[0].1, ff::from_hex("0x06").unwrap());
-    assert_eq!(file.constraints[1].2.len(), 0);
+        assert_eq!(file.constraints.len(), 3);
+        assert_eq!(file.constraints[0].0.len(), 2);
+        assert_eq!(file.constraints[0].0[0].0, 5);
+        assert_eq!(file.constraints[0].0[0].1, ff::from_hex("0x03").unwrap());
+        assert_eq!(file.constraints[2].1[0].0, 0);
+        assert_eq!(file.constraints[2].1[0].1, ff::from_hex("0x06").unwrap());
+        assert_eq!(file.constraints[1].2.len(), 0);
 
-    assert_eq!(file.wire_mapping.len(), 7);
-    assert_eq!(file.wire_mapping[1], 3);
+        assert_eq!(file.wire_mapping.len(), 7);
+        assert_eq!(file.wire_mapping[1], 3);
+    }
+
+    #[test]
+    fn test_reader_size_fail() {
+        // fn read_header<R: Read>(mut reader: R, size: u64) -> Result<Header>
+        let mut buf: Vec<u8> = 32_u32.to_le_bytes().to_vec();
+        buf.resize(4 + 32, 0);
+        let err = read_header(&mut buf.as_slice(), 32).err().unwrap();
+        assert_eq!(err.kind(), ErrorKind::InvalidData)
+    }
 }
