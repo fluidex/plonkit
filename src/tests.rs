@@ -45,7 +45,7 @@ fn test_prove() {
     )
     .unwrap();
 
-    assert!(setup.validate_witness(circuit.clone()));
+    assert!(setup.validate_witness(circuit.clone()).is_ok());
 
     let _ = setup.get_srs_lagrange_form_from_monomial_form();
 
