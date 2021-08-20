@@ -2,7 +2,7 @@
 !*/*.circom
 
 **/srcs.sum
-**/circui*
+**/circuit*
 **/*proof*
 **/*key*
 **/*.cpp
@@ -12,4 +12,4 @@
 **/public.json
 **/verifier.sol
 **/*vk.bin
-**/witness*
+**/witness.*
