@@ -1,3 +1,5 @@
+#![cfg(not(tarpaulin_include))]
+
 extern crate bellman_ce;
 extern crate bellman_vk_codegen;
 extern crate clap;
