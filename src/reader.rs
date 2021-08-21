@@ -32,8 +32,14 @@ pub fn load_proof<E: Engine>(filename: &str) -> Proof<E, PlonkCsWidth4WithNextSt
 
 pub fn load_proofs_from_list<E: Engine>(list: &str) -> Vec<Proof<E, PlonkCsWidth4WithNextStepParams>> {
     let file = File::open(list).expect("read proof list file err");
-    let lines: Vec<String> = io::BufReader::new(file).lines().map(|l| l.expect("Could not parse line")).collect();
-    let proofs: Vec<Proof<E, PlonkCsWidth4WithNextStepParams>> = lines.iter().map(|l| load_proof::<E>(l)).collect();
+    let lines: Vec<String> = io::BufReader::new(file).lines().map(|l| l.expect("could not parse line")).collect();
+    let proofs: Vec<Proof<E, PlonkCsWidth4WithNextStepParams>> = lines
+        .iter()
+        .map(|l| {
+            log::info!("reading {:?}", l);
+            load_proof::<E>(l)
+        })
+        .collect();
 
     assert!(!proofs.is_empty(), "no proof file found!");
 
