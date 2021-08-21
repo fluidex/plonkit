@@ -42,7 +42,7 @@ do
   $PLONKIT_BIN prove -m $SETUP_MK -c $CIRCUIT_DIR/circuit.r1cs -w $WITNESS_DIR/witness.wtns -p $WITNESS_DIR/proof.bin -j $WITNESS_DIR/proof.json -i $WITNESS_DIR/public.json -t rescue
 done
 
-echo "Step: collect old_proofs"
+echo "Step: collect old_proofs list"
 OLD_PROOF_LIST=$CIRCUIT_DIR/old_proof_list.txt
 rm $OLD_PROOF_LIST -rf
 touch $OLD_PROOF_LIST
