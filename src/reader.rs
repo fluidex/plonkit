@@ -3,7 +3,7 @@ use byteorder::{LittleEndian, ReadBytesExt};
 use itertools::Itertools;
 use std::collections::BTreeMap;
 use std::fs::{File, OpenOptions};
-use std::io::{self, BufRead, BufReader, Read};
+use std::io::{BufRead, BufReader, Read};
 use std::str;
 
 use bellman_ce::{
@@ -32,7 +32,7 @@ pub fn load_proof<E: Engine>(filename: &str) -> Proof<E, PlonkCsWidth4WithNextSt
 
 pub fn load_proofs_from_list<E: Engine>(list: &str) -> Vec<Proof<E, PlonkCsWidth4WithNextStepParams>> {
     let file = File::open(list).expect("read proof list file err");
-    let lines: Vec<String> = io::BufReader::new(file).lines().map(|l| l.expect("could not parse line")).collect();
+    let lines: Vec<String> = BufReader::new(file).lines().map(|l| l.expect("could not parse line")).collect();
     let proofs: Vec<Proof<E, PlonkCsWidth4WithNextStepParams>> = lines
         .iter()
         .map(|l| {
@@ -61,12 +61,12 @@ pub fn load_recursive_proof(filename: &str) -> RecursiveProof<Bn256, RecursiveAg
 ///
 
 pub fn load_verification_key<E: Engine>(filename: &str) -> VerificationKey<E, PlonkCsWidth4WithNextStepParams> {
-    let mut reader = std::io::BufReader::with_capacity(1 << 24, File::open(filename).expect("read vk file err"));
+    let mut reader = BufReader::with_capacity(1 << 24, File::open(filename).expect("read vk file err"));
     VerificationKey::<E, PlonkCsWidth4WithNextStepParams>::read(&mut reader).expect("read vk err")
 }
 
 pub fn load_recursive_verification_key(filename: &str) -> RecursiveVerificationKey<Bn256, RecursiveAggregationCircuitBn256> {
-    let mut reader = std::io::BufReader::with_capacity(1 << 24, File::open(filename).expect("read recursive vk file err"));
+    let mut reader = BufReader::with_capacity(1 << 24, File::open(filename).expect("read recursive vk file err"));
     RecursiveVerificationKey::<Bn256, RecursiveAggregationCircuitBn256>::read(&mut reader).expect("read recursive vk err")
 }
 
