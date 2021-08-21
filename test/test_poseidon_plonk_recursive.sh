@@ -53,6 +53,7 @@ do
   echo $WITNESS_DIR/proof.bin >> $OLD_PROOF_LIST
   let "i++"
 done
+cat $OLD_PROOF_LIST
 
 echo "Step: export recursive vk"
 time ($PLONKIT_BIN export-recursive-verification-key -c $i -i 3 -m $BIG_SETUP_MK -v $CIRCUIT_DIR/recursive_vk.bin)
