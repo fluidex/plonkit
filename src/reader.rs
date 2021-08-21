@@ -2,8 +2,8 @@ use anyhow::{bail, format_err};
 use byteorder::{LittleEndian, ReadBytesExt};
 use itertools::Itertools;
 use std::collections::BTreeMap;
-use std::fs::{self, File, OpenOptions};
-use std::io::{BufReader, Read};
+use std::fs::{File, OpenOptions};
+use std::io::{self, BufRead, BufReader, Read};
 use std::str;
 
 use bellman_ce::{
@@ -30,18 +30,11 @@ pub fn load_proof<E: Engine>(filename: &str) -> Proof<E, PlonkCsWidth4WithNextSt
     Proof::<E, PlonkCsWidth4WithNextStepParams>::read(File::open(filename).expect("read proof file err")).expect("read proof err")
 }
 
-pub fn load_proofs<E: Engine>(dir: &str) -> Vec<Proof<E, PlonkCsWidth4WithNextStepParams>> {
-    let mut proofs: Vec<Proof<E, PlonkCsWidth4WithNextStepParams>> = vec![];
+pub fn load_proofs_from_list<E: Engine>(list: &str) -> Vec<Proof<E, PlonkCsWidth4WithNextStepParams>> {
+    let file = File::open(list).expect("read old proof list file err");
+    let lines: Vec<String> = io::BufReader::new(file).lines().map(|l| l.expect("Could not parse line")).collect();
+    let proofs: Vec<Proof<E, PlonkCsWidth4WithNextStepParams>> = lines.iter().map(|l| load_proof::<E>(l)).collect();
 
-    let paths = fs::read_dir(dir).unwrap();
-    for path in paths {
-        let filename = path.unwrap().path();
-        log::info!("reading {}", filename.display());
-        let p =
-            Proof::<E, PlonkCsWidth4WithNextStepParams>::read(File::open(filename).expect("read proof file err")).expect("read proof err");
-        log::debug!("{:#?}", p);
-        proofs.push(p);
-    }
     assert!(!proofs.is_empty(), "no proof file found!");
 
     let num_inputs = proofs[0].num_inputs;
