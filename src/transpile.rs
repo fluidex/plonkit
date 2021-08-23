@@ -6,12 +6,14 @@ use bellman_ce::plonk::better_cs::cs::{
 use bellman_ce::plonk::cs::gates::Variable as PlonkVariable;
 use bellman_ce::SynthesisError;
 
+// statistics of constraints complexity
 #[derive(serde::Serialize, Clone)]
 pub struct ConstraintStat {
     pub name: String,
     pub num_gates: usize,
 }
 
+// a wrapper to interact with bellman_ce lib's plonk transpiler
 pub struct TranspilerWrapper<E: Engine, P: PlonkConstraintSystemParams<E>> {
     inner: Transpiler<E, P>,
     pub constraint_stats: Vec<ConstraintStat>,
@@ -120,6 +122,7 @@ impl<E: Engine, P: PlonkConstraintSystemParams<E>> bellman_ce::ConstraintSystem<
     }
 }
 
+// transpile after synthesizing the circuit
 pub fn transpile_with_gates_count<E: Engine, C: bellman_ce::Circuit<E>>(
     circuit: C,
 ) -> Result<(usize, Vec<(usize, TranspilationVariant)>), SynthesisError> {

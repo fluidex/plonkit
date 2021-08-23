@@ -9,6 +9,7 @@ use std::collections::VecDeque;
 use std::sync::Arc;
 use tokio::sync::{mpsc, oneshot, Mutex};
 
+// plonk prover server returned result type
 #[derive(Clone, PartialEq)]
 pub enum ServerResult {
     ForValidate(pb::ValidateResponse),
@@ -92,6 +93,7 @@ impl ServerOptions {
     }
 }
 
+// plonk prover server scheduler
 async fn schedule_task(
     mut notify: mpsc::Receiver<ServerRequest>,
     tasks: Arc<Mutex<VecDeque<ServerRequest>>>,
@@ -154,6 +156,7 @@ async fn schedule_task(
 
 use pb::plonkit_server_server::{PlonkitServer, PlonkitServerServer};
 
+// plonk prover server implementation
 #[tonic::async_trait]
 impl PlonkitServer for GrpcHandler {
     async fn prove(&self, request: tonic::Request<pb::Request>) -> Result<tonic::Response<pb::ProveResponse>, tonic::Status> {
@@ -191,6 +194,7 @@ impl PlonkitServer for GrpcHandler {
 
 use futures::future::TryFutureExt;
 
+// plonk prover server start point
 pub fn run(opt: ServerOptions) {
     tokio::runtime::Builder::new_multi_thread()
         .enable_all()
@@ -218,7 +222,7 @@ pub fn run(opt: ServerOptions) {
                 )
                 .await
                 .unwrap();
-            log::info!("Server shutted down");
+            log::info!("Server shut down");
             scheduler.await.unwrap();
         });
 

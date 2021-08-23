@@ -26,6 +26,7 @@ pub const AUX_OFFSET: usize = 1;
 const SETUP_MIN_POW2: u32 = 10;
 const SETUP_MAX_POW2: u32 = 26;
 
+// generate a monomial_form SRS
 pub fn gen_key_monomial_form(power: u32) -> Result<Crs<E, CrsForMonomialForm>, anyhow::Error> {
     anyhow::ensure!(
         (SETUP_MIN_POW2..=SETUP_MAX_POW2).contains(&power),
@@ -53,6 +54,7 @@ pub struct SetupForProver {
     key_lagrange_form: Option<Crs<E, CrsForLagrangeForm>>,
 }
 
+// circuit analysis result
 #[derive(serde::Serialize)]
 pub struct AnalyseResult {
     pub num_inputs: usize,
@@ -66,6 +68,7 @@ pub struct AnalyseResult {
     pub constraint_stats: Vec<ConstraintStat>,
 }
 
+// analyse a circuit
 pub fn analyse<E: Engine>(circuit: CircomCircuit<E>) -> Result<AnalyseResult, anyhow::Error> {
     let mut transpiler = TranspilerWrapper::<E, PlonkCsWidth4WithNextStepParams>::new();
     let mut result = AnalyseResult {
@@ -90,6 +93,7 @@ pub fn analyse<E: Engine>(circuit: CircomCircuit<E>) -> Result<AnalyseResult, an
 }
 
 impl SetupForProver {
+    // meta-data preparation before proving a circuit
     pub fn prepare_setup_for_prover<C: Circuit<E> + Clone>(
         circuit: C,
         key_monomial_form: Crs<E, CrsForMonomialForm>,
@@ -114,14 +118,17 @@ impl SetupForProver {
         })
     }
 
+    // generate a verification key for a circuit
     pub fn make_verification_key(&self) -> Result<VerificationKey<E, PlonkCsWidth4WithNextStepParams>, SynthesisError> {
         make_verification_key(&self.setup_polynomials, &self.key_monomial_form)
     }
 
+    // quickly valiate whether a witness is satisfied
     pub fn validate_witness<C: Circuit<E> + Clone>(&self, circuit: C) -> Result<(), SynthesisError> {
         is_satisfied_using_one_shot_check(circuit, &self.hints)
     }
 
+    // generate a plonk proof for a circuit, with witness loaded
     pub fn prove<C: Circuit<E> + Clone>(
         &self,
         circuit: C,
@@ -168,6 +175,7 @@ impl SetupForProver {
         }
     }
 
+    // calculate the lagrange_form SRS from a monomial_form SRS
     pub fn get_srs_lagrange_form_from_monomial_form(&self) -> Crs<E, CrsForLagrangeForm> {
         Crs::<E, CrsForLagrangeForm>::from_powers(
             &self.key_monomial_form,
@@ -177,6 +185,7 @@ impl SetupForProver {
     }
 }
 
+// verify a plonk proof using a verification key
 pub fn verify(
     vk: &VerificationKey<E, PlonkCsWidth4WithNextStepParams>,
     proof: &Proof<E, PlonkCsWidth4WithNextStepParams>,
