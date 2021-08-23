@@ -218,7 +218,7 @@ pub fn run(opt: ServerOptions) {
                 )
                 .await
                 .unwrap();
-            log::info!("Server shutted down");
+            log::info!("Server shut down");
             scheduler.await.unwrap();
         });
 
