@@ -9,6 +9,7 @@ use bellman_ce::pairing::{
 use byteorder::{LittleEndian, ReadBytesExt};
 use std::io::{Error, ErrorKind, Read, Result};
 
+// R1CSFile's header
 pub struct Header {
     pub field_size: u32,
     pub prime_size: Vec<u8>,
@@ -20,6 +21,7 @@ pub struct Header {
     pub n_constraints: u32,
 }
 
+// R1CSFile parse result
 pub struct R1CSFile<E: Engine> {
     pub version: u32,
     pub header: Header,
