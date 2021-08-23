@@ -278,6 +278,7 @@ fn main() {
     }
 }
 
+// analyse the contraints statistics of a circuit, and print it out
 fn analyse(opts: AnalyseOpts) {
     let circuit_file = resolve_circuit_file(opts.circuit);
     log::info!("Loading circuit from {}...", circuit_file);
@@ -298,6 +299,7 @@ fn analyse(opts: AnalyseOpts) {
     log::info!("output to {}", opts.output);
 }
 
+// generate a monomial_form SRS, and save it to a file
 fn setup(opts: SetupOpts) {
     let srs = plonk::gen_key_monomial_form(opts.power).unwrap();
     let writer = File::create(&opts.srs_monomial_form).unwrap();
@@ -305,6 +307,7 @@ fn setup(opts: SetupOpts) {
     log::info!("srs_monomial_form saved to {}", opts.srs_monomial_form);
 }
 
+// circuit filename default resolver
 fn resolve_circuit_file(filename: Option<String>) -> String {
     match filename {
         Some(s) => s,
@@ -318,6 +321,7 @@ fn resolve_circuit_file(filename: Option<String>) -> String {
     }
 }
 
+// generate a lagrange_form SRS from a monomial_form SRS, and save it to a file
 fn dump_lagrange(opts: DumpLagrangeOpts) {
     let circuit_file = resolve_circuit_file(opts.circuit);
     log::info!("Loading circuit from {}...", circuit_file);
@@ -337,6 +341,7 @@ fn dump_lagrange(opts: DumpLagrangeOpts) {
     log::info!("srs_lagrange_form saved to {}", opts.srs_lagrange_form);
 }
 
+// plonk prover server wrapper
 #[cfg(feature = "server")]
 fn serve(opts: ServerOpts) {
     let circuit_file = resolve_circuit_file(opts.circuit);
@@ -416,6 +421,7 @@ fn serve(opts: ServerOpts) {
     );
 }
 
+// generate a plonk proof for a circuit, with witness loaded, and save the proof to a file
 fn prove(opts: ProveOpts) {
     let circuit_file = resolve_circuit_file(opts.circuit);
     log::info!("Loading circuit from {}...", circuit_file);
@@ -452,6 +458,7 @@ fn prove(opts: ProveOpts) {
     }
 }
 
+// verify a plonk proof by using a verification key
 fn verify(opts: VerifyOpts) {
     let vk = reader::load_verification_key::<Bn256>(&opts.vk);
 
@@ -465,6 +472,7 @@ fn verify(opts: VerifyOpts) {
     }
 }
 
+// generate a solidity plonk verifier by feeding a verification key, and save it to a file
 fn generate_verifier(opts: GenerateVerifierOpts) {
     cfg_if::cfg_if! {
         if #[cfg(feature = "solidity")] {
@@ -484,6 +492,7 @@ fn generate_verifier(opts: GenerateVerifierOpts) {
     }
 }
 
+// export a verification key for a circuit, and save it to a file
 fn export_vk(opts: ExportVerificationKeyOpts) {
     let circuit_file = resolve_circuit_file(opts.circuit);
     log::info!("Loading circuit from {}...", circuit_file);
@@ -505,6 +514,7 @@ fn export_vk(opts: ExportVerificationKeyOpts) {
     log::info!("Verification key saved to {}", opts.vk);
 }
 
+// export a verification key for a recursion circuit, and save it to a file
 fn export_recursive_vk(opts: ExportRecursiveVerificationKeyOpts) {
     let big_crs = reader::load_key_monomial_form(&opts.srs_monomial_form);
     let vk =
@@ -516,6 +526,7 @@ fn export_recursive_vk(opts: ExportRecursiveVerificationKeyOpts) {
     log::info!("Recursive verification key saved to {}", opts.vk);
 }
 
+// recursively prove multiple proofs, and aggregate them into one, and save the proof to a file
 fn recursive_prove(opts: RecursiveProveOpts) {
     let big_crs = reader::load_key_monomial_form(&opts.srs_monomial_form);
     let old_proofs = reader::load_proofs_from_list::<Bn256>(&opts.old_proof_list);
@@ -526,6 +537,7 @@ fn recursive_prove(opts: RecursiveProveOpts) {
     log::info!("Proof saved to {}", opts.new_proof);
 }
 
+// verify a recursive proof by using a corresponding verification key
 fn recursive_verify(opts: RecursiveVerifyOpts) {
     let vk = reader::load_recursive_verification_key(&opts.vk);
     let proof = reader::load_recursive_proof(&opts.proof);
