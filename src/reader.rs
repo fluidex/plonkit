@@ -22,14 +22,12 @@ use recursive_aggregation_circuit::circuit::RecursiveAggregationCircuitBn256;
 
 use crate::circom_circuit::{CircuitJson, R1CS};
 
-///
-/// proof
-///
-
+/// load proof by filename
 pub fn load_proof<E: Engine>(filename: &str) -> Proof<E, PlonkCsWidth4WithNextStepParams> {
     Proof::<E, PlonkCsWidth4WithNextStepParams>::read(File::open(filename).expect("read proof file err")).expect("read proof err")
 }
 
+/// load proof list by filename
 pub fn load_proofs_from_list<E: Engine>(list: &str) -> Vec<Proof<E, PlonkCsWidth4WithNextStepParams>> {
     let file = File::open(list).expect("read proof list file err");
     let lines: Vec<String> = BufReader::new(file).lines().map(|l| l.expect("could not parse line")).collect();
@@ -45,46 +43,44 @@ pub fn load_proofs_from_list<E: Engine>(list: &str) -> Vec<Proof<E, PlonkCsWidth
 
     let num_inputs = proofs[0].num_inputs;
     for p in &proofs {
-        assert!(p.num_inputs == num_inputs, "proofs num_inputs mismatch!");
+        assert_eq!(p.num_inputs, num_inputs, "proofs num_inputs mismatch!");
     }
 
     proofs
 }
 
+/// load recursive proof file by filename
 pub fn load_recursive_proof(filename: &str) -> RecursiveProof<Bn256, RecursiveAggregationCircuitBn256> {
     RecursiveProof::<Bn256, RecursiveAggregationCircuitBn256>::read(File::open(filename).expect("read recursive proof file err"))
         .expect("read recursive proof err")
 }
 
-///
-/// verification key
-///
-
+/// load verification key file by filename
 pub fn load_verification_key<E: Engine>(filename: &str) -> VerificationKey<E, PlonkCsWidth4WithNextStepParams> {
     let mut reader = BufReader::with_capacity(1 << 24, File::open(filename).expect("read vk file err"));
     VerificationKey::<E, PlonkCsWidth4WithNextStepParams>::read(&mut reader).expect("read vk err")
 }
 
+/// load recursive verification key file by filename
 pub fn load_recursive_verification_key(filename: &str) -> RecursiveVerificationKey<Bn256, RecursiveAggregationCircuitBn256> {
     let mut reader = BufReader::with_capacity(1 << 24, File::open(filename).expect("read recursive vk file err"));
     RecursiveVerificationKey::<Bn256, RecursiveAggregationCircuitBn256>::read(&mut reader).expect("read recursive vk err")
 }
 
-///
-/// universal setup
-///
-
+/// get universal setup file by filename
 fn get_universal_setup_file_buff_reader(setup_file_name: &str) -> Result<BufReader<File>, anyhow::Error> {
     let setup_file =
         File::open(setup_file_name).map_err(|e| format_err!("Failed to open universal setup file {}, err: {}", setup_file_name, e))?;
     Ok(BufReader::with_capacity(1 << 29, setup_file))
 }
 
+/// load monomial form key by filename
 pub fn load_key_monomial_form<E: Engine>(filename: &str) -> Crs<E, CrsForMonomialForm> {
     let mut buf_reader = get_universal_setup_file_buff_reader(filename).expect("read key_monomial_form file err");
     Crs::<E, CrsForMonomialForm>::read(&mut buf_reader).expect("read key_monomial_form err")
 }
 
+/// load optional lagrange form key by filename
 pub fn maybe_load_key_lagrange_form<E: Engine>(option_filename: Option<String>) -> Option<Crs<E, CrsForLagrangeForm>> {
     match option_filename {
         None => None,
@@ -96,10 +92,7 @@ pub fn maybe_load_key_lagrange_form<E: Engine>(option_filename: Option<String>) 
     }
 }
 
-///
-/// witness
-///
-
+/// load witness file by filename with autodetect encoding (bin or json).
 pub fn load_witness_from_file<E: Engine>(filename: &str) -> Vec<E::Fr> {
     if filename.ends_with("json") {
         load_witness_from_json_file::<E>(filename)
@@ -108,6 +101,7 @@ pub fn load_witness_from_file<E: Engine>(filename: &str) -> Vec<E::Fr> {
     }
 }
 
+/// load witness from json file by filename
 pub fn load_witness_from_json_file<E: Engine>(filename: &str) -> Vec<E::Fr> {
     let reader = OpenOptions::new().read(true).open(filename).expect("unable to open.");
     load_witness_from_json::<E, BufReader<File>>(BufReader::new(reader))
@@ -118,19 +112,18 @@ fn load_witness_from_json<E: Engine, R: Read>(reader: R) -> Vec<E::Fr> {
     witness.into_iter().map(|x| E::Fr::from_str(&x).unwrap()).collect::<Vec<E::Fr>>()
 }
 
+/// load witness from bin file by filename
 pub fn load_witness_from_bin_file<E: Engine>(filename: &str) -> Vec<E::Fr> {
     let reader = OpenOptions::new().read(true).open(filename).expect("unable to open.");
     load_witness_from_bin_reader::<E, BufReader<File>>(BufReader::new(reader)).expect("read witness failed")
 }
 
+/// load witness from u8 array
 pub fn load_witness_from_array<E: Engine>(buffer: Vec<u8>) -> Result<Vec<E::Fr>, anyhow::Error> {
     load_witness_from_bin_reader::<E, _>(buffer.as_slice())
 }
 
-///
-/// r1cs
-///
-
+/// load r1cs file by filename with autodetect encoding (bin or json)
 pub fn load_r1cs(filename: &str) -> R1CS<Bn256> {
     if filename.ends_with("json") {
         load_r1cs_from_json_file(filename)
@@ -140,6 +133,7 @@ pub fn load_r1cs(filename: &str) -> R1CS<Bn256> {
     }
 }
 
+/// load r1cs from json file by filename
 fn load_r1cs_from_json_file<E: Engine>(filename: &str) -> R1CS<E> {
     let reader = OpenOptions::new().read(true).open(filename).expect("unable to open.");
     load_r1cs_from_json(BufReader::new(reader))
@@ -171,6 +165,7 @@ fn load_r1cs_from_json<E: Engine, R: Read>(reader: R) -> R1CS<E> {
     }
 }
 
+/// load r1cs from bin file by filename
 fn load_r1cs_from_bin_file(filename: &str) -> (R1CS<Bn256>, Vec<usize>) {
     let reader = OpenOptions::new().read(true).open(filename).expect("unable to open.");
     load_r1cs_from_bin(BufReader::new(reader))
