@@ -43,7 +43,7 @@ pub fn prove(
     assert!(num_proofs_to_check < 256);
     let num_inputs = old_proofs[0].num_inputs;
     for p in &old_proofs {
-        assert!(p.num_inputs == num_inputs, "proofs num_inputs mismatch!");
+        assert_eq!(p.num_inputs, num_inputs, "proofs num_inputs mismatch!");
     }
 
     let worker = Worker::new();
