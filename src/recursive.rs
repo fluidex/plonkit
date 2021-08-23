@@ -33,7 +33,7 @@ use recursive_aggregation_circuit::circuit::{
 // only support depth<8. different depths don't really make performance different
 const VK_TREE_DEPTH: usize = 7;
 
-// recursively prove multiple proofs
+// recursively prove multiple proofs, and aggregate them into one
 pub fn prove(
     big_crs: Crs<Bn256, CrsForMonomialForm>,
     old_proofs: Vec<OldProof<Bn256, PlonkCsWidth4WithNextStepParams>>,
@@ -121,7 +121,7 @@ pub fn prove(
     assembly.create_proof::<_, RollingKeccakTranscript<<Bn256 as ScalarEngine>::Fr>>(&worker, &setup, &big_crs, None)
 }
 
-// verify a recursive proof
+// verify a recursive proof by using a corresponding verification key
 pub fn verify(
     vk: &VerificationKey<Bn256, RecursiveAggregationCircuitBn256>,
     proof: &Proof<Bn256, RecursiveAggregationCircuitBn256>,
@@ -129,7 +129,7 @@ pub fn verify(
     core_verify::<_, _, RollingKeccakTranscript<<Bn256 as ScalarEngine>::Fr>>(vk, proof, None)
 }
 
-// verify a verification key for recursion circuit
+// export a verification key for a recursion circuit
 pub fn export_vk(
     num_proofs_to_check: usize,
     num_inputs: usize,
