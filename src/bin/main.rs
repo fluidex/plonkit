@@ -171,7 +171,7 @@ struct GenerateVerifierOpts {
     sol: String,
     /// Solidity template file
     #[clap(short = "t", long = "template")]
-    tpl: Option<String>, 
+    tpl: Option<String>,
 }
 
 /// A subcommand for exporting verifying keys
