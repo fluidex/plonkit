@@ -172,6 +172,8 @@ struct GenerateVerifierOpts {
     /// Solidity template file
     #[clap(short = "t", long = "template")]
     tpl: Option<String>,
+    #[clap(long = "overwrite")]
+    overwrite: bool,
 }
 
 /// A subcommand for exporting verifying keys
@@ -507,6 +509,10 @@ fn generate_verifier(opts: GenerateVerifierOpts) {
     cfg_if::cfg_if! {
         if #[cfg(feature = "solidity")] {
             let vk = reader::load_verification_key::<Bn256>(&opts.vk);
+            if !opts.overwrite {
+                let path = Path::new(&opts.sol);
+                assert!(!path.exists(), "duplicate solidity file: {}", path.display());
+            }
             match opts.tpl {
                 Some(tpl) => {
                     bellman_vk_codegen::render_verification_key(&vk, &tpl, &opts.sol);
