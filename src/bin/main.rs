@@ -78,6 +78,8 @@ struct SetupOpts {
     /// Output file for Plonk universal setup srs in monomial form
     #[clap(short = "m", long = "srs_monomial_form")]
     srs_monomial_form: String,
+    #[clap(long = "overwrite")]
+    overwrite: bool,
 }
 
 /// A subcommand for dumping SRS in lagrange form
@@ -92,6 +94,8 @@ struct DumpLagrangeOpts {
     /// Circuit R1CS or JSON file [default: circuit.r1cs|circuit.json]
     #[clap(short = "c", long = "circuit")]
     circuit: Option<String>,
+    #[clap(long = "overwrite")]
+    overwrite: bool,
 }
 
 /// A subcommand for running a server and do SNARK proving
@@ -139,6 +143,8 @@ struct ProveOpts {
     publicjson: String,
     #[clap(short = "t", long = "transcript", default_value = "keccak")]
     transcript: String,
+    #[clap(long = "overwrite")]
+    overwrite: bool,
 }
 
 /// A subcommand for verifying a SNARK proof
@@ -166,6 +172,8 @@ struct GenerateVerifierOpts {
     /// Solidity template file
     #[clap(short = "t", long = "template")]
     tpl: Option<String>,
+    #[clap(long = "overwrite")]
+    overwrite: bool,
 }
 
 /// A subcommand for exporting verifying keys
@@ -180,6 +188,8 @@ struct ExportVerificationKeyOpts {
     /// Output verifying key file
     #[clap(short = "v", long = "vk", default_value = "vk.bin")]
     vk: String,
+    #[clap(long = "overwrite")]
+    overwrite: bool,
 }
 
 /// A subcommand for exporting recursive verifying keys
@@ -197,6 +207,8 @@ struct ExportRecursiveVerificationKeyOpts {
     /// Output verifying key file
     #[clap(short = "v", long = "vk", default_value = "recursive_vk.bin")]
     vk: String,
+    #[clap(long = "overwrite")]
+    overwrite: bool,
 }
 
 /// A subcommand for aggregating multiple proofs
@@ -214,6 +226,8 @@ struct RecursiveProveOpts {
     /// Output file for aggregated proof BIN
     #[clap(short = "n", long = "new_proof", default_value = "recursive_proof.bin")]
     new_proof: String,
+    #[clap(long = "overwrite")]
+    overwrite: bool,
 }
 
 /// A subcommand for verifying recursive proof
@@ -302,6 +316,10 @@ fn analyse(opts: AnalyseOpts) {
 // generate a monomial_form SRS, and save it to a file
 fn setup(opts: SetupOpts) {
     let srs = plonk::gen_key_monomial_form(opts.power).unwrap();
+    if !opts.overwrite {
+        let path = Path::new(&opts.srs_monomial_form);
+        assert!(!path.exists(), "duplicate srs_monomial_form file: {}", path.display());
+    }
     let writer = File::create(&opts.srs_monomial_form).unwrap();
     srs.write(writer).unwrap();
     log::info!("srs_monomial_form saved to {}", opts.srs_monomial_form);
@@ -336,6 +354,10 @@ fn dump_lagrange(opts: DumpLagrangeOpts) {
         .expect("prepare err");
 
     let key_lagrange_form = setup.get_srs_lagrange_form_from_monomial_form();
+    if !opts.overwrite {
+        let path = Path::new(&opts.srs_lagrange_form);
+        assert!(!path.exists(), "duplicate srs_lagrange_form file: {}", path.display());
+    }
     let writer = File::create(&opts.srs_lagrange_form).unwrap();
     key_lagrange_form.write(writer).unwrap();
     log::info!("srs_lagrange_form saved to {}", opts.srs_lagrange_form);
@@ -441,6 +463,10 @@ fn prove(opts: ProveOpts) {
 
     log::info!("Proving...");
     let proof = setup.prove(circuit, &opts.transcript).unwrap();
+    if !opts.overwrite {
+        let path = Path::new(&opts.proof);
+        assert!(!path.exists(), "duplicate proof file: {}", path.display());
+    }
     let writer = File::create(&opts.proof).unwrap();
     proof.write(writer).unwrap();
     log::info!("Proof saved to {}", opts.proof);
@@ -450,6 +476,12 @@ fn prove(opts: ProveOpts) {
             let (inputs, serialized_proof) = bellman_vk_codegen::serialize_proof(&proof);
             let ser_proof_str = serde_json::to_string_pretty(&serialized_proof).unwrap();
             let ser_inputs_str = serde_json::to_string_pretty(&inputs).unwrap();
+            if !opts.overwrite {
+                let path = Path::new(&opts.proofjson);
+                assert!(!path.exists(), "duplicate proof json file: {}", path.display());
+                let path = Path::new(&opts.publicjson);
+                assert!(!path.exists(), "duplicate input json file: {}", path.display());
+            }
             std::fs::write(&opts.proofjson, ser_proof_str.as_bytes()).expect("save proofjson err");
             log::info!("Proof json saved to {}", opts.proofjson);
             std::fs::write(&opts.publicjson, ser_inputs_str.as_bytes()).expect("save publicjson err");
@@ -477,6 +509,10 @@ fn generate_verifier(opts: GenerateVerifierOpts) {
     cfg_if::cfg_if! {
         if #[cfg(feature = "solidity")] {
             let vk = reader::load_verification_key::<Bn256>(&opts.vk);
+            if !opts.overwrite {
+                let path = Path::new(&opts.sol);
+                assert!(!path.exists(), "duplicate solidity file: {}", path.display());
+            }
             match opts.tpl {
                 Some(tpl) => {
                     bellman_vk_codegen::render_verification_key(&vk, &tpl, &opts.sol);
@@ -506,9 +542,10 @@ fn export_vk(opts: ExportVerificationKeyOpts) {
     let setup = plonk::SetupForProver::prepare_setup_for_prover(circuit, reader::load_key_monomial_form(&opts.srs_monomial_form), None)
         .expect("prepare err");
     let vk = setup.make_verification_key().unwrap();
-
-    //let path = Path::new(&opts.vk);
-    //assert!(!path.exists(), "path for saving verification key exists: {}", path.display());
+    if !opts.overwrite {
+        let path = Path::new(&opts.vk);
+        assert!(!path.exists(), "duplicate vk file: {}", path.display());
+    }
     let writer = File::create(&opts.vk).unwrap();
     vk.write(writer).unwrap();
     log::info!("Verification key saved to {}", opts.vk);
@@ -519,8 +556,10 @@ fn export_recursive_vk(opts: ExportRecursiveVerificationKeyOpts) {
     let big_crs = reader::load_key_monomial_form(&opts.srs_monomial_form);
     let vk =
         recursive::export_vk(opts.num_proofs_to_check, opts.num_inputs, &big_crs).expect("must create recursive circuit verification key");
-    //let path = Path::new(&opts.vk);
-    //assert!(!path.exists(), "path for saving verification key exists: {}", path.display());
+    if !opts.overwrite {
+        let path = Path::new(&opts.vk);
+        assert!(!path.exists(), "duplicate vk file: {}", path.display());
+    }
     let writer = File::create(&opts.vk).unwrap();
     vk.write(writer).unwrap();
     log::info!("Recursive verification key saved to {}", opts.vk);
@@ -532,6 +571,10 @@ fn recursive_prove(opts: RecursiveProveOpts) {
     let old_proofs = reader::load_proofs_from_list::<Bn256>(&opts.old_proof_list);
     let old_vk = reader::load_verification_key::<Bn256>(&opts.old_vk);
     let proof = recursive::prove(big_crs, old_proofs, old_vk).unwrap();
+    if !opts.overwrite {
+        let path = Path::new(&opts.new_proof);
+        assert!(!path.exists(), "duplicate proof file: {}", path.display());
+    }
     let writer = File::create(&opts.new_proof).unwrap();
     proof.write(writer).unwrap();
     log::info!("Proof saved to {}", opts.new_proof);

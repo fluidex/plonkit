@@ -92,8 +92,8 @@ jobs:
       - name: Dump key_lagrange_form from key_monomial_form
         run: target/release/plonkit dump-lagrange -m keys/setup/setup_2^20.key -l keys/setup/setup_2^20_lagrange.key -c test/circuits/poseidon/circuit.r1cs
 
-      - name: Prove with key_monomial_form & key_lagrange_form
-        run: target/release/plonkit prove -m keys/setup/setup_2^20.key -l keys/setup/setup_2^20_lagrange.key -c test/circuits/poseidon/circuit.r1cs -w test/circuits/poseidon/witness.wtns -p test/circuits/poseidon/proof.bin -j test/circuits/poseidon/proof.json -i test/circuits/poseidon/public.json
+      - name: Prove with key_monomial_form & key_lagrange_form with overwrite flag
+        run: target/release/plonkit prove -m keys/setup/setup_2^20.key -l keys/setup/setup_2^20_lagrange.key -c test/circuits/poseidon/circuit.r1cs -w test/circuits/poseidon/witness.wtns -p test/circuits/poseidon/proof.bin -j test/circuits/poseidon/proof.json -i test/circuits/poseidon/public.json --overwrite
 
       - name: Verify proof
         run: target/release/plonkit verify -p test/circuits/poseidon/proof.bin -v test/circuits/poseidon/vk.bin
