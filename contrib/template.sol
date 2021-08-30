@@ -411,14 +411,17 @@ contract Plonk4VerifierWithAccessToDNext {
         tmp_2.mul_assign(dens[dens.length - 1]);
         tmp_2 = tmp_2.inverse(); // tmp_2 contains a^-1 * b^-1 (with! the last one)
         
+        // High-version solidity has builtin safemath support, so "0--" will panic instead of underflowing.
+        // Therefore we prefer checking "if (i == 0)" below,
+        // instead of having "for (uint i = dens.length - 1; i>=0; i--)" here
         for (uint i = dens.length - 1; ; i--) {
             tmp_1.assign(tmp_2); // all inversed
             tmp_1.mul_assign(partial_products[i]); // clear lowest terms
             tmp_2.mul_assign(dens[i]);
             dens[i].assign(tmp_1);
-        if (i == 0) {
-          break;
-        }
+            if (i == 0) {
+              break;
+            }
         }
         
         for (uint i = 0; i < nums.length; i++) {
