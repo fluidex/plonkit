@@ -12,6 +12,15 @@ on:
       - prod
       - release/*
 
+env:
+  SCCACHE_REGION: ap-northeast-1
+  SCCACHE_BUCKET: ff-building
+  SCCACHE_S3_USE_SSL: true
+  SCCACHE_S3_KEY_PREFIX: sccache-gh-action
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  CARGO_INCREMENTAL: false
+
 jobs:
   integration-test:
     runs-on: ubuntu-latest
@@ -61,11 +70,26 @@ jobs:
           path: target
           key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
 
+      - name: Setup sccache
+        run: |
+          cd $RUNNER_TEMP
+          export NAME="sccache-v0.2.15-x86_64-unknown-linux-musl"
+          curl -fsSOL https://github.com/mozilla/sccache/releases/download/v0.2.15/$NAME.tar.gz
+          tar xzf $NAME.tar.gz
+          mkdir -p ~/.cargo/bin
+          mv ./$NAME/sccache ~/.cargo/bin
+          chmod +x ~/.cargo/bin/sccache
+          printf "[build]\nrustc-wrapper = \"/home/runner/.cargo/bin/sccache\"" >> ~/.cargo/config
+          ~/.cargo/bin/sccache -s
+
       - name: Compile plonkit (release-version)
         uses: actions-rs/cargo@v1
         with:
           command: build
           args: --all-features --release
+
+      - name: show sccache stats
+        run: ~/.cargo/bin/sccache -s
 
       - name: Universal setup
         run: target/release/plonkit setup --power 20 --srs_monomial_form keys/setup/setup_2^20.key
