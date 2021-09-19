@@ -22,8 +22,6 @@ use plonkit::pb;
 #[cfg(feature = "server")]
 use plonkit::server;
 
-//static TEMPLATE_PATH: &str = "./contrib/template.sol";
-
 /// A zkSNARK toolkit to work with circom zkSNARKs DSL in plonk proof system
 #[derive(Clap)]
 #[clap(version = "0.0.4")]
