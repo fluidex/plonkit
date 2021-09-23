@@ -137,7 +137,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: test/contract/node_modules
-          key: node_modules-${{ hashFiles('test/contract/yarn.lock') }}
+          key: test_contract_node_modules-${{ hashFiles('test/contract/yarn.lock') }}
 
       - name: yarn install for test/contract
         if: steps.test_contract_npm_cache.outputs.cache-hit != 'true'
