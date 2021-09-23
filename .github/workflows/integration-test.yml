@@ -44,14 +44,6 @@ jobs:
           override: true
           components: rustfmt, clippy
 
-      - name: Install Node.js 14
-        uses: actions/setup-node@v2
-        with:
-          node-version: '14'
-
-      - name: yarn install
-        run: yarn install
-
       - name: Cache cargo registry
         uses: actions/cache@v2
         with:
@@ -81,6 +73,24 @@ jobs:
           chmod +x ~/.cargo/bin/sccache
           printf "[build]\nrustc-wrapper = \"/home/runner/.cargo/bin/sccache\"" >> ~/.cargo/config
           ~/.cargo/bin/sccache -s
+
+      - name: Install Node.js 14
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+          # cache: 'yarn'
+          # cache-dependency-path: yarn.lock
+
+      - name: Cache node_modules
+        id: npm_cache
+        uses: actions/cache@v2
+        with:
+          path: node_modules
+          key: node_modules-${{ hashFiles('yarn.lock') }}
+
+      - name: yarn install
+        if: steps.npm_cache.outputs.cache-hit != 'true'
+        run: yarn install
 
       - name: Compile plonkit (release-version)
         uses: actions-rs/cargo@v1
@@ -122,11 +132,23 @@ jobs:
       - name: Verify proof
         run: target/release/plonkit verify -p test/circuits/poseidon/proof.bin -v test/circuits/poseidon/vk.bin
 
+      - name: Cache test/contract node_modules
+        id: test_contract_npm_cache
+        uses: actions/cache@v2
+        with:
+          path: node_modules
+          key: node_modules-${{ hashFiles('test/contract/yarn.lock') }}
+
+      - name: yarn install for test/contract
+        if: steps.test_contract_npm_cache.outputs.cache-hit != 'true'
+        run: |
+          cd test/contract
+          yarn install
+
       - name: Verify via smart contract
         run: |
           cp test/circuits/poseidon/public.json test/contract/test/data/public.json
           cp test/circuits/poseidon/proof.json test/contract/test/data/proof.json
           cp test/circuits/poseidon/verifier.sol test/contract/contracts/verifier.sol
           cd test/contract
-          yarn install
           npx hardhat test
