@@ -136,7 +136,7 @@ jobs:
         id: test_contract_npm_cache
         uses: actions/cache@v2
         with:
-          path: node_modules
+          path: test/contract/node_modules
           key: node_modules-${{ hashFiles('test/contract/yarn.lock') }}
 
       - name: yarn install for test/contract
