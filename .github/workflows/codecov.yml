@@ -36,6 +36,14 @@ jobs:
       - name: Checkout sources
         uses: actions/checkout@v2
 
+      - name: Install 1.50.0 toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: 1.50.0
+          override: true
+          components: rustfmt, clippy
+
       - name: Cache cargo registry
         uses: actions/cache@v2
         with:
@@ -53,14 +61,6 @@ jobs:
         with:
           path: target
           key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
-
-      - name: Install 1.50.0 toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: 1.50.0
-          override: true
-          components: rustfmt, clippy
 
       - name: Run cargo-tarpaulin
         uses: actions-rs/tarpaulin@v0.1
