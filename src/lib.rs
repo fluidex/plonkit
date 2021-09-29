@@ -20,12 +20,5 @@ pub mod recursive;
 pub mod transpile;
 pub mod utils;
 
-#[cfg(feature = "server")]
-pub mod server;
-#[cfg(feature = "server")]
-pub mod pb {
-    tonic::include_proto!("plonkitserver");
-}
-
 #[cfg(test)]
 mod tests;

@@ -17,11 +17,6 @@ use plonkit::plonk;
 use plonkit::reader;
 use plonkit::recursive;
 
-#[cfg(feature = "server")]
-use plonkit::pb;
-#[cfg(feature = "server")]
-use plonkit::server;
-
 /// A zkSNARK toolkit to work with circom zkSNARKs DSL in plonk proof system
 #[derive(Clap)]
 #[clap(version = "0.0.4")]
@@ -38,8 +33,6 @@ enum SubCommand {
     Setup(SetupOpts),
     /// Dump "SRS in lagrange form" from a "SRS in monomial form"
     DumpLagrange(DumpLagrangeOpts),
-    /// Serve for SNARK proof
-    Serve(ServerOpts),
     /// Generate a SNARK proof
     Prove(ProveOpts),
     /// Verify a SNARK proof
@@ -94,25 +87,6 @@ struct DumpLagrangeOpts {
     circuit: Option<String>,
     #[clap(long = "overwrite")]
     overwrite: bool,
-}
-
-/// A subcommand for running a server and do SNARK proving
-#[derive(Clap)]
-struct ServerOpts {
-    /// Server address
-    #[clap(long = "address")]
-    srv_addr: Option<String>,
-    /// Source file for Plonk universal setup srs in monomial form
-    #[clap(short = "m", long = "srs_monomial_form")]
-    srs_monomial_form: String,
-    /// Source file for Plonk universal setup srs in lagrange form
-    #[clap(short = "l", long = "srs_lagrange_form")]
-    srs_lagrange_form: Option<String>,
-    /// Circuit R1CS or JSON file [default: circuit.r1cs|circuit.json]
-    #[clap(short = "c", long = "circuit")]
-    circuit: Option<String>,
-    #[clap(short = "t", long = "transcript", default_value = "keccak")]
-    transcript: String,
 }
 
 /// A subcommand for generating a SNARK proof
@@ -263,9 +237,6 @@ fn main() {
         SubCommand::DumpLagrange(o) => {
             dump_lagrange(o);
         }
-        SubCommand::Serve(o) => {
-            serve(o);
-        }
         SubCommand::Prove(o) => {
             prove(o);
         }
@@ -359,86 +330,6 @@ fn dump_lagrange(opts: DumpLagrangeOpts) {
     let writer = File::create(&opts.srs_lagrange_form).unwrap();
     key_lagrange_form.write(writer).unwrap();
     log::info!("srs_lagrange_form saved to {}", opts.srs_lagrange_form);
-}
-
-// plonk prover server wrapper
-#[cfg(feature = "server")]
-fn serve(opts: ServerOpts) {
-    let circuit_file = resolve_circuit_file(opts.circuit);
-    log::info!("Loading circuit from {}...", circuit_file);
-    let circuit_base = CircomCircuit {
-        r1cs: reader::load_r1cs(&circuit_file),
-        witness: None,
-        wire_mapping: None,
-        aux_offset: plonk::AUX_OFFSET,
-    };
-
-    let srs_monomial_form = opts.srs_monomial_form;
-    let srs_lagrange_form = opts.srs_lagrange_form;
-    let transcript = opts.transcript;
-
-    let builder = move || -> server::ServerCore {
-        let setup = plonk::SetupForProver::prepare_setup_for_prover(
-            circuit_base.clone(),
-            reader::load_key_monomial_form(&srs_monomial_form),
-            reader::maybe_load_key_lagrange_form(srs_lagrange_form),
-        )
-        .expect("prepare err");
-
-        Box::new(move |witness: Vec<u8>, validate_only: bool| -> server::ServerResult {
-            let mut circut = circuit_base.clone();
-            match reader::load_witness_from_array::<Bn256>(witness) {
-                Ok(witness) => circut.witness = Some(witness),
-                err => return server::ServerResult::new(validate_only).any_error(err),
-            }
-
-            if validate_only {
-                match setup.validate_witness(circut) {
-                    Ok(_) => server::ServerResult::new(true).success(),
-                    err => server::ServerResult::new(true).any_error(err),
-                }
-            } else {
-                let start = std::time::Instant::now();
-                match setup.prove(circut, &transcript) {
-                    Ok(proof) => {
-                        let elapsed = start.elapsed().as_secs_f64();
-
-                        let mut inner: pb::ProveResponse = match server::ServerResult::new(false) {
-                            server::ServerResult::ForProve(i) => i,
-                            _ => unreachable!(),
-                        };
-
-                        let (inputs, serialized_proof) = bellman_vk_codegen::serialize_proof(&proof);
-                        inner.proof = serialized_proof.iter().map(ToString::to_string).collect();
-                        inner.inputs = inputs.iter().map(ToString::to_string).collect();
-                        inner.time_cost_secs = elapsed;
-
-                        server::ServerResult::ForProve(inner).success()
-                    }
-
-                    err => server::ServerResult::new(false).any_error(err),
-                }
-            }
-        })
-    };
-
-    log::info!("Starting server ... use CTRL+C to exit");
-    server::run(server::ServerOptions {
-        server_addr: opts.srv_addr,
-        build_core: Box::new(builder),
-    });
-}
-
-#[cfg(not(feature = "server"))]
-fn serve(opts: ServerOpts) {
-    log::info!(
-        "Binary is not built with server feature: {:?}, {:?}, {:?}, {}, {:?}",
-        opts.srv_addr,
-        opts.circuit,
-        opts.srs_lagrange_form,
-        opts.srs_monomial_form,
-        opts.transcript
-    );
 }
 
 // generate a plonk proof for a circuit, with witness loaded, and save the proof to a file
