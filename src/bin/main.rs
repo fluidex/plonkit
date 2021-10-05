@@ -103,7 +103,7 @@ struct ProveOpts {
     /// Circuit R1CS or JSON file [default: circuit.r1cs|circuit.json]
     #[clap(short = "c", long = "circuit")]
     circuit: Option<String>,
-    /// Witness JSON file
+    /// Witness BIN or JSON file
     #[clap(short = "w", long = "witness", default_value = "witness.wtns")]
     witness: String,
     /// Output file for proof BIN
@@ -379,23 +379,19 @@ fn prove(opts: ProveOpts) {
     proof.write(writer).unwrap();
     log::info!("Proof saved to {}", opts.proof);
 
-    cfg_if::cfg_if! {
-        if #[cfg(feature = "solidity")] {
-            let (inputs, serialized_proof) = bellman_vk_codegen::serialize_proof(&proof);
-            let ser_proof_str = serde_json::to_string_pretty(&serialized_proof).unwrap();
-            let ser_inputs_str = serde_json::to_string_pretty(&inputs).unwrap();
-            if !opts.overwrite {
-                let path = Path::new(&opts.proofjson);
-                assert!(!path.exists(), "duplicate proof json file: {}", path.display());
-                let path = Path::new(&opts.publicjson);
-                assert!(!path.exists(), "duplicate input json file: {}", path.display());
-            }
-            std::fs::write(&opts.proofjson, ser_proof_str.as_bytes()).expect("save proofjson err");
-            log::info!("Proof json saved to {}", opts.proofjson);
-            std::fs::write(&opts.publicjson, ser_inputs_str.as_bytes()).expect("save publicjson err");
-            log::info!("Public input json saved to {}", opts.publicjson);
-        }
+    let (inputs, serialized_proof) = bellman_vk_codegen::serialize_proof(&proof);
+    let ser_proof_str = serde_json::to_string_pretty(&serialized_proof).unwrap();
+    let ser_inputs_str = serde_json::to_string_pretty(&inputs).unwrap();
+    if !opts.overwrite {
+        let path = Path::new(&opts.proofjson);
+        assert!(!path.exists(), "duplicate proof json file: {}", path.display());
+        let path = Path::new(&opts.publicjson);
+        assert!(!path.exists(), "duplicate input json file: {}", path.display());
     }
+    std::fs::write(&opts.proofjson, ser_proof_str.as_bytes()).expect("save proofjson err");
+    log::info!("Proof json saved to {}", opts.proofjson);
+    std::fs::write(&opts.publicjson, ser_inputs_str.as_bytes()).expect("save publicjson err");
+    log::info!("Public input json saved to {}", opts.publicjson);
 }
 
 // verify a plonk proof by using a verification key
@@ -414,26 +410,20 @@ fn verify(opts: VerifyOpts) {
 
 // generate a solidity plonk verifier by feeding a verification key, and save it to a file
 fn generate_verifier(opts: GenerateVerifierOpts) {
-    cfg_if::cfg_if! {
-        if #[cfg(feature = "solidity")] {
-            let vk = reader::load_verification_key::<Bn256>(&opts.vk);
-            if !opts.overwrite {
-                let path = Path::new(&opts.sol);
-                assert!(!path.exists(), "duplicate solidity file: {}", path.display());
-            }
-            match opts.tpl {
-                Some(tpl) => {
-                    bellman_vk_codegen::render_verification_key(&vk, &tpl, &opts.sol);
-                },
-                None => {
-                    bellman_vk_codegen::render_verification_key_from_default_template(&vk, &opts.sol);
-                }
-            }
-            log::info!("Contract saved to {}", opts.sol);
-        } else {
-            unimplemented!("you must enable `solidity` feature flag");
+    let vk = reader::load_verification_key::<Bn256>(&opts.vk);
+    if !opts.overwrite {
+        let path = Path::new(&opts.sol);
+        assert!(!path.exists(), "duplicate solidity file: {}", path.display());
+    }
+    match opts.tpl {
+        Some(tpl) => {
+            bellman_vk_codegen::render_verification_key(&vk, &tpl, &opts.sol);
+        }
+        None => {
+            bellman_vk_codegen::render_verification_key_from_default_template(&vk, &opts.sol);
         }
     }
+    log::info!("Contract saved to {}", opts.sol);
 }
 
 // export a verification key for a circuit, and save it to a file
