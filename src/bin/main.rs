@@ -507,7 +507,13 @@ fn check_aggregation(opts: CheckAggregationOpts) {
     let old_vk = reader::load_verification_key::<Bn256>(&opts.old_vk);
     let new_proof = reader::load_recursive_proof(&opts.new_proof);
 
-    recursive::check_aggregation(old_proofs, old_vk, new_proof);
+    let expected = recursive::get_aggregated_input(old_proofs, old_vk).expect("fail to get aggregated input");
+    log::info!("hash to input: {:?}", expected);
+    log::info!("new_proof's input: {:?}", new_proof.inputs[0]);
 
-    log::info!("hash to input: {:?}", proof.inputs[0]);
+    if expected == new_proof.inputs[0] {
+        log::info!("Aggregation hash input match");
+    } else {
+        log::error!("Aggregation hash input mismatch");
+    }
 }

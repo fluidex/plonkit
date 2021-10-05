@@ -6,6 +6,7 @@ use bellman_ce::plonk::{
     better_cs::keys::{Proof as OldProof, VerificationKey as OldVerificationKey},
 };
 use bellman_ce::SynthesisError;
+use franklin_crypto::bellman::pairing::bn256;
 use franklin_crypto::bellman::pairing::bn256::Bn256;
 use franklin_crypto::bellman::pairing::ff::ScalarEngine;
 use franklin_crypto::bellman::pairing::{CurveAffine, Engine};
@@ -140,14 +141,11 @@ pub fn export_vk(
     Ok(recursive_circuit_vk)
 }
 
-
 // TODO: doc
-pub fn check_aggregation(
-    // big_crs: Crs<Bn256, CrsForMonomialForm>,
+pub fn get_aggregated_input(
     old_proofs: Vec<OldProof<Bn256, PlonkCsWidth4WithNextStepParams>>,
     old_vk: OldVerificationKey<Bn256, PlonkCsWidth4WithNextStepParams>,
-    new_proof: Proof<Bn256, RecursiveAggregationCircuitBn256>,
-) -> Result<(), anyhow::Error> {
+) -> Result<bn256::Fr, anyhow::Error> {
     let num_proofs_to_check = old_proofs.len();
     assert!(num_proofs_to_check > 0);
     assert!(num_proofs_to_check < 256);
@@ -156,42 +154,19 @@ pub fn check_aggregation(
         assert_eq!(p.num_inputs, num_inputs, "proofs num_inputs mismatch!");
     }
 
-    // let worker = Worker::new();
     let rns_params = RnsParameters::<Bn256, <Bn256 as Engine>::Fq>::new_for_field(68, 110, 4);
     let rescue_params = Bn256RescueParams::new_checked_2_into_1();
 
-    // let mut g2_bases = [<<Bn256 as Engine>::G2Affine as CurveAffine>::zero(); 2];
-    // g2_bases.copy_from_slice(&big_crs.g2_monomial_bases.as_ref()[..]);
-
-    // let aux_data = BN256AuxData::new();
-
     let vks = old_proofs.iter().map(|_| old_vk.clone()).collect_vec();
-    let (_, (vks_tree, all_witness_values)) = create_vks_tree(&vks, VK_TREE_DEPTH)?;
+    let (_, (vks_tree, _)) = create_vks_tree(&vks, VK_TREE_DEPTH)?;
     let vks_tree_root = vks_tree.get_commitment();
 
     let mut proof_ids = (0..num_proofs_to_check).collect_vec();
     proof_ids.reverse();
 
-    // let mut queries = vec![];
-    // for proof_id in 0..num_proofs_to_check {
-    //     let vk = &vks[proof_id];
-
-    //     let leaf_values = vk.into_witness_for_params(&rns_params).expect("must transform into limbed witness");
-
-    //     let values_per_leaf = leaf_values.len();
-    //     let intra_leaf_indexes_to_query: Vec<_> = ((proof_id * values_per_leaf)..((proof_id + 1) * values_per_leaf)).collect();
-    //     let q = vks_tree.produce_query(intra_leaf_indexes_to_query, &all_witness_values);
-
-    //     assert_eq!(q.values(), &leaf_values[..]);
-
-    //     queries.push(q.path().to_vec());
-    // }
-
     let aggregate = make_aggregate(&old_proofs, &vks, &rescue_params, &rns_params)?;
 
     let (expected_input, _) = make_public_input_and_limbed_aggregate(vks_tree_root, &proof_ids, &old_proofs, &aggregate, &rns_params);
 
-    log::info!("{:?}", expected_input);
-
-    Ok(())
+    Ok(expected_input)
 }
