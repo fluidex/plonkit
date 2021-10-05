@@ -215,7 +215,7 @@ struct RecursiveVerifyOpts {
     vk: String,
 }
 
-/// A subcommand for checking aggregated proofs is corresponding to the original proofs
+/// A subcommand for checking an aggregated proof is corresponding to the original proofs
 #[derive(Clap)]
 struct CheckAggregationOpts {
     /// Old proof file list text file
@@ -501,7 +501,7 @@ fn recursive_verify(opts: RecursiveVerifyOpts) {
     }
 }
 
-// TODO: doc
+// check an aggregated proof is corresponding to the original proofs
 fn check_aggregation(opts: CheckAggregationOpts) {
     let old_proofs = reader::load_proofs_from_list::<Bn256>(&opts.old_proof_list);
     let old_vk = reader::load_verification_key::<Bn256>(&opts.old_vk);

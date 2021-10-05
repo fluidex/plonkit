@@ -141,7 +141,7 @@ pub fn export_vk(
     Ok(recursive_circuit_vk)
 }
 
-// TODO: doc
+// hash the vk_tree root, proof_indexes, proofs' inputs and aggregated points
 pub fn get_aggregated_input(
     old_proofs: Vec<OldProof<Bn256, PlonkCsWidth4WithNextStepParams>>,
     old_vk: OldVerificationKey<Bn256, PlonkCsWidth4WithNextStepParams>,
