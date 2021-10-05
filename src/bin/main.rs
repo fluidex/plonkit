@@ -103,7 +103,7 @@ struct ProveOpts {
     /// Circuit R1CS or JSON file [default: circuit.r1cs|circuit.json]
     #[clap(short = "c", long = "circuit")]
     circuit: Option<String>,
-    /// Witness JSON file
+    /// Witness BIN or JSON file
     #[clap(short = "w", long = "witness", default_value = "witness.wtns")]
     witness: String,
     /// Output file for proof BIN
@@ -414,26 +414,20 @@ fn verify(opts: VerifyOpts) {
 
 // generate a solidity plonk verifier by feeding a verification key, and save it to a file
 fn generate_verifier(opts: GenerateVerifierOpts) {
-    cfg_if::cfg_if! {
-        if #[cfg(feature = "solidity")] {
-            let vk = reader::load_verification_key::<Bn256>(&opts.vk);
-            if !opts.overwrite {
-                let path = Path::new(&opts.sol);
-                assert!(!path.exists(), "duplicate solidity file: {}", path.display());
-            }
-            match opts.tpl {
-                Some(tpl) => {
-                    bellman_vk_codegen::render_verification_key(&vk, &tpl, &opts.sol);
-                },
-                None => {
-                    bellman_vk_codegen::render_verification_key_from_default_template(&vk, &opts.sol);
-                }
-            }
-            log::info!("Contract saved to {}", opts.sol);
-        } else {
-            unimplemented!("you must enable `solidity` feature flag");
+    let vk = reader::load_verification_key::<Bn256>(&opts.vk);
+    if !opts.overwrite {
+        let path = Path::new(&opts.sol);
+        assert!(!path.exists(), "duplicate solidity file: {}", path.display());
+    }
+    match opts.tpl {
+        Some(tpl) => {
+            bellman_vk_codegen::render_verification_key(&vk, &tpl, &opts.sol);
+        }
+        None => {
+            bellman_vk_codegen::render_verification_key_from_default_template(&vk, &opts.sol);
         }
     }
+    log::info!("Contract saved to {}", opts.sol);
 }
 
 // export a verification key for a circuit, and save it to a file
