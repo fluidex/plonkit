@@ -221,6 +221,9 @@ struct CheckAggregationOpts {
     /// Old proof file list text file
     #[clap(short = "o", long = "old_proof_list")]
     old_proof_list: String,
+    /// Old vk
+    #[clap(short = "v", long = "old_vk", default_value = "vk.bin")]
+    old_vk: String,
     /// Aggregated Proof BIN file
     #[clap(short = "n", long = "new_proof", default_value = "recursive_proof.bin")]
     new_proof: String,
@@ -500,4 +503,11 @@ fn recursive_verify(opts: RecursiveVerifyOpts) {
 
 // TODO: doc
 fn check_aggregation(opts: CheckAggregationOpts) {
+    let old_proofs = reader::load_proofs_from_list::<Bn256>(&opts.old_proof_list);
+    let old_vk = reader::load_verification_key::<Bn256>(&opts.old_vk);
+    let new_proof = reader::load_recursive_proof(&opts.new_proof);
+
+    recursive::check_aggregation(old_proofs, old_vk, new_proof);
+
+    log::info!("hash to input: {:?}", proof.inputs[0]);
 }
