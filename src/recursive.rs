@@ -6,6 +6,7 @@ use bellman_ce::plonk::{
     better_cs::keys::{Proof as OldProof, VerificationKey as OldVerificationKey},
 };
 use bellman_ce::SynthesisError;
+use franklin_crypto::bellman::pairing::bn256;
 use franklin_crypto::bellman::pairing::bn256::Bn256;
 use franklin_crypto::bellman::pairing::ff::ScalarEngine;
 use franklin_crypto::bellman::pairing::{CurveAffine, Engine};
@@ -138,4 +139,34 @@ pub fn export_vk(
     let (recursive_circuit_vk, _recursive_circuit_setup) =
         create_recursive_circuit_vk_and_setup(num_proofs_to_check, num_inputs, VK_TREE_DEPTH, big_crs)?;
     Ok(recursive_circuit_vk)
+}
+
+// hash the vk_tree root, proof_indexes, proofs' inputs and aggregated points
+pub fn get_aggregated_input(
+    old_proofs: Vec<OldProof<Bn256, PlonkCsWidth4WithNextStepParams>>,
+    old_vk: OldVerificationKey<Bn256, PlonkCsWidth4WithNextStepParams>,
+) -> Result<bn256::Fr, anyhow::Error> {
+    let num_proofs_to_check = old_proofs.len();
+    assert!(num_proofs_to_check > 0);
+    assert!(num_proofs_to_check < 256);
+    let num_inputs = old_proofs[0].num_inputs;
+    for p in &old_proofs {
+        assert_eq!(p.num_inputs, num_inputs, "proofs num_inputs mismatch!");
+    }
+
+    let rns_params = RnsParameters::<Bn256, <Bn256 as Engine>::Fq>::new_for_field(68, 110, 4);
+    let rescue_params = Bn256RescueParams::new_checked_2_into_1();
+
+    let vks = old_proofs.iter().map(|_| old_vk.clone()).collect_vec();
+    let (_, (vks_tree, _)) = create_vks_tree(&vks, VK_TREE_DEPTH)?;
+    let vks_tree_root = vks_tree.get_commitment();
+
+    let mut proof_ids = (0..num_proofs_to_check).collect_vec();
+    proof_ids.reverse();
+
+    let aggregate = make_aggregate(&old_proofs, &vks, &rescue_params, &rns_params)?;
+
+    let (expected_input, _) = make_public_input_and_limbed_aggregate(vks_tree_root, &proof_ids, &old_proofs, &aggregate, &rns_params);
+
+    Ok(expected_input)
 }

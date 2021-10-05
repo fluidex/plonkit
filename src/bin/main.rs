@@ -47,6 +47,8 @@ enum SubCommand {
     RecursiveProve(RecursiveProveOpts),
     /// Verify recursive proof
     RecursiveVerify(RecursiveVerifyOpts),
+    /// Check proofs aggregation
+    CheckAggregation(CheckAggregationOpts),
 }
 
 /// A subcommand for analysing the circuit and outputting some stats
@@ -213,6 +215,20 @@ struct RecursiveVerifyOpts {
     vk: String,
 }
 
+/// A subcommand for checking an aggregated proof is corresponding to the original proofs
+#[derive(Clap)]
+struct CheckAggregationOpts {
+    /// Old proof file list text file
+    #[clap(short = "o", long = "old_proof_list")]
+    old_proof_list: String,
+    /// Old vk
+    #[clap(short = "v", long = "old_vk", default_value = "vk.bin")]
+    old_vk: String,
+    /// Aggregated Proof BIN file
+    #[clap(short = "n", long = "new_proof", default_value = "recursive_proof.bin")]
+    new_proof: String,
+}
+
 fn main() {
     // Always print backtrace on panic.
     ::std::env::set_var("RUST_BACKTRACE", "1");
@@ -257,6 +273,9 @@ fn main() {
         }
         SubCommand::RecursiveVerify(o) => {
             recursive_verify(o);
+        }
+        SubCommand::CheckAggregation(o) => {
+            check_aggregation(o);
         }
     }
 }
@@ -479,5 +498,22 @@ fn recursive_verify(opts: RecursiveVerifyOpts) {
     } else {
         log::info!("Proof is invalid!");
         std::process::exit(400);
+    }
+}
+
+// check an aggregated proof is corresponding to the original proofs
+fn check_aggregation(opts: CheckAggregationOpts) {
+    let old_proofs = reader::load_proofs_from_list::<Bn256>(&opts.old_proof_list);
+    let old_vk = reader::load_verification_key::<Bn256>(&opts.old_vk);
+    let new_proof = reader::load_recursive_proof(&opts.new_proof);
+
+    let expected = recursive::get_aggregated_input(old_proofs, old_vk).expect("fail to get aggregated input");
+    log::info!("hash to input: {:?}", expected);
+    log::info!("new_proof's input: {:?}", new_proof.inputs[0]);
+
+    if expected == new_proof.inputs[0] {
+        log::info!("Aggregation hash input match");
+    } else {
+        log::error!("Aggregation hash input mismatch");
     }
 }
