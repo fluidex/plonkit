@@ -29,18 +29,18 @@ elif [ ! -f $BIG_SETUP_MK ] ; then
 fi
 popd
 
-# echo "Step: compile circuit and calculate witness"
-# npx snarkit check $CIRCUIT_DIR --witness_type bin
+echo "Step: compile circuit and calculate witness"
+npx snarkit check $CIRCUIT_DIR --witness_type bin
 
-# echo "Step: export verification key"
-# $PLONKIT_BIN export-verification-key -m $SETUP_MK -c $CIRCUIT_DIR/circuit.r1cs -v $CIRCUIT_DIR/vk.bin --overwrite
+echo "Step: export verification key"
+$PLONKIT_BIN export-verification-key -m $SETUP_MK -c $CIRCUIT_DIR/circuit.r1cs -v $CIRCUIT_DIR/vk.bin --overwrite
 
-# echo "Step: generate each proof"
-# for witness_dir in `ls $CIRCUIT_DIR/data`
-# do
-#   WITNESS_DIR=$CIRCUIT_DIR/data/$witness_dir
-#   $PLONKIT_BIN prove -m $SETUP_MK -c $CIRCUIT_DIR/circuit.r1cs -w $WITNESS_DIR/witness.wtns -p $WITNESS_DIR/proof.bin -j $WITNESS_DIR/proof.json -i $WITNESS_DIR/public.json -t rescue --overwrite
-# done
+echo "Step: generate each proof"
+for witness_dir in `ls $CIRCUIT_DIR/data`
+do
+  WITNESS_DIR=$CIRCUIT_DIR/data/$witness_dir
+  $PLONKIT_BIN prove -m $SETUP_MK -c $CIRCUIT_DIR/circuit.r1cs -w $WITNESS_DIR/witness.wtns -p $WITNESS_DIR/proof.bin -j $WITNESS_DIR/proof.json -i $WITNESS_DIR/public.json -t rescue --overwrite
+done
 
 echo "Step: collect old_proofs list"
 OLD_PROOF_LIST=$CIRCUIT_DIR/old_proof_list.txt
@@ -55,14 +55,14 @@ do
 done
 cat $OLD_PROOF_LIST
 
-# echo "Step: export recursive vk"
-# time ($PLONKIT_BIN export-recursive-verification-key -c $i -i 3 -m $BIG_SETUP_MK -v $CIRCUIT_DIR/recursive_vk.bin --overwrite)
+echo "Step: export recursive vk"
+time ($PLONKIT_BIN export-recursive-verification-key -c $i -i 3 -m $BIG_SETUP_MK -v $CIRCUIT_DIR/recursive_vk.bin --overwrite)
 
-# echo "Step: generate recursive proof"
-# time ($PLONKIT_BIN recursive-prove -m $BIG_SETUP_MK -f $OLD_PROOF_LIST -v $CIRCUIT_DIR/vk.bin -n $CIRCUIT_DIR/recursive_proof.bin --overwrite)
+echo "Step: generate recursive proof"
+time ($PLONKIT_BIN recursive-prove -m $BIG_SETUP_MK -f $OLD_PROOF_LIST -v $CIRCUIT_DIR/vk.bin -n $CIRCUIT_DIR/recursive_proof.bin --overwrite)
 
-# echo "Step: verify recursive proof"
-# time ($PLONKIT_BIN recursive-verify -p $CIRCUIT_DIR/recursive_proof.bin -v $CIRCUIT_DIR/recursive_vk.bin)
+echo "Step: verify recursive proof"
+time ($PLONKIT_BIN recursive-verify -p $CIRCUIT_DIR/recursive_proof.bin -v $CIRCUIT_DIR/recursive_vk.bin)
 
 echo "Step: check aggregation"
 $PLONKIT_BIN check-aggregation -o $OLD_PROOF_LIST -v $CIRCUIT_DIR/vk.bin -n $CIRCUIT_DIR/recursive_proof.bin
