@@ -64,15 +64,5 @@ time ($PLONKIT_BIN recursive-prove -m $BIG_SETUP_MK -f $OLD_PROOF_LIST -v $CIRCU
 echo "Step: verify recursive proof"
 time ($PLONKIT_BIN recursive-verify -p $CIRCUIT_DIR/recursive_proof.bin -v $CIRCUIT_DIR/recursive_vk.bin)
 
-exit
-
-# TODO: finish smart contract verify for recursive
-echo "Step8: verify via smart contract"
-pushd $CONTRACT_TEST_DIR
-yarn install
-mkdir -p contracts
-cp $CIRCUIT_DIR/public.json $CONTRACT_TEST_DIR/test/data/public.json
-cp $CIRCUIT_DIR/proof.json $CONTRACT_TEST_DIR/test/data/proof.json
-cp $CIRCUIT_DIR/verifier.sol $CONTRACT_TEST_DIR/contracts/verifier.sol
-npx hardhat test
-popd
+echo "Step: check aggregation"
+$PLONKIT_BIN check-aggregation -o $OLD_PROOF_LIST -n $CIRCUIT_DIR/recursive_proof.bin

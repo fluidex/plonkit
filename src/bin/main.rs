@@ -47,6 +47,8 @@ enum SubCommand {
     RecursiveProve(RecursiveProveOpts),
     /// Verify recursive proof
     RecursiveVerify(RecursiveVerifyOpts),
+    /// Check proofs aggregation
+    CheckAggregation(CheckAggregationOpts),
 }
 
 /// A subcommand for analysing the circuit and outputting some stats
@@ -213,6 +215,17 @@ struct RecursiveVerifyOpts {
     vk: String,
 }
 
+/// A subcommand for checking aggregated proofs is corresponding to the original proofs
+#[derive(Clap)]
+struct CheckAggregationOpts {
+    /// Old proof file list text file
+    #[clap(short = "o", long = "old_proof_list")]
+    old_proof_list: String,
+    /// Aggregated Proof BIN file
+    #[clap(short = "n", long = "new_proof", default_value = "recursive_proof.bin")]
+    new_proof: String,
+}
+
 fn main() {
     // Always print backtrace on panic.
     ::std::env::set_var("RUST_BACKTRACE", "1");
@@ -257,6 +270,9 @@ fn main() {
         }
         SubCommand::RecursiveVerify(o) => {
             recursive_verify(o);
+        }
+        SubCommand::CheckAggregation(o) => {
+            check_aggregation(o);
         }
     }
 }
@@ -480,4 +496,8 @@ fn recursive_verify(opts: RecursiveVerifyOpts) {
         log::info!("Proof is invalid!");
         std::process::exit(400);
     }
+}
+
+// TODO: doc
+fn check_aggregation(opts: CheckAggregationOpts) {
 }

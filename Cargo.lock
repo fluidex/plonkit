@@ -1485,7 +1485,6 @@ dependencies = [
 [[package]]
 name = "recursive_aggregation_circuit"
 version = "1.0.0"
-source = "git+https://github.com/matter-labs/recursive_aggregation_circuit.git?branch=master#30bbf42c81c08ba8a15dcad3eaca9e771c4d8c89"
 dependencies = [
  "franklin-crypto",
  "hex",
