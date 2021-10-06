@@ -14,6 +14,7 @@ A zkSNARK toolkit to work with [circom](https://github.com/iden3/circom) zkSNARK
  + [x] Proof verification
  + [x] Solidity verifier generation
  + [x] Local key setup for developement
+ + [x] Proof Aggregation
 
 ## Usage examples
 
@@ -35,13 +36,18 @@ FLAGS:
     -V, --version    Prints version information
 
 SUBCOMMANDS:
-    dump-lagrange              Dump "SRS in lagrange form" from a "SRS in monomial form"
-    export-verification-key    Export verifying key
-    generate-verifier          Generate verifier smart contract
-    help                       Prints this message or the help of the given subcommand(s)
-    prove                      Generate a SNARK proof
-    setup                      Trusted locally set up Plonk universal srs in monomial form
-    verify                     Verify a SNARK proof
+    analyse                              Analyse the circuit and output some stats
+    check-aggregation                    Check proofs aggregation
+    dump-lagrange                        Dump "SRS in lagrange form" from a "SRS in monomial form"
+    export-recursive-verification-key    Export Recursive verifying key
+    export-verification-key              Export verifying key
+    generate-verifier                    Generate verifier smart contract
+    help                                 Prints this message or the help of the given subcommand(s)
+    prove                                Generate a SNARK proof
+    recursive-prove                      Aggregate multiple proofs
+    recursive-verify                     Verify recursive proof
+    setup                                Trusted locally set up Plonk universal srs in monomial form
+    verify                               Verify a SNARK proof
 
 # Getting help for a subcommand
 > plonkit prove --help
@@ -97,7 +103,7 @@ Proof is correct
 circuit.circom  circuit.r1cs  circuit.sym  circuit.wasm  input.json  proof.bin  proof.json  public.json  setup_2^20.key  verifier.sol  vk.bin  witness.wtns
 ```
 
-Moreover, if you want to set up a SRS locally for testing, you can make use of `setup` subcommand:
+If you want to set up a SRS locally for testing, you can make use of `setup` subcommand:
 
 ```
 plonkit-setup 
@@ -116,6 +122,26 @@ OPTIONS:
 ```
 
 You may also want to manually edit and lower down `plonk::SETUP_MIN_POW2` in the codes to fast generate a relatively small-sized SRS.
+
+Moreover, you can make use of the `analyse` subcommand to print out the statistics of a circuit (num of inputs, num of constraints, num of gates...):
+```
+plonkit-analyse 
+Analyse the circuit and output some stats
+
+USAGE:
+    plonkit analyse [OPTIONS]
+
+FLAGS:
+    -h, --help       Prints help information
+    -V, --version    Prints version information
+
+OPTIONS:
+    -c, --circuit <circuit>    Circuit R1CS or JSON file [default: circuit.r1cs|circuit.json]
+    -o, --output <output>      Output file [default: analyse.json]
+```
+
+### Proof Aggregation
+Plonkit also supports Proof Aggregation. You can aggregate multiple proofs into one, see [test_poseidon_plonk_recursive.sh](./test/test_poseidon_plonk_recursive.sh) for a workflow example.
 
 ## Installation
 
