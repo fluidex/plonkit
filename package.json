@@ -1,6 +1,6 @@
 {
   "name": "plonkit",
-  "version": "0.2.0",
+  "version": "0.1.4",
   "description": "A zkSNARK toolkit to work with circom zkSNARKs DSL in plonk proof system",
   "main": "index.js",
   "scripts": {
