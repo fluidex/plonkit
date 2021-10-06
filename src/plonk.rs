@@ -104,7 +104,7 @@ impl SetupForProver {
         let setup_polynomials = setup(circuit, &hints)?;
         let size = setup_polynomials.n.next_power_of_two().trailing_zeros();
         log::info!("circuit setup_polynomials.n {:?} size {}", setup_polynomials.n, size);
-        let setup_power_of_two = std::cmp::max(size, SETUP_MIN_POW2); // for exit circuit
+        let setup_power_of_two = std::cmp::max(size, SETUP_MIN_POW2);
         anyhow::ensure!(
             (SETUP_MIN_POW2..=SETUP_MAX_POW2).contains(&setup_power_of_two),
             "setup power of two is not in the correct range"
