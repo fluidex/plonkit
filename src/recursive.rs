@@ -170,3 +170,10 @@ pub fn get_aggregated_input(
 
     Ok(expected_input)
 }
+
+pub fn get_vk_tree_root_hash(
+    old_vk: OldVerificationKey<Bn256, PlonkCsWidth4WithNextStepParams>,
+) -> Result<bn256::Fr, anyhow::Error> {
+    let (_, (vks_tree, _)) = create_vks_tree(&vec![old_vk], VK_TREE_DEPTH)?;
+    Ok(vks_tree.get_commitment())
+}

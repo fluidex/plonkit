@@ -39,6 +39,8 @@ enum SubCommand {
     Verify(VerifyOpts),
     /// Generate verifier smart contract
     GenerateVerifier(GenerateVerifierOpts),
+    /// Generate recursive verifier smart contract
+    GenerateRecursiveVerifier(GenerateRecursiveVerifierOpts),
     /// Export verifying key
     ExportVerificationKey(ExportVerificationKeyOpts),
     /// Export Recursive verifying key
@@ -140,6 +142,25 @@ struct GenerateVerifierOpts {
     /// Verification key file
     #[clap(short = "v", long = "verification_key", default_value = "vk.bin")]
     vk: String,
+    /// Output solidity file
+    #[clap(short = "s", long = "sol", default_value = "verifier.sol")]
+    sol: String,
+    /// Solidity template file
+    #[clap(short = "t", long = "template")]
+    tpl: Option<String>,
+    #[clap(long = "overwrite")]
+    overwrite: bool,
+}
+
+/// A subcommand for generating a Solidity recursive verifier smart contract
+#[derive(Clap)]
+struct GenerateRecursiveVerifierOpts {
+    /// Original individual verification key file
+    #[clap(short = "o", long = "old_vk", default_value = "vk.bin")]
+    old_vk: String,
+    /// Aggregated verification key file
+    #[clap(short = "n", long = "new_vk", default_value = "recursive_vk.bin")]
+    new_vk: String,
     /// Output solidity file
     #[clap(short = "s", long = "sol", default_value = "verifier.sol")]
     sol: String,
@@ -273,6 +294,9 @@ fn main() {
         }
         SubCommand::RecursiveVerify(o) => {
             recursive_verify(o);
+        }
+        SubCommand::GenerateRecursiveVerifier(o) => {
+            generate_recursive_verifier(o);
         }
         SubCommand::CheckAggregation(o) => {
             check_aggregation(o);
@@ -489,6 +513,29 @@ fn recursive_verify(opts: RecursiveVerifyOpts) {
         log::info!("Proof is invalid!");
         std::process::exit(400);
     }
+}
+
+// generate a solidity plonk verifier for proof recursion
+fn generate_recursive_verifier(opts: GenerateRecursiveVerifierOpts) {
+    let old_vk = reader::load_verification_key(&opts.old_vk);
+    let new_vk = reader::load_recursive_verification_key(&opts.new_vk);
+    let config = solidity_recursive_plonk_verifier::Config { 
+        recursive_vk: new_vk,
+        vk_tree_root: recursive::get_vk_tree_root_hash(old_vk).unwrap(),
+     };
+    if !opts.overwrite {
+        let path = Path::new(&opts.sol);
+        assert!(!path.exists(), "duplicate solidity file: {}", path.display());
+    }
+    match opts.tpl {
+        Some(tpl) => {
+            solidity_recursive_plonk_verifier::create_verifier_contract_from_template(config, &tpl, &opts.sol);
+        }
+        None => {
+            solidity_recursive_plonk_verifier::create_verifier_contract_from_default_template(config, &opts.sol);
+        }
+    }
+    log::info!("Contract saved to {}", opts.sol);
 }
 
 // check an aggregated proof is corresponding to the original proofs

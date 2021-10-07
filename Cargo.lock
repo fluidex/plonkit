@@ -1185,6 +1185,7 @@ dependencies = [
  "recursive_aggregation_circuit",
  "serde",
  "serde_json",
+ "solidity_recursive_plonk_verifier",
 ]
 
 [[package]]
@@ -1653,6 +1654,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b97fcaeba89edba30f044a10c6a3cc39df9c3f17d7cd829dd1446cab35f890e0"
 dependencies = [
  "maybe-uninit",
+]
+
+[[package]]
+name = "solidity_recursive_plonk_verifier"
+version = "1.0.0"
+dependencies = [
+ "franklin-crypto",
+ "handlebars",
+ "hex",
+ "log",
+ "recursive_aggregation_circuit",
+ "serde_json",
 ]
 
 [[package]]
