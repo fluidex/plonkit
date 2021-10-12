@@ -3,7 +3,7 @@
 use bellman_ce::kate_commitment::{Crs, CrsForMonomialForm};
 use bellman_ce::plonk::{
     better_cs::cs::PlonkCsWidth4WithNextStepParams,
-    better_cs::keys::{self, Proof as OldProof, VerificationKey as OldVerificationKey},
+    better_cs::keys::{read_fr_vec, write_fr_vec, Proof as OldProof, VerificationKey as OldVerificationKey},
 };
 use bellman_ce::SynthesisError;
 use franklin_crypto::bellman::pairing::bn256;
@@ -71,8 +71,8 @@ fn write_usize_vec<W: Write>(p: &[usize], mut writer: W) -> std::io::Result<()> 
 impl AggregatedProof {
     pub fn write<W: Write>(&self, mut writer: W) -> std::io::Result<()> {
         self.proof.write(&mut writer)?;
-        keys::write_fr_vec(&self.individual_vk_inputs, &mut writer)?;
-        keys::write_fr_vec(&self.aggr_limbs, &mut writer)?;
+        write_fr_vec(&self.individual_vk_inputs, &mut writer)?;
+        write_fr_vec(&self.aggr_limbs, &mut writer)?;
         write_usize_vec(&self.individual_vk_idxs, &mut writer)?;
         writer.write_u64::<LittleEndian>(self.individual_num_inputs as u64)?;
         Ok(())
@@ -80,8 +80,8 @@ impl AggregatedProof {
 
     pub fn read<R: Read>(mut reader: R) -> std::io::Result<Self> {
         let proof = RecursiveCircuitProof::<'static>::read(&mut reader)?;
-        let vk_inputs = keys::read_fr_vec::<bn256::Fr, _>(&mut reader)?;
-        let aggr_limbs = keys::read_fr_vec::<bn256::Fr, _>(&mut reader)?;
+        let vk_inputs = read_fr_vec::<bn256::Fr, _>(&mut reader)?;
+        let aggr_limbs = read_fr_vec::<bn256::Fr, _>(&mut reader)?;
         let vk_idexs = read_usize_vec(&mut reader)?;
         let num_inputs = reader.read_u64::<LittleEndian>()? as usize;
 
@@ -201,6 +201,8 @@ pub fn verify(
     vk: VerificationKey<Bn256, RecursiveAggregationCircuitBn256>,
     aggregated_proof: AggregatedProof,
 ) -> Result<bool, SynthesisError> {
+    log::info!("individual_inputs: {:?}", aggregated_proof.individual_vk_inputs);
+    log::info!("individual_num_inputs: {:?}", aggregated_proof.individual_num_inputs);
     core_verify::<_, _, RollingKeccakTranscript<<Bn256 as ScalarEngine>::Fr>>(&vk, &aggregated_proof.proof, None)
 }
 
