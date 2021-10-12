@@ -39,7 +39,8 @@ pub struct AggregatedProof {
     // #[serde(with = "AggregatedProofSerde")]
     pub proof: Proof<Bn256, RecursiveAggregationCircuitBn256<'static>>,
     // #[serde(with = "VecFrSerde")]
-    pub individual_vk_inputs: Vec<bn256::Fr>, // flatten Vec<Vec<bn256::Fr>> into Vec<bn256::Fr>, we should also store old_proof.num_inputs?
+    pub individual_vk_inputs: Vec<bn256::Fr>, // flatten Vec<Vec<bn256::Fr>> into Vec<bn256::Fr>
+    pub individual_num_inputs: usize,
     pub individual_vk_idxs: Vec<usize>,
     // #[serde(with = "VecFrSerde")]
     pub aggr_limbs: Vec<bn256::Fr>,
@@ -57,7 +58,9 @@ pub fn prove(
     let mut individual_vk_inputs = Vec::new();
     let num_inputs = old_proofs[0].num_inputs;
     for p in &old_proofs {
-        individual_vk_inputs.push(p.input_values.clone()); 
+        for input_value in p.input_values.clone() {
+            individual_vk_inputs.push(input_value); 
+        }
         assert_eq!(p.num_inputs, num_inputs, "proofs num_inputs mismatch!");
     }
 
@@ -138,6 +141,7 @@ pub fn prove(
     Ok(AggregatedProof {
         proof: proof,
         individual_vk_inputs: individual_vk_inputs,
+        individual_num_inputs: num_inputs,
         individual_vk_idxs: individual_vk_idxs,
         aggr_limbs: limbed_aggreagate,
     })
@@ -145,10 +149,10 @@ pub fn prove(
 
 // verify a recursive proof by using a corresponding verification key
 pub fn verify(
-    vk: &VerificationKey<Bn256, RecursiveAggregationCircuitBn256>,
-    proof: &Proof<Bn256, RecursiveAggregationCircuitBn256>,
+    vk: VerificationKey<Bn256, RecursiveAggregationCircuitBn256>,
+    aggregated_proof: AggregatedProof,
 ) -> Result<bool, SynthesisError> {
-    core_verify::<_, _, RollingKeccakTranscript<<Bn256 as ScalarEngine>::Fr>>(vk, proof, None)
+    core_verify::<_, _, RollingKeccakTranscript<<Bn256 as ScalarEngine>::Fr>>(&vk, &aggregated_proof.proof, None)
 }
 
 // export a verification key for a recursion circuit
