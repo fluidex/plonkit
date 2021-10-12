@@ -39,7 +39,7 @@ pub struct AggregatedProof {
     // #[serde(with = "AggregatedProofSerde")]
     pub proof: Proof<Bn256, RecursiveAggregationCircuitBn256<'static>>,
     // #[serde(with = "VecFrSerde")]
-    pub individual_vk_inputs: Vec<Vec<bn256::Fr>>, // Vec<Vec<bn256::Fr>> instead of Vec<bn256::Fr>
+    pub individual_vk_inputs: Vec<bn256::Fr>, // flatten Vec<Vec<bn256::Fr>> into Vec<bn256::Fr>, we should also store old_proof.num_inputs?
     pub individual_vk_idxs: Vec<usize>,
     // #[serde(with = "VecFrSerde")]
     pub aggr_limbs: Vec<bn256::Fr>,
