@@ -481,7 +481,7 @@ fn recursive_prove(opts: RecursiveProveOpts) {
 // verify a recursive proof by using a corresponding verification key
 fn recursive_verify(opts: RecursiveVerifyOpts) {
     let vk = reader::load_recursive_verification_key(&opts.vk);
-    let proof = reader::load_recursive_proof(&opts.proof);
+    let proof = reader::load_aggregated_proof(&opts.proof);
     let correct = recursive::verify(vk, proof).expect("fail to verify recursive proof");
     if correct {
         log::info!("Proof is valid.");
@@ -495,13 +495,13 @@ fn recursive_verify(opts: RecursiveVerifyOpts) {
 fn check_aggregation(opts: CheckAggregationOpts) {
     let old_proofs = reader::load_proofs_from_list::<Bn256>(&opts.old_proof_list);
     let old_vk = reader::load_verification_key::<Bn256>(&opts.old_vk);
-    let new_proof = reader::load_recursive_proof(&opts.new_proof);
+    let new_proof = reader::load_aggregated_proof(&opts.new_proof);
 
     let expected = recursive::get_aggregated_input(old_proofs, old_vk).expect("fail to get aggregated input");
     log::info!("hash to input: {:?}", expected);
-    log::info!("new_proof's input: {:?}", new_proof.inputs[0]);
+    log::info!("new_proof's input: {:?}", new_proof.proof.inputs[0]);
 
-    if expected == new_proof.inputs[0] {
+    if expected == new_proof.proof.inputs[0] {
         log::info!("Aggregation hash input match");
     } else {
         log::error!("Aggregation hash input mismatch");
