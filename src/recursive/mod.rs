@@ -142,8 +142,11 @@ pub fn verify(
     vk: VerificationKey<Bn256, RecursiveAggregationCircuitBn256>,
     aggregated_proof: AggregatedProof,
 ) -> Result<bool, SynthesisError> {
-    log::info!("individual_inputs: {:?}", aggregated_proof.individual_vk_inputs);
-    log::info!("individual_num_inputs: {:?}", aggregated_proof.individual_num_inputs);
+    let mut inputs = Vec::new();
+    for chunk in aggregated_proof.individual_vk_inputs.chunks(aggregated_proof.individual_num_inputs) {
+        inputs.push(chunk);
+    }
+    log::info!("individual_inputs: {:#?}", inputs);
     core_verify::<_, _, RollingKeccakTranscript<<Bn256 as ScalarEngine>::Fr>>(&vk, &aggregated_proof.proof, None)
 }
 
