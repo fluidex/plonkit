@@ -34,17 +34,30 @@ use recursive_aggregation_circuit::circuit::{
 // only support depth<8. different depths don't really make performance different
 const VK_TREE_DEPTH: usize = 7;
 
+// #[derive(Serialize, Deserialize)]
+pub struct AggregatedProof {
+    // #[serde(with = "AggregatedProofSerde")]
+    pub proof: Proof<Bn256, RecursiveAggregationCircuitBn256<'static>>,
+    // #[serde(with = "VecFrSerde")]
+    pub individual_vk_inputs: Vec<Vec<bn256::Fr>>, // Vec<Vec<bn256::Fr>> instead of Vec<bn256::Fr>
+    pub individual_vk_idxs: Vec<usize>,
+    // #[serde(with = "VecFrSerde")]
+    pub aggr_limbs: Vec<bn256::Fr>,
+}
+
 // recursively prove multiple proofs, and aggregate them into one
 pub fn prove(
     big_crs: Crs<Bn256, CrsForMonomialForm>,
     old_proofs: Vec<OldProof<Bn256, PlonkCsWidth4WithNextStepParams>>,
     old_vk: OldVerificationKey<Bn256, PlonkCsWidth4WithNextStepParams>,
-) -> Result<Proof<Bn256, RecursiveAggregationCircuitBn256<'static>>, SynthesisError> {
+) -> Result<AggregatedProof, SynthesisError> {
     let num_proofs_to_check = old_proofs.len();
     assert!(num_proofs_to_check > 0);
     assert!(num_proofs_to_check < 256);
+    let mut individual_vk_inputs = Vec::new();
     let num_inputs = old_proofs[0].num_inputs;
     for p in &old_proofs {
+        individual_vk_inputs.push(p.input_values.clone()); 
         assert_eq!(p.num_inputs, num_inputs, "proofs num_inputs mismatch!");
     }
 
@@ -57,6 +70,7 @@ pub fn prove(
     let aux_data = BN256AuxData::new();
 
     let vks = old_proofs.iter().map(|_| old_vk.clone()).collect_vec();
+    let individual_vk_idxs =  old_proofs.iter().map(|_| 0usize).collect_vec();
     let (_, (vks_tree, all_witness_values)) = create_vks_tree(&vks, VK_TREE_DEPTH)?;
     let vks_tree_root = vks_tree.get_commitment();
 
@@ -80,7 +94,7 @@ pub fn prove(
 
     let aggregate = make_aggregate(&old_proofs, &vks, &rescue_params, &rns_params)?;
 
-    let (_, _) = make_public_input_and_limbed_aggregate(vks_tree_root, &proof_ids, &old_proofs, &aggregate, &rns_params);
+    let (_, limbed_aggreagate) = make_public_input_and_limbed_aggregate(vks_tree_root, &proof_ids, &old_proofs, &aggregate, &rns_params);
 
     let circuit = RecursiveAggregationCircuitBn256 {
         num_proofs_to_check,
@@ -119,7 +133,14 @@ pub fn prove(
     circuit.synthesize(&mut assembly).expect("must synthesize");
     assembly.finalize();
 
-    assembly.create_proof::<_, RollingKeccakTranscript<<Bn256 as ScalarEngine>::Fr>>(&worker, &setup, &big_crs, None)
+    let proof = assembly.create_proof::<_, RollingKeccakTranscript<<Bn256 as ScalarEngine>::Fr>>(&worker, &setup, &big_crs, None)?;
+
+    Ok(AggregatedProof {
+        proof: proof,
+        individual_vk_inputs: individual_vk_inputs,
+        individual_vk_idxs: individual_vk_idxs,
+        aggr_limbs: limbed_aggreagate,
+    })
 }
 
 // verify a recursive proof by using a corresponding verification key
