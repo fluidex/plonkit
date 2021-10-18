@@ -68,7 +68,7 @@ echo "Step: check aggregation"
 $PLONKIT_BIN check-aggregation -o $OLD_PROOF_LIST -v $CIRCUIT_DIR/vk.bin -n $CIRCUIT_DIR/recursive_proof.bin
 
 echo "Step: generate recursive verifier smart contract"
-$PLONKIT_BIN generate-recursive-verifier -o $CIRCUIT_DIR/vk.bin -n $CIRCUIT_DIR/recursive_vk.bin -s $CIRCUIT_DIR/verifier.sol --overwrite #-t contrib/template.sol
+$PLONKIT_BIN generate-recursive-verifier -o $CIRCUIT_DIR/vk.bin -n $CIRCUIT_DIR/recursive_vk.bin -i 3 -s $CIRCUIT_DIR/verifier.sol --overwrite #-t contrib/template.sol
 
 echo "Step: verify via smart contract"
 pushd $CONTRACT_TEST_DIR

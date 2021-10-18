@@ -161,6 +161,9 @@ struct GenerateRecursiveVerifierOpts {
     /// Aggregated verification key file
     #[clap(short = "n", long = "new_vk", default_value = "recursive_vk.bin")]
     new_vk: String,
+    /// Num of inputs
+    #[clap(short = "i", long = "num_inputs")]
+    num_inputs: usize,    
     /// Output solidity file
     #[clap(short = "s", long = "sol", default_value = "verifier.sol")]
     sol: String,
@@ -459,6 +462,8 @@ fn generate_recursive_verifier(opts: GenerateRecursiveVerifierOpts) {
     let recursive_vk = reader::load_recursive_verification_key(&opts.new_vk);
     let config = recurisive_vk_codegen::Config {
         vk_tree_root: recursive::get_vk_tree_root_hash(old_vk).unwrap(),
+        //vk_max_index: 0, //because we has aggregated only 1 vk
+        vk_input_num: opts.num_inputs,
         recursive_vk,
     };
     if !opts.overwrite {
