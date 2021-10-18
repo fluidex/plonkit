@@ -64,8 +64,7 @@ pub fn prove(
     let (_, (vks_tree, all_witness_values)) = create_vks_tree(&vks, VK_TREE_DEPTH)?;
     let vks_tree_root = vks_tree.get_commitment();
 
-    let mut proof_ids = (0..num_proofs_to_check).collect_vec();
-    proof_ids.reverse();
+    let proof_ids = (0..num_proofs_to_check).collect_vec();
     let individual_vk_idxs = proof_ids.clone();
 
     let mut queries = vec![];
@@ -179,8 +178,7 @@ pub fn get_aggregated_input(
     let (_, (vks_tree, _)) = create_vks_tree(&vks, VK_TREE_DEPTH)?;
     let vks_tree_root = vks_tree.get_commitment();
 
-    let mut proof_ids = (0..num_proofs_to_check).collect_vec();
-    proof_ids.reverse();
+    let proof_ids = (0..num_proofs_to_check).collect_vec();
 
     let aggregate = make_aggregate(&old_proofs, &vks, &rescue_params, &rns_params)?;
 
