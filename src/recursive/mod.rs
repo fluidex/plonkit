@@ -6,10 +6,6 @@ use bellman_ce::plonk::{
     better_cs::keys::{Proof as OldProof, VerificationKey as OldVerificationKey},
 };
 use bellman_ce::SynthesisError;
-use circuit::{
-    create_recursive_circuit_setup, create_recursive_circuit_vk_and_setup, create_vks_tree, make_aggregate,
-    make_public_input_and_limbed_aggregate, RecursiveAggregationCircuitBn256,
-};
 use franklin_crypto::bellman::pairing::bn256;
 use franklin_crypto::bellman::pairing::bn256::Bn256;
 use franklin_crypto::bellman::pairing::ff::ScalarEngine;
@@ -29,7 +25,10 @@ use franklin_crypto::plonk::circuit::verifier_circuit::data_structs::IntoLimbedW
 use franklin_crypto::plonk::circuit::Width4WithCustomGates;
 use franklin_crypto::rescue::bn256::Bn256RescueParams;
 use itertools::Itertools;
-use recurisive_vk_codegen::circuit;
+use recurisive_vk_codegen::circuit::{
+    create_recursive_circuit_setup, create_recursive_circuit_vk_and_setup, create_vks_tree, make_aggregate,
+    make_public_input_and_limbed_aggregate, RecursiveAggregationCircuitBn256,
+};
 pub use recurisive_vk_codegen::types::{AggregatedProof, RecursiveVerificationKey};
 
 // only support depth<8. different depths don't really make performance different
