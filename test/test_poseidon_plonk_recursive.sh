@@ -59,7 +59,7 @@ echo "Step: export recursive vk"
 time ($PLONKIT_BIN export-recursive-verification-key -c $i -i 3 -m $BIG_SETUP_MK -v $CIRCUIT_DIR/recursive_vk.bin --overwrite)
 
 echo "Step: generate recursive proof"
-time ($PLONKIT_BIN recursive-prove -m $BIG_SETUP_MK -f $OLD_PROOF_LIST -v $CIRCUIT_DIR/vk.bin -n $CIRCUIT_DIR/recursive_proof.bin --overwrite)
+time ($PLONKIT_BIN recursive-prove -m $BIG_SETUP_MK -f $OLD_PROOF_LIST -v $CIRCUIT_DIR/vk.bin -n $CIRCUIT_DIR/recursive_proof.bin -j $CIRCUIT_DIR/recursive_proof.json --overwrite)
 
 echo "Step: verify recursive proof"
 time ($PLONKIT_BIN recursive-verify -p $CIRCUIT_DIR/recursive_proof.bin -v $CIRCUIT_DIR/recursive_vk.bin)

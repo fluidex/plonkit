@@ -160,11 +160,6 @@ pub fn export_vk(
     Ok(recursive_circuit_vk)
 }
 
-pub fn get_vks_root(old_vk: OldVerificationKey<Bn256, PlonkCsWidth4WithNextStepParams>) -> Result<bn256::Fr, anyhow::Error> {
-    let (_, (vks_tree, _)) = create_vks_tree(&[old_vk], VK_TREE_DEPTH)?;
-    Ok(vks_tree.get_commitment())
-}
-
 // hash the vk_tree root, proof_indexes, proofs' inputs and aggregated points
 pub fn get_aggregated_input(
     old_proofs: Vec<OldProof<Bn256, PlonkCsWidth4WithNextStepParams>>,
@@ -193,4 +188,9 @@ pub fn get_aggregated_input(
     let (expected_input, _) = make_public_input_and_limbed_aggregate(vks_tree_root, &proof_ids, &old_proofs, &aggregate, &rns_params);
 
     Ok(expected_input)
+}
+
+pub fn get_vk_tree_root_hash(old_vk: OldVerificationKey<Bn256, PlonkCsWidth4WithNextStepParams>) -> Result<bn256::Fr, anyhow::Error> {
+    let (_, (vks_tree, _)) = create_vks_tree(&[old_vk], VK_TREE_DEPTH)?;
+    Ok(vks_tree.get_commitment())
 }
