@@ -61,12 +61,12 @@ pub fn prove(
     let aux_data = BN256AuxData::new();
 
     let vks = old_proofs.iter().map(|_| old_vk.clone()).collect_vec();
-    let individual_vk_idxs = old_proofs.iter().map(|_| 0usize).collect_vec();
     let (_, (vks_tree, all_witness_values)) = create_vks_tree(&vks, VK_TREE_DEPTH)?;
     let vks_tree_root = vks_tree.get_commitment();
 
     let mut proof_ids = (0..num_proofs_to_check).collect_vec();
     proof_ids.reverse();
+    let individual_vk_idxs = proof_ids.clone();
 
     let mut queries = vec![];
     for proof_id in 0..num_proofs_to_check {
