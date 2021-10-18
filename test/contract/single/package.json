@@ -1,0 +1,15 @@
+{
+  "license": "ISC",
+  "devDependencies": {
+    "@nomiclabs/hardhat-ethers": "^2.0.1",
+    "@nomiclabs/hardhat-waffle": "^2.0.1",
+    "chai": "^4.3.0",
+    "ethereum-waffle": "^3.2.2",
+    "ethers": "^5.0.31",
+    "hardhat": "^2.6.0",
+    "hardhat-gas-reporter": "^1.0.4"
+  },
+  "dependencies": {
+    "@nomiclabs/buidler": "^1.4.8"
+  }
+}

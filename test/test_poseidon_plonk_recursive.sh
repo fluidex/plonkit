@@ -8,7 +8,7 @@ SETUP_MK=$SETUP_DIR"/setup_2^20.key"
 BIG_SETUP_MK=$SETUP_DIR"/setup_2^24.key"
 DOWNLOAD_SETUP_FROM_REMOTE=false
 PLONKIT_BIN=$REPO_DIR"/target/release/plonkit"
-CONTRACT_TEST_DIR=$DIR"/contract"
+CONTRACT_TEST_DIR=$DIR"/contract/recursive"
 
 echo "Step: build plonkit"
 cargo build --release
@@ -29,43 +29,52 @@ elif [ ! -f $BIG_SETUP_MK ] ; then
 fi
 popd
 
-# echo "Step: compile circuit and calculate witness"
-# npx snarkit check $CIRCUIT_DIR --witness_type bin
+echo "Step: compile circuit and calculate witness"
+npx snarkit check $CIRCUIT_DIR --witness_type bin
 
-# echo "Step: export verification key"
-# $PLONKIT_BIN export-verification-key -m $SETUP_MK -c $CIRCUIT_DIR/circuit.r1cs -v $CIRCUIT_DIR/vk.bin --overwrite
+echo "Step: export verification key"
+$PLONKIT_BIN export-verification-key -m $SETUP_MK -c $CIRCUIT_DIR/circuit.r1cs -v $CIRCUIT_DIR/vk.bin --overwrite
 
-# echo "Step: generate each proof"
-# for witness_dir in `ls $CIRCUIT_DIR/data`
-# do
-#   WITNESS_DIR=$CIRCUIT_DIR/data/$witness_dir
-#   $PLONKIT_BIN prove -m $SETUP_MK -c $CIRCUIT_DIR/circuit.r1cs -w $WITNESS_DIR/witness.wtns -p $WITNESS_DIR/proof.bin -j $WITNESS_DIR/proof.json -i $WITNESS_DIR/public.json -t rescue --overwrite
-# done
+echo "Step: generate each proof"
+for witness_dir in `ls $CIRCUIT_DIR/data`
+do
+  WITNESS_DIR=$CIRCUIT_DIR/data/$witness_dir
+  $PLONKIT_BIN prove -m $SETUP_MK -c $CIRCUIT_DIR/circuit.r1cs -w $WITNESS_DIR/witness.wtns -p $WITNESS_DIR/proof.bin -j $WITNESS_DIR/proof.json -i $WITNESS_DIR/public.json -t rescue --overwrite
+done
 
-# echo "Step: collect old_proofs list"
+echo "Step: collect old_proofs list"
 OLD_PROOF_LIST=$CIRCUIT_DIR/old_proof_list.txt
-# rm $OLD_PROOF_LIST -rf
-# touch $OLD_PROOF_LIST
-# i=0
-# for witness_dir in `ls $CIRCUIT_DIR/data`
-# do
-#   WITNESS_DIR=$CIRCUIT_DIR/data/$witness_dir
-#   echo $WITNESS_DIR/proof.bin >> $OLD_PROOF_LIST
-#   let "i++"
-# done
-# cat $OLD_PROOF_LIST
+rm $OLD_PROOF_LIST -rf
+touch $OLD_PROOF_LIST
+i=0
+for witness_dir in `ls $CIRCUIT_DIR/data`
+do
+  WITNESS_DIR=$CIRCUIT_DIR/data/$witness_dir
+  echo $WITNESS_DIR/proof.bin >> $OLD_PROOF_LIST
+  let "i++"
+done
+cat $OLD_PROOF_LIST
 
-# echo "Step: export recursive vk"
-# time ($PLONKIT_BIN export-recursive-verification-key -c $i -i 3 -m $BIG_SETUP_MK -v $CIRCUIT_DIR/recursive_vk.bin --overwrite)
+echo "Step: export recursive vk"
+time ($PLONKIT_BIN export-recursive-verification-key -c $i -i 3 -m $BIG_SETUP_MK -v $CIRCUIT_DIR/recursive_vk.bin --overwrite)
 
-# echo "Step: generate recursive proof"
-# time ($PLONKIT_BIN recursive-prove -m $BIG_SETUP_MK -f $OLD_PROOF_LIST -v $CIRCUIT_DIR/vk.bin -n $CIRCUIT_DIR/recursive_proof.bin -j $CIRCUIT_DIR/recursive_proof.json --overwrite)
+echo "Step: generate recursive proof"
+time ($PLONKIT_BIN recursive-prove -m $BIG_SETUP_MK -f $OLD_PROOF_LIST -v $CIRCUIT_DIR/vk.bin -n $CIRCUIT_DIR/recursive_proof.bin -j $CIRCUIT_DIR/recursive_proof.json --overwrite)
 
-# echo "Step: verify recursive proof"
-# time ($PLONKIT_BIN recursive-verify -p $CIRCUIT_DIR/recursive_proof.bin -v $CIRCUIT_DIR/recursive_vk.bin)
+echo "Step: verify recursive proof"
+time ($PLONKIT_BIN recursive-verify -p $CIRCUIT_DIR/recursive_proof.bin -v $CIRCUIT_DIR/recursive_vk.bin)
 
 echo "Step: check aggregation"
 $PLONKIT_BIN check-aggregation -o $OLD_PROOF_LIST -v $CIRCUIT_DIR/vk.bin -n $CIRCUIT_DIR/recursive_proof.bin
 
 echo "Step: generate recursive verifier smart contract"
 $PLONKIT_BIN generate-recursive-verifier -o $CIRCUIT_DIR/vk.bin -n $CIRCUIT_DIR/recursive_vk.bin -s $CIRCUIT_DIR/verifier.sol --overwrite #-t contrib/template.sol
+
+echo "Step: verify via smart contract"
+pushd $CONTRACT_TEST_DIR
+yarn install
+mkdir -p contracts
+cp $CIRCUIT_DIR/recursive_proof.json $CONTRACT_TEST_DIR/test/data/proof.json
+cp $CIRCUIT_DIR/verifier.sol $CONTRACT_TEST_DIR/contracts/verifier.sol
+npx hardhat test
+popd
