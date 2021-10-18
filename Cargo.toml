@@ -29,6 +29,7 @@ rand = "0.4"
 recursive_aggregation_circuit = { package = "recursive_aggregation_circuit", version = "1.0.0", git = "https://github.com/matter-labs/recursive_aggregation_circuit.git", branch = "master" }
 serde = { version = "1.0", features = [ "derive" ] }
 serde_json = "1.0"
+recurisive_vk_codegen = { package = "solidity_recursive_plonk_verifier", git = "https://github.com/fluidex/solidity_recursive_plonk_verifier.git", branch = "init" }
 
 [features]
 default = [ "bellman_ce/multicore" ]

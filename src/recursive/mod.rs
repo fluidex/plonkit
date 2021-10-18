@@ -25,13 +25,12 @@ use franklin_crypto::plonk::circuit::verifier_circuit::data_structs::IntoLimbedW
 use franklin_crypto::plonk::circuit::Width4WithCustomGates;
 use franklin_crypto::rescue::bn256::Bn256RescueParams;
 use itertools::Itertools;
-use recursive_aggregation_circuit::circuit::{
+use recurisive_vk_codegen::circuit;
+use circuit::{
     create_recursive_circuit_setup, create_recursive_circuit_vk_and_setup, create_vks_tree, make_aggregate,
     make_public_input_and_limbed_aggregate, RecursiveAggregationCircuitBn256,
 };
-
-mod types;
-pub use types::{AggregatedProof, RecursiveVerificationKey};
+pub use recurisive_vk_codegen::types::{AggregatedProof, RecursiveVerificationKey};
 
 // only support depth<8. different depths don't really make performance different
 const VK_TREE_DEPTH: usize = 7;
@@ -159,6 +158,11 @@ pub fn export_vk(
     let (recursive_circuit_vk, _recursive_circuit_setup) =
         create_recursive_circuit_vk_and_setup(num_proofs_to_check, num_inputs, VK_TREE_DEPTH, big_crs)?;
     Ok(recursive_circuit_vk)
+}
+
+pub fn get_vks_root(old_vk: OldVerificationKey<Bn256, PlonkCsWidth4WithNextStepParams>) -> Result<bn256::Fr, anyhow::Error> {
+    let (_, (vks_tree, _)) = create_vks_tree(&[old_vk], VK_TREE_DEPTH)?;
+    Ok(vks_tree.get_commitment())
 }
 
 // hash the vk_tree root, proof_indexes, proofs' inputs and aggregated points
