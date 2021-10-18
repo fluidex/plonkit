@@ -223,7 +223,7 @@ struct RecursiveProveOpts {
     new_proof: String,
     /// Output file for proof json
     #[clap(short = "j", long = "proofjson", default_value = "recursive_proof.json")]
-    proofjson: String,    
+    proofjson: String,
     #[clap(long = "overwrite")]
     overwrite: bool,
 }
@@ -459,7 +459,6 @@ fn generate_recursive_verifier(opts: GenerateRecursiveVerifierOpts) {
     let recursive_vk = reader::load_recursive_verification_key(&opts.new_vk);
     let config = recurisive_vk_codegen::Config {
         vk_tree_root: recursive::get_vk_tree_root_hash(old_vk).unwrap(),
-        vk_max_index: 0, //because we has aggregated only 1 vk
         recursive_vk,
     };
     if !opts.overwrite {
@@ -476,7 +475,6 @@ fn generate_recursive_verifier(opts: GenerateRecursiveVerifierOpts) {
     }
     log::info!("Contract saved to {}", opts.sol);
 }
-
 
 // export a verification key for a circuit, and save it to a file
 fn export_vk(opts: ExportVerificationKeyOpts) {
@@ -525,7 +523,7 @@ fn recursive_prove(opts: RecursiveProveOpts) {
         let path = Path::new(&opts.new_proof);
         assert!(!path.exists(), "duplicate proof file: {}", path.display());
         let path = Path::new(&opts.proofjson);
-        assert!(!path.exists(), "duplicate proof json file: {}", path.display());        
+        assert!(!path.exists(), "duplicate proof json file: {}", path.display());
     }
     let writer = File::create(&opts.new_proof).unwrap();
     proof.write(writer).unwrap();
@@ -533,7 +531,7 @@ fn recursive_prove(opts: RecursiveProveOpts) {
 
     let ser_proof_str = serde_json::to_string_pretty(&proof).unwrap();
     std::fs::write(&opts.proofjson, ser_proof_str.as_bytes()).expect("save proofjson err");
-    log::info!("Proof json saved to {}", opts.proofjson);    
+    log::info!("Proof json saved to {}", opts.proofjson);
 }
 
 // verify a recursive proof by using a corresponding verification key

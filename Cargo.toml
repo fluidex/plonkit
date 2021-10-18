@@ -30,6 +30,7 @@ recursive_aggregation_circuit = { package = "recursive_aggregation_circuit", ver
 serde = { version = "1.0", features = [ "derive" ] }
 serde_json = "1.0"
 recurisive_vk_codegen = { package = "solidity_recursive_plonk_verifier", git = "https://github.com/fluidex/solidity_recursive_plonk_verifier.git", branch = "init" }
+# recurisive_vk_codegen = { package = "solidity_recursive_plonk_verifier", path = "../solidity_recursive_plonk_verifier" }
 
 [features]
 default = [ "bellman_ce/multicore" ]

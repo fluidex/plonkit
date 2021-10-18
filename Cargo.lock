@@ -1919,7 +1919,6 @@ dependencies = [
 [[package]]
 name = "solidity_recursive_plonk_verifier"
 version = "1.0.0"
-source = "git+https://github.com/fluidex/solidity_recursive_plonk_verifier.git?branch=init#d2da74f2c73ebffec2d57f6b79bed984c9a7060c"
 dependencies = [
  "byteorder",
  "ethabi 14.1.0",
