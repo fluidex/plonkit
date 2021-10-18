@@ -155,11 +155,12 @@ struct GenerateVerifierOpts {
 /// A subcommand for generating a Solidity recursive verifier smart contract
 #[derive(Clap)]
 struct GenerateRecursiveVerifierOpts {
-    /// Verification key file
-    #[clap(short = "n", long = "new_vk", default_value = "recursive_vk.bin")]
-    vk: String,
+    /// Original individual verification key file
     #[clap(short = "o", long = "old_vk", default_value = "vk.bin")]
-    old_vk: String,    
+    old_vk: String,
+    /// Aggregated verification key file
+    #[clap(short = "n", long = "new_vk", default_value = "recursive_vk.bin")]
+    new_vk: String,
     /// Output solidity file
     #[clap(short = "s", long = "sol", default_value = "verifier.sol")]
     sol: String,
@@ -455,7 +456,7 @@ fn generate_verifier(opts: GenerateVerifierOpts) {
 // generate a solidity plonk verifier for proof recursion
 fn generate_recursive_verifier(opts: GenerateRecursiveVerifierOpts) {
     let old_vk = reader::load_verification_key::<Bn256>(&opts.old_vk);
-    let recursive_vk = reader::load_recursive_verification_key(&opts.vk);
+    let recursive_vk = reader::load_recursive_verification_key(&opts.new_vk);
     let config = recurisive_vk_codegen::Config {
         vk_tree_root: recursive::get_vk_tree_root_hash(old_vk).unwrap(),
         vk_max_index: 0, //because we has aggregated only 1 vk
