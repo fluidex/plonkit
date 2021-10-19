@@ -136,13 +136,13 @@ jobs:
         id: test_contract_npm_cache
         uses: actions/cache@v2
         with:
-          path: test/contract/node_modules
-          key: test_contract_node_modules-${{ hashFiles('test/contract/yarn.lock') }}
+          path: test/contract/single/node_modules
+          key: test_contract_node_modules-${{ hashFiles('test/contract/single/yarn.lock') }}
 
       - name: yarn install for test/contract
         if: steps.test_contract_npm_cache.outputs.cache-hit != 'true'
         run: |
-          cd test/contract
+          cd test/contract/single
           yarn install
 
       - name: Verify via smart contract
