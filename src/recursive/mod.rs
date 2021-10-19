@@ -92,7 +92,7 @@ pub fn prove(
         num_inputs,
         vk_tree_depth: VK_TREE_DEPTH,
         vk_root: Some(vks_tree_root),
-        vk_witnesses: Some(vks), 
+        vk_witnesses: Some(vks),
         vk_auth_paths: Some(queries),
         proof_ids: Some(proof_ids),
         proofs: Some(old_proofs),

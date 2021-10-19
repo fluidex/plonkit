@@ -163,7 +163,7 @@ struct GenerateRecursiveVerifierOpts {
     new_vk: String,
     /// Num of inputs
     #[clap(short = "i", long = "num_inputs")]
-    num_inputs: usize,    
+    num_inputs: usize,
     /// Output solidity file
     #[clap(short = "s", long = "sol", default_value = "verifier.sol")]
     sol: String,
@@ -463,7 +463,7 @@ fn generate_recursive_verifier(opts: GenerateRecursiveVerifierOpts) {
     let config = recurisive_vk_codegen::Config {
         vk_tree_root: recursive::get_vk_tree_root_hash(old_vk).unwrap(),
         //vk_max_index: 0, //because we has aggregated only 1 vk
-        vk_input_num: opts.num_inputs,
+        individual_input_num: opts.num_inputs,
         recursive_vk,
     };
     if !opts.overwrite {

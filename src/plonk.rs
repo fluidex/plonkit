@@ -142,7 +142,7 @@ impl SetupForProver {
                     &self.hints,
                     &self.setup_polynomials,
                     &self.key_monomial_form,
-                    &key_lagrange_form,
+                    key_lagrange_form,
                 ),
                 _ => {
                     unimplemented!();
@@ -193,11 +193,11 @@ pub fn verify(
 ) -> Result<bool, SynthesisError> {
     match transcript {
         "keccak" => {
-            bellman_ce::plonk::better_cs::verifier::verify::<_, _, RollingKeccakTranscript<<E as ScalarEngine>::Fr>>(&proof, &vk, None)
+            bellman_ce::plonk::better_cs::verifier::verify::<_, _, RollingKeccakTranscript<<E as ScalarEngine>::Fr>>(proof, vk, None)
         }
         "rescue" => {
             let (bn256_param, rns_param) = get_default_rescue_transcript_params();
-            bellman_ce::plonk::better_cs::verifier::verify::<_, _, RescueTranscriptForRNS<E>>(&proof, &vk, Some((&bn256_param, &rns_param)))
+            bellman_ce::plonk::better_cs::verifier::verify::<_, _, RescueTranscriptForRNS<E>>(proof, vk, Some((&bn256_param, &rns_param)))
         }
         _ => {
             unimplemented!("invalid transcript. use 'keccak' or 'rescue'");
