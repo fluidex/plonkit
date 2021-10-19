@@ -70,9 +70,9 @@ fn read_constraints<R: Read, E: Engine>(mut reader: R, size: u64, header: &Heade
     let mut vec = Vec::with_capacity(header.n_constraints as usize);
     for _ in 0..header.n_constraints {
         vec.push((
-            read_constraint_vec::<&mut R, E>(&mut reader, &header)?,
-            read_constraint_vec::<&mut R, E>(&mut reader, &header)?,
-            read_constraint_vec::<&mut R, E>(&mut reader, &header)?,
+            read_constraint_vec::<&mut R, E>(&mut reader, header)?,
+            read_constraint_vec::<&mut R, E>(&mut reader, header)?,
+            read_constraint_vec::<&mut R, E>(&mut reader, header)?,
         ));
     }
     Ok(vec)

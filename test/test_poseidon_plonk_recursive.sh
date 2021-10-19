@@ -8,7 +8,7 @@ SETUP_MK=$SETUP_DIR"/setup_2^20.key"
 BIG_SETUP_MK=$SETUP_DIR"/setup_2^24.key"
 DOWNLOAD_SETUP_FROM_REMOTE=false
 PLONKIT_BIN=$REPO_DIR"/target/release/plonkit"
-CONTRACT_TEST_DIR=$DIR"/contract"
+CONTRACT_TEST_DIR=$DIR"/contract/recursive"
 
 echo "Step: build plonkit"
 cargo build --release
@@ -59,10 +59,22 @@ echo "Step: export recursive vk"
 time ($PLONKIT_BIN export-recursive-verification-key -c $i -i 3 -m $BIG_SETUP_MK -v $CIRCUIT_DIR/recursive_vk.bin --overwrite)
 
 echo "Step: generate recursive proof"
-time ($PLONKIT_BIN recursive-prove -m $BIG_SETUP_MK -f $OLD_PROOF_LIST -v $CIRCUIT_DIR/vk.bin -n $CIRCUIT_DIR/recursive_proof.bin --overwrite)
+time ($PLONKIT_BIN recursive-prove -m $BIG_SETUP_MK -f $OLD_PROOF_LIST -v $CIRCUIT_DIR/vk.bin -n $CIRCUIT_DIR/recursive_proof.bin -j $CIRCUIT_DIR/recursive_proof.json --overwrite)
 
 echo "Step: verify recursive proof"
 time ($PLONKIT_BIN recursive-verify -p $CIRCUIT_DIR/recursive_proof.bin -v $CIRCUIT_DIR/recursive_vk.bin)
 
 echo "Step: check aggregation"
 $PLONKIT_BIN check-aggregation -o $OLD_PROOF_LIST -v $CIRCUIT_DIR/vk.bin -n $CIRCUIT_DIR/recursive_proof.bin
+
+echo "Step: generate recursive verifier smart contract"
+$PLONKIT_BIN generate-recursive-verifier -o $CIRCUIT_DIR/vk.bin -n $CIRCUIT_DIR/recursive_vk.bin -i 3 -s $CIRCUIT_DIR/verifier.sol --overwrite #-t contrib/template.sol
+
+echo "Step: verify via smart contract"
+pushd $CONTRACT_TEST_DIR
+yarn install
+mkdir -p contracts
+cp $CIRCUIT_DIR/recursive_proof.json $CONTRACT_TEST_DIR/test/data/proof.json
+cp $CIRCUIT_DIR/verifier.sol $CONTRACT_TEST_DIR/contracts/verifier.sol
+npx hardhat test
+popd

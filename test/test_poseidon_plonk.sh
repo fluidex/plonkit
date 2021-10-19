@@ -10,7 +10,7 @@ DOWNLOAD_SETUP_FROM_REMOTE=false
 PLONKIT_BIN=$REPO_DIR"/target/release/plonkit"
 #PLONKIT_BIN="plonkit"
 DUMP_LAGRANGE_KEY=false
-CONTRACT_TEST_DIR=$DIR"/contract"
+CONTRACT_TEST_DIR=$DIR"/contract/single"
 
 echo "Step0: check for necessary dependencies: node,npm,axel"
 PKG_PATH=""

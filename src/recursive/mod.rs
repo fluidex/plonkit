@@ -25,13 +25,11 @@ use franklin_crypto::plonk::circuit::verifier_circuit::data_structs::IntoLimbedW
 use franklin_crypto::plonk::circuit::Width4WithCustomGates;
 use franklin_crypto::rescue::bn256::Bn256RescueParams;
 use itertools::Itertools;
+pub use recurisive_vk_codegen::types::{AggregatedProof, RecursiveVerificationKey};
 use recursive_aggregation_circuit::circuit::{
     create_recursive_circuit_setup, create_recursive_circuit_vk_and_setup, create_vks_tree, make_aggregate,
     make_public_input_and_limbed_aggregate, RecursiveAggregationCircuitBn256,
 };
-
-mod types;
-pub use types::{AggregatedProof, RecursiveVerificationKey};
 
 // only support depth<8. different depths don't really make performance different
 const VK_TREE_DEPTH: usize = 7;
@@ -62,17 +60,17 @@ pub fn prove(
     g2_bases.copy_from_slice(&big_crs.g2_monomial_bases.as_ref()[..]);
     let aux_data = BN256AuxData::new();
 
+    //notice we have only 1 vk now
     let vks = old_proofs.iter().map(|_| old_vk.clone()).collect_vec();
     let individual_vk_idxs = old_proofs.iter().map(|_| 0usize).collect_vec();
-    let (_, (vks_tree, all_witness_values)) = create_vks_tree(&vks, VK_TREE_DEPTH)?;
+    let (_, (vks_tree, all_witness_values)) = create_vks_tree(&[old_vk], VK_TREE_DEPTH)?;
     let vks_tree_root = vks_tree.get_commitment();
 
-    let mut proof_ids = (0..num_proofs_to_check).collect_vec();
-    proof_ids.reverse();
+    let proof_ids = individual_vk_idxs.clone();
 
     let mut queries = vec![];
     for proof_id in 0..num_proofs_to_check {
-        let vk = &vks[proof_id];
+        let vk = &vks[individual_vk_idxs[proof_id]];
 
         let leaf_values = vk.into_witness_for_params(&rns_params).expect("must transform into limbed witness");
 
@@ -94,7 +92,7 @@ pub fn prove(
         num_inputs,
         vk_tree_depth: VK_TREE_DEPTH,
         vk_root: Some(vks_tree_root),
-        vk_witnesses: Some(vks), // len(vk_witnesses) == len(old_proofs)
+        vk_witnesses: Some(vks),
         vk_auth_paths: Some(queries),
         proof_ids: Some(proof_ids),
         proofs: Some(old_proofs),
@@ -178,15 +176,19 @@ pub fn get_aggregated_input(
     let rescue_params = Bn256RescueParams::new_checked_2_into_1();
 
     let vks = old_proofs.iter().map(|_| old_vk.clone()).collect_vec();
-    let (_, (vks_tree, _)) = create_vks_tree(&vks, VK_TREE_DEPTH)?;
-    let vks_tree_root = vks_tree.get_commitment();
+    let proof_ids = (0..num_proofs_to_check).map(|_| 0usize).collect_vec();
 
-    let mut proof_ids = (0..num_proofs_to_check).collect_vec();
-    proof_ids.reverse();
+    let (_, (vks_tree, _)) = create_vks_tree(&[old_vk], VK_TREE_DEPTH)?;
+    let vks_tree_root = vks_tree.get_commitment();
 
     let aggregate = make_aggregate(&old_proofs, &vks, &rescue_params, &rns_params)?;
 
     let (expected_input, _) = make_public_input_and_limbed_aggregate(vks_tree_root, &proof_ids, &old_proofs, &aggregate, &rns_params);
 
     Ok(expected_input)
+}
+
+pub fn get_vk_tree_root_hash(old_vk: OldVerificationKey<Bn256, PlonkCsWidth4WithNextStepParams>) -> Result<bn256::Fr, anyhow::Error> {
+    let (_, (vks_tree, _)) = create_vks_tree(&vec![old_vk], VK_TREE_DEPTH)?;
+    Ok(vks_tree.get_commitment())
 }

@@ -58,7 +58,7 @@ pub fn load_verification_key<E: Engine>(filename: &str) -> VerificationKey<E, Pl
 }
 
 /// load recursive verification key file by filename
-pub fn load_recursive_verification_key(filename: &str) -> RecursiveVerificationKey {
+pub fn load_recursive_verification_key(filename: &str) -> RecursiveVerificationKey<'static> {
     let mut reader = BufReader::with_capacity(1 << 24, File::open(filename).expect("read recursive vk file err"));
     RecursiveVerificationKey::read(&mut reader).expect("read recursive vk err")
 }

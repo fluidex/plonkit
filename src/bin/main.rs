@@ -39,6 +39,8 @@ enum SubCommand {
     Verify(VerifyOpts),
     /// Generate verifier smart contract
     GenerateVerifier(GenerateVerifierOpts),
+    /// Generate recursive verifier smart contract
+    GenerateRecursiveVerifier(GenerateRecursiveVerifierOpts),
     /// Export verifying key
     ExportVerificationKey(ExportVerificationKeyOpts),
     /// Export Recursive verifying key
@@ -150,6 +152,28 @@ struct GenerateVerifierOpts {
     overwrite: bool,
 }
 
+/// A subcommand for generating a Solidity recursive verifier smart contract
+#[derive(Clap)]
+struct GenerateRecursiveVerifierOpts {
+    /// Original individual verification key file
+    #[clap(short = "o", long = "old_vk", default_value = "vk.bin")]
+    old_vk: String,
+    /// Aggregated verification key file
+    #[clap(short = "n", long = "new_vk", default_value = "recursive_vk.bin")]
+    new_vk: String,
+    /// Num of inputs
+    #[clap(short = "i", long = "num_inputs")]
+    num_inputs: usize,
+    /// Output solidity file
+    #[clap(short = "s", long = "sol", default_value = "verifier.sol")]
+    sol: String,
+    /// Solidity template file
+    #[clap(short = "t", long = "template")]
+    tpl: Option<String>,
+    #[clap(long = "overwrite")]
+    overwrite: bool,
+}
+
 /// A subcommand for exporting verifying keys
 #[derive(Clap)]
 struct ExportVerificationKeyOpts {
@@ -200,6 +224,9 @@ struct RecursiveProveOpts {
     /// Output file for aggregated proof BIN
     #[clap(short = "n", long = "new_proof", default_value = "recursive_proof.bin")]
     new_proof: String,
+    /// Output file for proof json
+    #[clap(short = "j", long = "proofjson", default_value = "recursive_proof.json")]
+    proofjson: String,
     #[clap(long = "overwrite")]
     overwrite: bool,
 }
@@ -261,6 +288,9 @@ fn main() {
         }
         SubCommand::GenerateVerifier(o) => {
             generate_verifier(o);
+        }
+        SubCommand::GenerateRecursiveVerifier(o) => {
+            generate_recursive_verifier(o);
         }
         SubCommand::ExportVerificationKey(o) => {
             export_vk(o);
@@ -426,6 +456,31 @@ fn generate_verifier(opts: GenerateVerifierOpts) {
     log::info!("Contract saved to {}", opts.sol);
 }
 
+// generate a solidity plonk verifier for proof recursion
+fn generate_recursive_verifier(opts: GenerateRecursiveVerifierOpts) {
+    let old_vk = reader::load_verification_key::<Bn256>(&opts.old_vk);
+    let recursive_vk = reader::load_recursive_verification_key(&opts.new_vk);
+    let config = recurisive_vk_codegen::Config {
+        vk_tree_root: recursive::get_vk_tree_root_hash(old_vk).unwrap(),
+        //vk_max_index: 0, //because we has aggregated only 1 vk
+        individual_input_num: opts.num_inputs,
+        recursive_vk,
+    };
+    if !opts.overwrite {
+        let path = Path::new(&opts.sol);
+        assert!(!path.exists(), "duplicate solidity file: {}", path.display());
+    }
+    match opts.tpl {
+        Some(tpl) => {
+            recurisive_vk_codegen::create_verifier_contract_from_template(config, &tpl, &opts.sol);
+        }
+        None => {
+            recurisive_vk_codegen::create_verifier_contract_from_default_template(config, &opts.sol);
+        }
+    }
+    log::info!("Contract saved to {}", opts.sol);
+}
+
 // export a verification key for a circuit, and save it to a file
 fn export_vk(opts: ExportVerificationKeyOpts) {
     let circuit_file = resolve_circuit_file(opts.circuit);
@@ -472,10 +527,16 @@ fn recursive_prove(opts: RecursiveProveOpts) {
     if !opts.overwrite {
         let path = Path::new(&opts.new_proof);
         assert!(!path.exists(), "duplicate proof file: {}", path.display());
+        let path = Path::new(&opts.proofjson);
+        assert!(!path.exists(), "duplicate proof json file: {}", path.display());
     }
     let writer = File::create(&opts.new_proof).unwrap();
     proof.write(writer).unwrap();
     log::info!("Proof saved to {}", opts.new_proof);
+
+    let ser_proof_str = serde_json::to_string_pretty(&proof).unwrap();
+    std::fs::write(&opts.proofjson, ser_proof_str.as_bytes()).expect("save proofjson err");
+    log::info!("Proof json saved to {}", opts.proofjson);
 }
 
 // verify a recursive proof by using a corresponding verification key
