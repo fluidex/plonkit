@@ -147,8 +147,8 @@ jobs:
 
       - name: Verify via smart contract
         run: |
-          cp test/circuits/poseidon/public.json test/contract/test/data/public.json
-          cp test/circuits/poseidon/proof.json test/contract/test/data/proof.json
-          cp test/circuits/poseidon/verifier.sol test/contract/contracts/verifier.sol
-          cd test/contract
+          cp test/circuits/poseidon/public.json test/contract/single/test/data/public.json
+          cp test/circuits/poseidon/proof.json test/contract/single/test/data/proof.json
+          cp test/circuits/poseidon/verifier.sol test/contract/single/contracts/verifier.sol
+          cd test/contract/single
           npx hardhat test
