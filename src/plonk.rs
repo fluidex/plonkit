@@ -1,8 +1,6 @@
 // Most of this file is forked from source codes of [Matter Labs's zkSync](https://github.com/matter-labs/zksync)
-use crate::circom_circuit::CircomCircuit;
-use crate::transpile::{transpile_with_gates_count, ConstraintStat, TranspilerWrapper};
-use bellman_ce::bn256::Bn256;
-use bellman_ce::{
+use crate::bellman_ce::bn256::Bn256;
+use crate::bellman_ce::{
     kate_commitment::{Crs, CrsForLagrangeForm, CrsForMonomialForm},
     pairing::Engine,
     plonk::{
@@ -15,6 +13,8 @@ use bellman_ce::{
     worker::Worker,
     Circuit, ScalarEngine, SynthesisError,
 };
+use crate::circom_circuit::CircomCircuit;
+use crate::transpile::{transpile_with_gates_count, ConstraintStat, TranspilerWrapper};
 
 type E = Bn256;
 use franklin_crypto::plonk::circuit::bigint::field::RnsParameters;
@@ -193,11 +193,15 @@ pub fn verify(
 ) -> Result<bool, SynthesisError> {
     match transcript {
         "keccak" => {
-            bellman_ce::plonk::better_cs::verifier::verify::<_, _, RollingKeccakTranscript<<E as ScalarEngine>::Fr>>(proof, vk, None)
+            crate::bellman_ce::plonk::better_cs::verifier::verify::<_, _, RollingKeccakTranscript<<E as ScalarEngine>::Fr>>(proof, vk, None)
         }
         "rescue" => {
             let (bn256_param, rns_param) = get_default_rescue_transcript_params();
-            bellman_ce::plonk::better_cs::verifier::verify::<_, _, RescueTranscriptForRNS<E>>(proof, vk, Some((&bn256_param, &rns_param)))
+            crate::bellman_ce::plonk::better_cs::verifier::verify::<_, _, RescueTranscriptForRNS<E>>(
+                proof,
+                vk,
+                Some((&bn256_param, &rns_param)),
+            )
         }
         _ => {
             unimplemented!("invalid transcript. use 'keccak' or 'rescue'");

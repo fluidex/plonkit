@@ -6,7 +6,7 @@ use std::fs::{File, OpenOptions};
 use std::io::{BufRead, BufReader, Read};
 use std::str;
 
-use bellman_ce::{
+use crate::bellman_ce::{
     kate_commitment::{Crs, CrsForLagrangeForm, CrsForMonomialForm},
     pairing::{bn256::Bn256, ff::PrimeField, Engine},
     plonk::{

@@ -4,9 +4,9 @@
 extern crate serde;
 #[macro_use]
 extern crate hex_literal;
-extern crate bellman_ce;
 extern crate bellman_vk_codegen;
 extern crate byteorder;
+extern crate franklin_crypto;
 extern crate itertools;
 extern crate num_bigint;
 extern crate num_traits;
@@ -19,6 +19,8 @@ pub mod reader;
 pub mod recursive;
 pub mod transpile;
 pub mod utils;
+
+pub use franklin_crypto::bellman as bellman_ce;
 
 #[cfg(test)]
 mod tests;

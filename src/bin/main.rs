@@ -1,6 +1,5 @@
 #![cfg(not(tarpaulin_include))]
 
-extern crate bellman_ce;
 extern crate bellman_vk_codegen;
 extern crate clap;
 extern crate plonkit;
@@ -10,7 +9,7 @@ use std::fs::File;
 use std::path::Path;
 use std::str;
 
-use bellman_ce::pairing::bn256::Bn256;
+use plonkit::bellman_ce::pairing::bn256::Bn256;
 
 use plonkit::circom_circuit::CircomCircuit;
 use plonkit::plonk;

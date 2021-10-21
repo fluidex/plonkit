@@ -1,3 +1,4 @@
+use crate::bellman_ce;
 use bellman_ce::pairing::Engine;
 use bellman_ce::plonk::better_cs::adaptor::{TranspilationVariant, Transpiler};
 use bellman_ce::plonk::better_cs::cs::{
