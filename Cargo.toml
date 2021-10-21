@@ -14,7 +14,7 @@ path = "src/bin/main.rs"
 
 [dependencies]
 anyhow = "1.0.34"
-bellman_ce = { git = "https://github.com/matter-labs/bellman", branch = "beta", default-features = false, features = [ "plonk" ] } # active features depend on build type
+# bellman_ce = { git = "https://github.com/matter-labs/bellman", branch = "beta", default-features = false, features = [ "plonk" ] } # active features depend on build type
 bellman_vk_codegen = { git = "https://github.com/fluidex/solidity_plonk_verifier.git" }
 byteorder = "1"
 clap = { package = "clap-v3", version = "3.0.0-beta.1" } # todo: replace with official v3 when it's released to crates.io
@@ -26,10 +26,10 @@ log = "0.4.11"
 num-bigint = "0.2.3"
 num-traits = "0.2.8"
 rand = "0.4"
-recursive_aggregation_circuit = { package = "recursive_aggregation_circuit", version = "1.0.0", git = "https://github.com/matter-labs/recursive_aggregation_circuit.git", branch = "master" }
+# recursive_aggregation_circuit = { package = "recursive_aggregation_circuit", version = "1.0.0", git = "https://github.com/matter-labs/recursive_aggregation_circuit.git", branch = "master" }
 serde = { version = "1.0", features = [ "derive" ] }
 serde_json = "1.0"
 recurisive_vk_codegen = { package = "solidity_recursive_plonk_verifier", git = "https://github.com/fluidex/solidity_recursive_plonk_verifier.git" }
 
 [features]
-default = [ "bellman_ce/multicore" ]
+default = [ ]

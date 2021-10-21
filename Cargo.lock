@@ -1349,7 +1349,6 @@ name = "plonkit"
 version = "0.1.4"
 dependencies = [
  "anyhow",
- "bellman_ce",
  "bellman_vk_codegen",
  "byteorder",
  "clap-v3",
@@ -1361,7 +1360,6 @@ dependencies = [
  "num-bigint 0.2.6",
  "num-traits",
  "rand 0.4.6",
- "recursive_aggregation_circuit",
  "serde",
  "serde_json",
  "solidity_recursive_plonk_verifier",

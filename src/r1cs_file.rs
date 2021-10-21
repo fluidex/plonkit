@@ -1,7 +1,7 @@
 // some codes borrowed from https://github.com/poma/zkutil/blob/master/src/r1cs_reader.rs
 #![allow(unused_variables, dead_code)]
 use crate::circom_circuit::Constraint;
-use bellman_ce::pairing::{
+use crate::bellman_ce::pairing::{
     bn256::Bn256,
     ff::{Field, PrimeField, PrimeFieldRepr},
     Engine,
@@ -192,7 +192,7 @@ mod tests {
     "
         );
 
-        use bellman_ce::pairing::ff;
+        use crate::bellman_ce::pairing::ff;
         let file = from_reader(&data[..]).unwrap();
         assert_eq!(file.version, 1);
 

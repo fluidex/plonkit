@@ -1,12 +1,11 @@
 #![allow(clippy::needless_range_loop)]
-extern crate bellman_ce;
 extern crate rand;
 
 use itertools::Itertools;
 use std::collections::BTreeMap;
 use std::str;
 
-use bellman_ce::{
+use crate::bellman_ce::{
     pairing::{ff::PrimeField, ff::ScalarEngine, Engine},
     Circuit, ConstraintSystem, Index, LinearCombination, SynthesisError, Variable,
 };

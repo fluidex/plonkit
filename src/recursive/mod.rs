@@ -1,24 +1,24 @@
 #![allow(clippy::needless_range_loop)]
-
+use crate::bellman_ce;
 use bellman_ce::kate_commitment::{Crs, CrsForMonomialForm};
 use bellman_ce::plonk::{
     better_cs::cs::PlonkCsWidth4WithNextStepParams,
     better_cs::keys::{Proof as OldProof, VerificationKey as OldVerificationKey},
 };
 use bellman_ce::SynthesisError;
-use franklin_crypto::bellman::pairing::bn256;
-use franklin_crypto::bellman::pairing::bn256::Bn256;
-use franklin_crypto::bellman::pairing::ff::ScalarEngine;
-use franklin_crypto::bellman::pairing::{CurveAffine, Engine};
-use franklin_crypto::bellman::plonk::better_better_cs::cs::PlonkCsWidth4WithNextStepAndCustomGatesParams;
-use franklin_crypto::bellman::plonk::better_better_cs::cs::ProvingAssembly;
-use franklin_crypto::bellman::plonk::better_better_cs::cs::TrivialAssembly;
-use franklin_crypto::bellman::plonk::better_better_cs::cs::Width4MainGateWithDNext;
-use franklin_crypto::bellman::plonk::better_better_cs::cs::{Circuit, Setup};
-use franklin_crypto::bellman::plonk::better_better_cs::setup::VerificationKey;
-use franklin_crypto::bellman::plonk::better_better_cs::verifier::verify as core_verify;
-use franklin_crypto::bellman::plonk::commitments::transcript::keccak_transcript::RollingKeccakTranscript;
-use franklin_crypto::bellman::worker::Worker;
+use bellman_ce::pairing::bn256;
+use bellman_ce::pairing::bn256::Bn256;
+use bellman_ce::pairing::ff::ScalarEngine;
+use bellman_ce::pairing::{CurveAffine, Engine};
+use bellman_ce::plonk::better_better_cs::cs::PlonkCsWidth4WithNextStepAndCustomGatesParams;
+use bellman_ce::plonk::better_better_cs::cs::ProvingAssembly;
+use bellman_ce::plonk::better_better_cs::cs::TrivialAssembly;
+use bellman_ce::plonk::better_better_cs::cs::Width4MainGateWithDNext;
+use bellman_ce::plonk::better_better_cs::cs::{Circuit, Setup};
+use bellman_ce::plonk::better_better_cs::setup::VerificationKey;
+use bellman_ce::plonk::better_better_cs::verifier::verify as core_verify;
+use bellman_ce::plonk::commitments::transcript::keccak_transcript::RollingKeccakTranscript;
+use bellman_ce::worker::Worker;
 use franklin_crypto::plonk::circuit::bigint::field::RnsParameters;
 use franklin_crypto::plonk::circuit::verifier_circuit::affine_point_wrapper::aux_data::{AuxData, BN256AuxData};
 use franklin_crypto::plonk::circuit::verifier_circuit::data_structs::IntoLimbedWitness;
@@ -26,7 +26,7 @@ use franklin_crypto::plonk::circuit::Width4WithCustomGates;
 use franklin_crypto::rescue::bn256::Bn256RescueParams;
 use itertools::Itertools;
 pub use recurisive_vk_codegen::types::{AggregatedProof, RecursiveVerificationKey};
-use recursive_aggregation_circuit::circuit::{
+use recurisive_vk_codegen::circuit::{
     create_recursive_circuit_setup, create_recursive_circuit_vk_and_setup, create_vks_tree, make_aggregate,
     make_public_input_and_limbed_aggregate, RecursiveAggregationCircuitBn256,
 };
@@ -188,7 +188,24 @@ pub fn get_aggregated_input(
     Ok(expected_input)
 }
 
+pub fn verify_subproof_limbs() {
+    let rns_params = RnsParameters::<Bn256, <Bn256 as Engine>::Fq>::new_for_field(68, 110, 4);
+
+/*
+    E := Bn256
+    let valid = E::final_exponentiation(
+        &E::miller_loop(&[
+            (&pair_with_generator.prepare(), &vk.g2_elements[0].prepare()),
+            (&pair_with_x.prepare(), &vk.g2_elements[1].prepare())
+        ])
+    ).ok_or(SynthesisError::Unsatisfiable)? == E::Fqk::one();
+*/
+
+}
+
 pub fn get_vk_tree_root_hash(old_vk: OldVerificationKey<Bn256, PlonkCsWidth4WithNextStepParams>) -> Result<bn256::Fr, anyhow::Error> {
     let (_, (vks_tree, _)) = create_vks_tree(&vec![old_vk], VK_TREE_DEPTH)?;
     Ok(vks_tree.get_commitment())
 }
+
+

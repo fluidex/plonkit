@@ -2,7 +2,7 @@ use std::fs;
 
 use crate::circom_circuit::CircomCircuit;
 use crate::{plonk, reader};
-use bellman_ce::bn256::Bn256;
+use crate::bellman_ce::bn256::Bn256;
 
 const CIRCUIT_FILE: &'static str = concat!(env!("CARGO_MANIFEST_DIR"), "/test/circuits/simple/circuit.r1cs.json");
 const WITNESS_FILE: &'static str = concat!(env!("CARGO_MANIFEST_DIR"), "/test/circuits/simple/witness.json");
