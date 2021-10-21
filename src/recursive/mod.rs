@@ -1,11 +1,6 @@
 #![allow(clippy::needless_range_loop)]
-use crate::bellman_ce;
+use crate::{bellman_ce, utils};
 use bellman_ce::kate_commitment::{Crs, CrsForMonomialForm};
-use bellman_ce::plonk::{
-    better_cs::cs::PlonkCsWidth4WithNextStepParams,
-    better_cs::keys::{Proof as OldProof, VerificationKey as OldVerificationKey},
-};
-use bellman_ce::SynthesisError;
 use bellman_ce::pairing::bn256;
 use bellman_ce::pairing::bn256::Bn256;
 use bellman_ce::pairing::ff::ScalarEngine;
@@ -18,18 +13,23 @@ use bellman_ce::plonk::better_better_cs::cs::{Circuit, Setup};
 use bellman_ce::plonk::better_better_cs::setup::VerificationKey;
 use bellman_ce::plonk::better_better_cs::verifier::verify as core_verify;
 use bellman_ce::plonk::commitments::transcript::keccak_transcript::RollingKeccakTranscript;
+use bellman_ce::plonk::{
+    better_cs::cs::PlonkCsWidth4WithNextStepParams,
+    better_cs::keys::{Proof as OldProof, VerificationKey as OldVerificationKey},
+};
 use bellman_ce::worker::Worker;
+use bellman_ce::{Field, SynthesisError};
 use franklin_crypto::plonk::circuit::bigint::field::RnsParameters;
 use franklin_crypto::plonk::circuit::verifier_circuit::affine_point_wrapper::aux_data::{AuxData, BN256AuxData};
 use franklin_crypto::plonk::circuit::verifier_circuit::data_structs::IntoLimbedWitness;
 use franklin_crypto::plonk::circuit::Width4WithCustomGates;
 use franklin_crypto::rescue::bn256::Bn256RescueParams;
 use itertools::Itertools;
-pub use recurisive_vk_codegen::types::{AggregatedProof, RecursiveVerificationKey};
 use recurisive_vk_codegen::circuit::{
     create_recursive_circuit_setup, create_recursive_circuit_vk_and_setup, create_vks_tree, make_aggregate,
     make_public_input_and_limbed_aggregate, RecursiveAggregationCircuitBn256,
 };
+pub use recurisive_vk_codegen::types::{AggregatedProof, RecursiveVerificationKey};
 
 // only support depth<8. different depths don't really make performance different
 const VK_TREE_DEPTH: usize = 7;
@@ -135,6 +135,42 @@ pub fn prove(
     })
 }
 
+fn verify_subproof_limbs(
+    proof: &AggregatedProof,
+    vk: &VerificationKey<Bn256, RecursiveAggregationCircuitBn256>,
+) -> Result<bool, SynthesisError> {
+    let mut rns_params = RnsParameters::<Bn256, <Bn256 as Engine>::Fq>::new_for_field(68, 110, 4);
+
+    //keep the behavior same as recursive_aggregation_circuit
+    rns_params.set_prefer_single_limb_allocation(true);
+
+    let aggr_limbs_nums: Vec<utils::BigUint> = proof.aggr_limbs.iter().map(utils::fe_to_biguint).collect();
+    //we need 4 Fr to build 2 G1Affine ...
+    let num_consume = rns_params.num_limbs_for_in_field_representation;
+    assert_eq!(num_consume * 4, aggr_limbs_nums.len());
+
+    let mut start = 0;
+    let pg_x = utils::witness_to_field(&aggr_limbs_nums[start..start + num_consume], &rns_params);
+    start += num_consume;
+    let pg_y = utils::witness_to_field(&aggr_limbs_nums[start..start + num_consume], &rns_params);
+    start += num_consume;
+    let px_x = utils::witness_to_field(&aggr_limbs_nums[start..start + num_consume], &rns_params);
+    start += num_consume;
+    let px_y = utils::witness_to_field(&aggr_limbs_nums[start..start + num_consume], &rns_params);
+
+    let pair_with_generator = bn256::G1Affine::from_xy_checked(pg_x, pg_y).map_err(|_| SynthesisError::Unsatisfiable)?;
+    let pair_with_x = bn256::G1Affine::from_xy_checked(px_x, px_y).map_err(|_| SynthesisError::Unsatisfiable)?;
+
+    let valid = Bn256::final_exponentiation(&Bn256::miller_loop(&[
+        (&pair_with_generator.prepare(), &vk.g2_elements[0].prepare()),
+        (&pair_with_x.prepare(), &vk.g2_elements[1].prepare()),
+    ]))
+    .ok_or(SynthesisError::Unsatisfiable)?
+        == <Bn256 as Engine>::Fqk::one();
+
+    Ok(valid)
+}
+
 // verify a recursive proof by using a corresponding verification key
 pub fn verify(
     vk: VerificationKey<Bn256, RecursiveAggregationCircuitBn256>,
@@ -145,7 +181,15 @@ pub fn verify(
         inputs.push(chunk);
     }
     log::info!("individual_inputs: {:#?}", inputs);
-    core_verify::<_, _, RollingKeccakTranscript<<Bn256 as ScalarEngine>::Fr>>(&vk, &aggregated_proof.proof, None)
+    //notice in PlonkCore.sol the aggregate pairs from subproofs and recursive proofs are combined: 1 * inner + challenge * outer
+    //and only one verify on pairing has been run to save some gas
+    //here we just verify them respectively
+    let valid = core_verify::<_, _, RollingKeccakTranscript<<Bn256 as ScalarEngine>::Fr>>(&vk, &aggregated_proof.proof, None)?;
+    if !valid {
+        return Ok(valid);
+    }
+    log::info!("aggregated proof is valid");
+    verify_subproof_limbs(&aggregated_proof, &vk)
 }
 
 // export a verification key for a recursion circuit
@@ -188,24 +232,7 @@ pub fn get_aggregated_input(
     Ok(expected_input)
 }
 
-pub fn verify_subproof_limbs() {
-    let rns_params = RnsParameters::<Bn256, <Bn256 as Engine>::Fq>::new_for_field(68, 110, 4);
-
-/*
-    E := Bn256
-    let valid = E::final_exponentiation(
-        &E::miller_loop(&[
-            (&pair_with_generator.prepare(), &vk.g2_elements[0].prepare()),
-            (&pair_with_x.prepare(), &vk.g2_elements[1].prepare())
-        ])
-    ).ok_or(SynthesisError::Unsatisfiable)? == E::Fqk::one();
-*/
-
-}
-
 pub fn get_vk_tree_root_hash(old_vk: OldVerificationKey<Bn256, PlonkCsWidth4WithNextStepParams>) -> Result<bn256::Fr, anyhow::Error> {
     let (_, (vks_tree, _)) = create_vks_tree(&vec![old_vk], VK_TREE_DEPTH)?;
     Ok(vks_tree.get_commitment())
 }
-
-

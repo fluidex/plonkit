@@ -1,11 +1,11 @@
 // some codes borrowed from https://github.com/poma/zkutil/blob/master/src/r1cs_reader.rs
 #![allow(unused_variables, dead_code)]
-use crate::circom_circuit::Constraint;
 use crate::bellman_ce::pairing::{
     bn256::Bn256,
     ff::{Field, PrimeField, PrimeFieldRepr},
     Engine,
 };
+use crate::circom_circuit::Constraint;
 use byteorder::{LittleEndian, ReadBytesExt};
 use std::io::{Error, ErrorKind, Read, Result};
 

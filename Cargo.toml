@@ -23,7 +23,7 @@ franklin-crypto = { git = "https://github.com/matter-labs/franklin-crypto", bran
 hex-literal = "0.2.1"
 itertools = "0.8.1"
 log = "0.4.11"
-num-bigint = "0.2.3"
+num-bigint = "0.3.3"
 num-traits = "0.2.8"
 rand = "0.4"
 # recursive_aggregation_circuit = { package = "recursive_aggregation_circuit", version = "1.0.0", git = "https://github.com/matter-labs/recursive_aggregation_circuit.git", branch = "master" }

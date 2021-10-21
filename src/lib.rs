@@ -4,9 +4,9 @@
 extern crate serde;
 #[macro_use]
 extern crate hex_literal;
-extern crate franklin_crypto;
 extern crate bellman_vk_codegen;
 extern crate byteorder;
+extern crate franklin_crypto;
 extern crate itertools;
 extern crate num_bigint;
 extern crate num_traits;
