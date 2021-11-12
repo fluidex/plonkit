@@ -6,7 +6,7 @@ description = "Library for working with circom circuits in plonk proof system"
 homepage = "https://github.com/fluidex/plonkit"
 license = "MIT"
 repository = "https://github.com/fluidex/plonkit"
-edition = "2018"
+edition = "2021"
 
 [[bin]]
 name = "plonkit"
