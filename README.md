@@ -5,7 +5,9 @@
 A zkSNARK toolkit to work with [circom](https://github.com/iden3/circom) zkSNARKs DSL in [plonk](https://eprint.iacr.org/2019/953) proof system. Based on [zkutil](https://github.com/poma/zkutil) and [bellman_ce](https://github.com/matter-labs/bellman).
 
 ## Prerequisites
-+ https://github.com/fluidex/snarkit
+
+1. install [circom](https://docs.circom.io/getting-started/installation/) into $PATH
+2. install snarkit2 into $PATH: `npm install -g snarkit2`
 
 ## Features
 
@@ -75,7 +77,7 @@ circuit.circom  input.json  setup_2^20.key
 
 # generate witness for this circuit
 # another option here is use the snarkjs/circom cli like contrib/process_circom_circuit.sh
-> npx snarkit check . --witness_type bin --backend wasm
+> snarkit2 check . --witness_type bin --backend wasm
 
 
 # Generate a snark proof using the universal setup monomial-form SRS

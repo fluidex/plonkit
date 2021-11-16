@@ -7,9 +7,13 @@ use crate::bellman_ce::pairing::{
 };
 use crate::circom_circuit::Constraint;
 use byteorder::{LittleEndian, ReadBytesExt};
-use std::io::{Error, ErrorKind, Read, Result};
+use std::{
+    collections::HashMap,
+    io::{Error, ErrorKind, Read, Result, Seek, SeekFrom},
+};
 
 // R1CSFile's header
+#[derive(Debug, Default)]
 pub struct Header {
     pub field_size: u32,
     pub prime_size: Vec<u8>,
@@ -22,6 +26,7 @@ pub struct Header {
 }
 
 // R1CSFile parse result
+#[derive(Debug, Default)]
 pub struct R1CSFile<E: Engine> {
     pub version: u32,
     pub header: Header,
@@ -92,7 +97,7 @@ fn read_map<R: Read>(mut reader: R, size: u64, header: &Header) -> Result<Vec<u6
     Ok(vec)
 }
 
-pub fn from_reader<R: Read>(mut reader: R) -> Result<R1CSFile<Bn256>> {
+pub fn from_reader<R: Read + Seek>(mut reader: R) -> Result<R1CSFile<Bn256>> {
     let mut magic = [0u8; 4];
     reader.read_exact(&mut magic)?;
     if magic != [0x72, 0x31, 0x63, 0x73] {
@@ -107,24 +112,38 @@ pub fn from_reader<R: Read>(mut reader: R) -> Result<R1CSFile<Bn256>> {
 
     let num_sections = reader.read_u32::<LittleEndian>()?;
 
-    // todo: rewrite this to support different section order and unknown sections
-    // todo: handle sec_size correctly
-    let sec_type = reader.read_u32::<LittleEndian>()?;
-    let sec_size = reader.read_u64::<LittleEndian>()?;
-    let header = read_header(&mut reader, sec_size)?;
+    // section type -> file offset
+    let mut section_offsets = HashMap::<u32, u64>::new();
+    let mut section_sizes = HashMap::<u32, u64>::new();
+
+    // get file offset of each section
+    for _ in 0..num_sections {
+        let section_type = reader.read_u32::<LittleEndian>()?;
+        let section_size = reader.read_u64::<LittleEndian>()?;
+        let offset = reader.seek(SeekFrom::Current(0))?;
+        section_offsets.insert(section_type, offset);
+        section_sizes.insert(section_type, section_size);
+        reader.seek(SeekFrom::Current(section_size as i64))?;
+    }
+
+    let header_type = 1;
+    let constraint_type = 2;
+    let wire2label_type = 3;
+
+    reader.seek(SeekFrom::Start(*section_offsets.get(&header_type).unwrap()))?;
+    let header = read_header(&mut reader, *section_sizes.get(&header_type).unwrap())?;
     if header.field_size != 32 {
         return Err(Error::new(ErrorKind::InvalidData, "This parser only supports 32-byte fields"));
     }
     if header.prime_size != hex!("010000f093f5e1439170b97948e833285d588181b64550b829a031e1724e6430") {
         return Err(Error::new(ErrorKind::InvalidData, "This parser only supports bn256"));
     }
-    let sec_type = reader.read_u32::<LittleEndian>()?;
-    let sec_size = reader.read_u64::<LittleEndian>()?;
-    let constraints = read_constraints::<&mut R, Bn256>(&mut reader, sec_size, &header)?;
 
-    let sec_type = reader.read_u32::<LittleEndian>()?;
-    let sec_size = reader.read_u64::<LittleEndian>()?;
-    let wire_mapping = read_map(&mut reader, sec_size, &header)?;
+    reader.seek(SeekFrom::Start(*section_offsets.get(&constraint_type).unwrap()))?;
+    let constraints = read_constraints::<&mut R, Bn256>(&mut reader, *section_sizes.get(&constraint_type).unwrap(), &header)?;
+
+    reader.seek(SeekFrom::Start(*section_offsets.get(&wire2label_type).unwrap()))?;
+    let wire_mapping = read_map(&mut reader, *section_sizes.get(&wire2label_type).unwrap(), &header)?;
 
     Ok(R1CSFile {
         version,
@@ -136,6 +155,8 @@ pub fn from_reader<R: Read>(mut reader: R) -> Result<R1CSFile<Bn256>> {
 
 #[cfg(test)]
 mod tests {
+    use std::io::{BufReader, Cursor};
+
     use super::*;
 
     #[test]
@@ -193,7 +214,8 @@ mod tests {
         );
 
         use crate::bellman_ce::pairing::ff;
-        let file = from_reader(&data[..]).unwrap();
+        let reader = BufReader::new(Cursor::new(&data[..]));
+        let file = from_reader(reader).unwrap();
         assert_eq!(file.version, 1);
 
         assert_eq!(file.header.field_size, 32);
@@ -226,6 +248,6 @@ mod tests {
         let mut buf: Vec<u8> = 32_u32.to_le_bytes().to_vec();
         buf.resize(4 + 32, 0);
         let err = read_header(&mut buf.as_slice(), 32).err().unwrap();
-        assert_eq!(err.kind(), ErrorKind::InvalidData)
+        assert_eq!(err.kind(), ErrorKind::UnexpectedEof)
     }
 }
