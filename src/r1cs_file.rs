@@ -248,6 +248,6 @@ mod tests {
         let mut buf: Vec<u8> = 32_u32.to_le_bytes().to_vec();
         buf.resize(4 + 32, 0);
         let err = read_header(&mut buf.as_slice(), 32).err().unwrap();
-        assert_eq!(err.kind(), ErrorKind::UnexpectedEof)
+        assert_eq!(err.kind(), ErrorKind::InvalidData)
     }
 }
