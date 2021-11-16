@@ -18,7 +18,7 @@ use plonkit::recursive;
 
 /// A zkSNARK toolkit to work with circom zkSNARKs DSL in plonk proof system
 #[derive(Clap)]
-#[clap(version = "0.0.4")]
+#[clap(version = "0.1.6")]
 struct Opts {
     #[clap(subcommand)]
     command: SubCommand,
