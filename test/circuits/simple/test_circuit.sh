@@ -51,7 +51,7 @@ fi
 popd
 
 echo "Step3: compile circuit and calculate witness"
-npx snarkit check $CIRCUIT_DIR --witness_type json
+npx snarkit2 check $CIRCUIT_DIR --witness_type json
 npx snarkjs rej $CIRCUIT_DIR/circuit.r1cs $CIRCUIT_DIR/circuit.r1cs.json
 
 echo "Step4: export verification key"
