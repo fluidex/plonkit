@@ -5,6 +5,9 @@ extern crate clap;
 extern crate plonkit;
 
 use clap::Clap;
+use plonkit::bellman_ce::kate_commitment::Crs;
+use plonkit::bellman_ce::kate_commitment::CrsForLagrangeForm;
+use plonkit::bellman_ce::worker::Worker;
 use std::fs::File;
 use std::path::Path;
 use std::str;
@@ -358,19 +361,10 @@ fn resolve_circuit_file(filename: Option<String>) -> String {
 
 // generate a lagrange_form SRS from a monomial_form SRS, and save it to a file
 fn dump_lagrange(opts: DumpLagrangeOpts) {
-    let circuit_file = resolve_circuit_file(opts.circuit);
-    log::info!("Loading circuit from {}...", circuit_file);
-    let circuit = CircomCircuit {
-        r1cs: reader::load_r1cs(&circuit_file),
-        witness: None,
-        wire_mapping: None,
-        aux_offset: plonk::AUX_OFFSET,
-    };
+    let key_monomial_form = reader::load_key_monomial_form(&opts.srs_monomial_form);
 
-    let setup = plonk::SetupForProver::prepare_setup_for_prover(circuit, reader::load_key_monomial_form(&opts.srs_monomial_form), None)
-        .expect("prepare err");
-
-    let key_lagrange_form = setup.get_srs_lagrange_form_from_monomial_form();
+    let key_lagrange_form =
+        Crs::<Bn256, CrsForLagrangeForm>::from_powers(&key_monomial_form, key_monomial_form.g1_bases.len(), &Worker::new());
     if !opts.overwrite {
         let path = Path::new(&opts.srs_lagrange_form);
         assert!(!path.exists(), "duplicate srs_lagrange_form file: {}", path.display());

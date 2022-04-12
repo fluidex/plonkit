@@ -4,14 +4,14 @@ use crate::bellman_ce::bn256::Bn256;
 use crate::circom_circuit::CircomCircuit;
 use crate::{plonk, reader};
 
-const CIRCUIT_FILE: &'static str = concat!(env!("CARGO_MANIFEST_DIR"), "/test/circuits/simple/circuit.r1cs.json");
-const WITNESS_FILE: &'static str = concat!(env!("CARGO_MANIFEST_DIR"), "/test/circuits/simple/witness.json");
-const VK_FILE: &'static str = concat!(env!("CARGO_MANIFEST_DIR"), "/test/circuits/simple/vk.bin");
-const PROOF_FILE: &'static str = concat!(env!("CARGO_MANIFEST_DIR"), "/test/circuits/simple/proof.bin");
-const MONOMIAL_KEY_FILE: &'static str = concat!(env!("CARGO_MANIFEST_DIR"), "/keys/setup/setup_2^10.key");
-const DEFAULT_TRANSCRIPT: &'static str = "keccak";
+const CIRCUIT_FILE: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/test/circuits/simple/circuit.r1cs.json");
+const WITNESS_FILE: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/test/circuits/simple/witness.json");
+const VK_FILE: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/test/circuits/simple/vk.bin");
+const PROOF_FILE: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/test/circuits/simple/proof.bin");
+const MONOMIAL_KEY_FILE: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/keys/setup/setup_2^10.key");
+const DEFAULT_TRANSCRIPT: &str = "keccak";
 
-const CIRCUIT_ANALYZE_RESULT: &'static str = r#"{"num_inputs":2,"num_aux":2,"num_variables":4,"num_constraints":2,"num_nontrivial_constraints":2,"num_gates":3,"num_hints":2,"constraint_stats":[{"name":"0","num_gates":1},{"name":"1","num_gates":2}]}"#;
+const CIRCUIT_ANALYZE_RESULT: &str = r#"{"num_inputs":2,"num_aux":2,"num_variables":4,"num_constraints":2,"num_nontrivial_constraints":2,"num_gates":3,"num_hints":2,"constraint_stats":[{"name":"0","num_gates":1},{"name":"1","num_gates":2}]}"#;
 
 #[test]
 fn test_analyze() {
